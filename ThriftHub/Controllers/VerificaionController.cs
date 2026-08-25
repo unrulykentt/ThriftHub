@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using ThriftHub.Models;
@@ -103,8 +103,8 @@ namespace ThriftHub.Controllers
             var uploadFolder =
                 Path.Combine(
                     _environment.WebRootPath,
-                    "Uploads",
-                    "Verification");
+                    "uploads",
+                    "verification");
 
 
             if (!Directory.Exists(uploadFolder))
