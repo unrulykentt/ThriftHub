@@ -139,134 +139,139 @@ namespace ThriftHub.Controllers
             }
 
 
-            // ========================================================
-            // ID TYPE
-            // ========================================================
+            var idCardNumber = string.Empty;
+            var frontExtension = string.Empty;
+            var backExtension = string.Empty;
 
-            if (string.IsNullOrWhiteSpace(
-                    model.IdCardType))
+            if (userType.Equals("Seller", StringComparison.OrdinalIgnoreCase))
             {
-                ModelState.AddModelError(
-                    "IdCardType",
-                    "Please select your ID type.");
+                // ========================================================
+                // ID TYPE
+                // ========================================================
 
-                return View(model);
-            }
-
-
-            // ========================================================
-            // ID NUMBER
-            // ========================================================
-
-            var idCardNumber =
-                model.IdCardNumber?.Trim();
-
-            if (string.IsNullOrWhiteSpace(
-                    idCardNumber))
-            {
-                ModelState.AddModelError(
-                    "IdCardNumber",
-                    "Please enter your ID card number.");
-
-                return View(model);
-            }
-
-
-            // ========================================================
-            // ID FRONT
-            // ========================================================
-
-            if (model.IdCardFront == null ||
-                model.IdCardFront.Length == 0)
-            {
-                ModelState.AddModelError(
-                    "IdCardFront",
-                    "Please upload the front of your ID card.");
-
-                return View(model);
-            }
-
-
-            // ========================================================
-            // FILE VALIDATION
-            // ========================================================
-
-            var allowedExtensions =
-                new[]
-                {
-                    ".jpg",
-                    ".jpeg",
-                    ".png",
-                    ".webp",
-                    ".pdf"
-                };
-
-            const long maximumFileSize =
-                5 * 1024 * 1024;
-
-
-            var frontExtension =
-                Path.GetExtension(
-                    model.IdCardFront.FileName)
-                    .ToLowerInvariant();
-
-
-            if (!allowedExtensions.Contains(
-                    frontExtension))
-            {
-                ModelState.AddModelError(
-                    "IdCardFront",
-                    "Invalid ID front file type. Please upload JPG, JPEG, PNG, WEBP or PDF.");
-
-                return View(model);
-            }
-
-
-            if (model.IdCardFront.Length >
-                maximumFileSize)
-            {
-                ModelState.AddModelError(
-                    "IdCardFront",
-                    "The ID front file must not be larger than 5 MB.");
-
-                return View(model);
-            }
-
-
-            // ========================================================
-            // ID BACK
-            // ========================================================
-
-            string? backExtension = null;
-
-            if (model.IdCardBack != null &&
-                model.IdCardBack.Length > 0)
-            {
-                backExtension =
-                    Path.GetExtension(
-                        model.IdCardBack.FileName)
-                        .ToLowerInvariant();
-
-
-                if (!allowedExtensions.Contains(
-                        backExtension))
+                if (string.IsNullOrWhiteSpace(
+                        model.IdCardType))
                 {
                     ModelState.AddModelError(
-                        "IdCardBack",
-                        "Invalid ID back file type. Please upload JPG, JPEG, PNG, WEBP or PDF.");
+                        "IdCardType",
+                        "Please select your ID type.");
 
                     return View(model);
                 }
 
 
-                if (model.IdCardBack.Length >
+                // ========================================================
+                // ID NUMBER
+                // ========================================================
+
+                idCardNumber =
+                    model.IdCardNumber?.Trim() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(
+                        idCardNumber))
+                {
+                    ModelState.AddModelError(
+                        "IdCardNumber",
+                        "Please enter your ID card number.");
+
+                    return View(model);
+                }
+
+
+                // ========================================================
+                // ID FRONT
+                // ========================================================
+
+                if (model.IdCardFront == null ||
+                    model.IdCardFront.Length == 0)
+                {
+                    ModelState.AddModelError(
+                        "IdCardFront",
+                        "Please upload the front of your ID card.");
+
+                    return View(model);
+                }
+
+
+                // ========================================================
+                // FILE VALIDATION
+                // ========================================================
+
+                var allowedExtensions =
+                    new[]
+                    {
+                        ".jpg",
+                        ".jpeg",
+                        ".png",
+                        ".webp",
+                        ".pdf"
+                    };
+
+                const long maximumFileSize =
+                    5 * 1024 * 1024;
+
+
+                frontExtension =
+                    Path.GetExtension(
+                        model.IdCardFront.FileName)
+                        .ToLowerInvariant();
+
+
+                if (!allowedExtensions.Contains(
+                        frontExtension))
+                {
+                    ModelState.AddModelError(
+                        "IdCardFront",
+                        "Invalid ID front file type. Please upload JPG, JPEG, PNG, WEBP or PDF.");
+
+                    return View(model);
+                }
+
+
+                if (model.IdCardFront.Length >
                     maximumFileSize)
                 {
                     ModelState.AddModelError(
-                        "IdCardBack",
-                        "The ID back file must not be larger than 5 MB.");
+                        "IdCardFront",
+                        "The ID front file must not be larger than 5 MB.");
 
                     return View(model);
+                }
+
+
+                // ========================================================
+                // ID BACK
+                // ========================================================
+
+                if (model.IdCardBack != null &&
+                    model.IdCardBack.Length > 0)
+                {
+                    backExtension =
+                        Path.GetExtension(
+                            model.IdCardBack.FileName)
+                            .ToLowerInvariant();
+
+
+                    if (!allowedExtensions.Contains(
+                            backExtension))
+                    {
+                        ModelState.AddModelError(
+                            "IdCardBack",
+                            "Invalid ID back file type. Please upload JPG, JPEG, PNG, WEBP or PDF.");
+
+                        return View(model);
+                    }
+
+
+                    if (model.IdCardBack.Length >
+                        maximumFileSize)
+                    {
+                        ModelState.AddModelError(
+                            "IdCardBack",
+                            "The ID back file must not be larger than 5 MB.");
+
+                        return View(model);
+                    }
                 }
             }
 
@@ -311,7 +316,7 @@ namespace ThriftHub.Controllers
                             : "NotSubmitted",
 
                     IdCardType =
-                        model.IdCardType.Trim(),
+                        model.IdCardType?.Trim() ?? string.Empty,
 
                     IdCardNumber =
                         idCardNumber,
@@ -372,174 +377,162 @@ namespace ThriftHub.Controllers
                 string.Empty;
 
 
-            try
+            if (userType.Equals("Seller", StringComparison.OrdinalIgnoreCase))
             {
-                var idDirectory =
-                    Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        "uploads",
-                        "id-cards");
-
-
-                if (!Directory.Exists(idDirectory))
+                try
                 {
-                    Directory.CreateDirectory(idDirectory);
-                }
+                    var idDirectory =
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            "uploads",
+                            "id-cards");
 
 
-                // ----------------------------------------------------
-                // FRONT
-                // ----------------------------------------------------
-
-                var frontFileName =
-                    Guid.NewGuid()
-                        .ToString("N")
-                    + frontExtension;
+                    if (!Directory.Exists(idDirectory))
+                    {
+                        Directory.CreateDirectory(idDirectory);
+                    }
 
 
-                var frontFilePath =
-                    Path.Combine(
-                        idDirectory,
-                        frontFileName);
+                    // ----------------------------------------------------
+                    // FRONT
+                    // ----------------------------------------------------
 
-
-                await using (
-                    var frontStream =
-                        new FileStream(
-                            frontFilePath,
-                            FileMode.CreateNew))
-                {
-                    await model.IdCardFront.CopyToAsync(
-                        frontStream);
-                }
-
-
-                savedFrontPath =
-                    frontFilePath;
-
-
-                user.IdCardFrontUrl =
-                    "/uploads/id-cards/" +
-                    frontFileName;
-
-
-                // ----------------------------------------------------
-                // BACK
-                // ----------------------------------------------------
-
-                if (model.IdCardBack != null &&
-                    model.IdCardBack.Length > 0 &&
-                    !string.IsNullOrWhiteSpace(
-                        backExtension))
-                {
-                    var backFileName =
+                    var frontFileName =
                         Guid.NewGuid()
                             .ToString("N")
-                        + backExtension;
+                        + frontExtension;
 
 
-                    var backFilePath =
+                    var frontFilePath =
                         Path.Combine(
                             idDirectory,
-                            backFileName);
+                            frontFileName);
 
 
                     await using (
-                        var backStream =
+                        var frontStream =
                             new FileStream(
-                                backFilePath,
+                                frontFilePath,
                                 FileMode.CreateNew))
                     {
-                        await model.IdCardBack.CopyToAsync(
-                            backStream);
+                        await model.IdCardFront!.CopyToAsync(
+                            frontStream);
                     }
 
 
-                    savedBackPath =
-                        backFilePath;
+                    savedFrontPath =
+                        frontFilePath;
 
 
-                    user.IdCardBackUrl =
+                    user.IdCardFrontUrl =
                         "/uploads/id-cards/" +
-                        backFileName;
-                }
+                        frontFileName;
 
 
-                var updateResult =
-                    await _userManager.UpdateAsync(user);
+                    // ----------------------------------------------------
+                    // BACK
+                    // ----------------------------------------------------
 
-
-                if (!updateResult.Succeeded)
-                {
-                    foreach (var error in updateResult.Errors)
+                    if (model.IdCardBack != null &&
+                        model.IdCardBack.Length > 0 &&
+                        !string.IsNullOrWhiteSpace(
+                            backExtension))
                     {
-                        ModelState.AddModelError(
-                            "",
-                            error.Description);
+                        var backFileName =
+                            Guid.NewGuid()
+                                .ToString("N")
+                            + backExtension;
+
+
+                        var backFilePath =
+                            Path.Combine(
+                                idDirectory,
+                                backFileName);
+
+
+                        await using (
+                            var backStream =
+                                new FileStream(
+                                    backFilePath,
+                                    FileMode.CreateNew))
+                        {
+                            await model.IdCardBack.CopyToAsync(
+                                backStream);
+                        }
+
+
+                        savedBackPath =
+                            backFilePath;
+
+
+                        user.IdCardBackUrl =
+                            "/uploads/id-cards/" +
+                            backFileName;
                     }
+
+
+                    var updateResult =
+                        await _userManager.UpdateAsync(user);
+
+
+                    if (!updateResult.Succeeded)
+                    {
+                        foreach (var error in updateResult.Errors)
+                        {
+                            ModelState.AddModelError(
+                                "",
+                                error.Description);
+                        }
+
+                        await _userManager.DeleteAsync(user);
+                        return View(model);
+                    }
+                }
+                catch
+                {
+                    await _userManager.DeleteAsync(user);
 
 
                     if (System.IO.File.Exists(
                             savedFrontPath))
                     {
-                        System.IO.File.Delete(
-                            savedFrontPath);
+                        try
+                        {
+                            System.IO.File.Delete(
+                                savedFrontPath);
+                        }
+                        catch
+                        {
+                        }
                     }
 
 
                     if (System.IO.File.Exists(
                             savedBackPath))
                     {
-                        System.IO.File.Delete(
-                            savedBackPath);
+                        try
+                        {
+                            System.IO.File.Delete(
+                                savedBackPath);
+                        }
+                        catch
+                        {
+                        }
                     }
 
 
-                    await _userManager.DeleteAsync(user);
+                    ModelState.AddModelError(
+                        "",
+                        "We could not save your verification ID documents. Please try again.");
 
                     return View(model);
                 }
             }
-            catch
-            {
-                if (System.IO.File.Exists(
-                        savedFrontPath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(
-                            savedFrontPath);
-                    }
-                    catch
-                    {
-                    }
-                }
 
 
-                if (System.IO.File.Exists(
-                        savedBackPath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(
-                            savedBackPath);
-                    }
-                    catch
-                    {
-                    }
-                }
 
-
-                await _userManager.DeleteAsync(user);
-
-
-                ModelState.AddModelError(
-                    "",
-                    "We could not save your identity document. Please try again.");
-
-                return View(model);
-            }
 
 
             // ========================================================

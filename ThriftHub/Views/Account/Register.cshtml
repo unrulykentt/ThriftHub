@@ -1,4 +1,4 @@
-﻿@model ThriftHub.Models.RegisterViewModel
+@model ThriftHub.Models.RegisterViewModel
 
 @{
     ViewData["Title"] = "Create Account";
@@ -219,7 +219,7 @@
                              IDENTITY VERIFICATION
                              ================================================= -->
 
-                        <div class="identity-section mt-4">
+                        <div id="identitySection" class="identity-section mt-4">
 
                             <h5 class="section-title">
                                 Identity Verification
@@ -569,4 +569,30 @@
 @section Scripts
 {
     <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        $(document).ready(function () {
+            function toggleIdentitySection() {
+                var userType = $("#UserType").val();
+                var $identitySection = $("#identitySection");
+                var $inputs = $identitySection.find("input, select");
+
+                if (userType === "Seller") {
+                    $identitySection.show();
+                    $inputs.prop("disabled", false);
+                } else {
+                    $identitySection.hide();
+                    $inputs.prop("disabled", true);
+                }
+            }
+
+            // Run on page load
+            toggleIdentitySection();
+
+            // Run when UserType changes
+            $("#UserType").change(function () {
+                toggleIdentitySection();
+            });
+        });
+    </script>
 }

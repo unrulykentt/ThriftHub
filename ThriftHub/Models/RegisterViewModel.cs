@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 
 namespace ThriftHub.Models
@@ -51,21 +51,18 @@ namespace ThriftHub.Models
         // IDENTITY VERIFICATION
         // ============================================================
 
-        [Required]
         [Display(Name = "ID Type")]
-        public string IdCardType { get; set; } = string.Empty;
+        public string? IdCardType { get; set; }
 
 
-        [Required]
         [Display(Name = "ID Card Number")]
-        public string IdCardNumber { get; set; } = string.Empty;
+        public string? IdCardNumber { get; set; }
 
 
         // ============================================================
         // ID CARD FRONT
         // ============================================================
 
-        [Required]
         [Display(Name = "ID Card Front")]
         public IFormFile? IdCardFront { get; set; }
 
