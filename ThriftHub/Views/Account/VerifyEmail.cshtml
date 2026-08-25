@@ -1,0 +1,125 @@
+﻿@model ThriftHub.Models.VerifyEmailModel
+
+@{
+    ViewData["Title"] = "Verify Email";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+
+                    <!-- ================================================= -->
+                    <!-- TITLE -->
+                    <!-- ================================================= -->
+
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold">
+                            Verify Your Email
+                        </h2>
+
+                        <p class="text-muted mb-0">
+                            We sent a 6-digit verification code to your email address.
+                        </p>
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- VALIDATION SUMMARY -->
+                    <!-- ================================================= -->
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="text-danger mb-3">
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- VERIFICATION FORM -->
+                    <!-- ================================================= -->
+
+                    <form asp-controller="Account"
+                          asp-action="VerifyEmail"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ================================================= -->
+                        <!-- IMPORTANT: EMAIL -->
+                        <!-- ================================================= -->
+
+                        <input type="hidden"
+                               asp-for="Email" />
+
+
+                        <!-- ================================================= -->
+                        <!-- VERIFICATION CODE -->
+                        <!-- ================================================= -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Code"
+                                   class="form-label fw-semibold">
+                                Verification Code
+                            </label>
+
+                            <input asp-for="Code"
+                                   class="form-control form-control-lg text-center"
+                                   placeholder="Enter 6-digit code"
+                                   maxlength="6"
+                                   inputmode="numeric"
+                                   autocomplete="one-time-code"
+                                   autofocus />
+
+                            <span asp-validation-for="Code"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- VERIFY BUTTON -->
+                        <!-- ================================================= -->
+
+                        <button type="submit"
+                                class="btn btn-primary btn-lg w-100">
+                            Verify Email
+                        </button>
+
+                    </form>
+
+
+                    <!-- ================================================= -->
+                    <!-- EMAIL INFORMATION -->
+                    <!-- ================================================= -->
+
+                    <div class="text-center mt-4">
+
+                        <small class="text-muted">
+                            Didn't receive the code?
+                        </small>
+
+                        <br />
+
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="text-decoration-none">
+                            Return to Login
+                        </a>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,221 @@
+﻿@{
+    ViewData["Title"] = "Account Verification";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-8 col-lg-7">
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body p-4 p-md-5">
+
+
+                    <div class="text-center mb-4">
+
+                        <div style="font-size:50px;">
+                            🔐
+                        </div>
+
+                        <h1>
+                            Verify Your Account
+                        </h1>
+
+                        <p class="text-muted">
+                            Complete verification to build trust on ThriftHub.
+                        </p>
+
+                    </div>
+
+
+                    @* SUCCESS MESSAGE *@
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+
+                            @TempData["SuccessMessage"]
+
+                        </div>
+                    }
+
+
+                    @* ERROR MESSAGE *@
+
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger">
+
+                            @TempData["ErrorMessage"]
+
+                        </div>
+                    }
+
+
+                    @* ACCOUNT INFORMATION *@
+
+                    <div class="bg-light rounded p-4 mb-4">
+
+                        <p class="mb-2">
+                            <strong>Name:</strong>
+                            @ViewBag.FullName
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Email:</strong>
+                            @ViewBag.Email
+                        </p>
+
+                        <p class="mb-2">
+                            <strong>Account Type:</strong>
+                            @ViewBag.UserType
+                        </p>
+
+                        <p class="mb-0">
+                            <strong>Status:</strong>
+
+                            @if (ViewBag.IsVerified == true)
+                            {
+                                <span class="badge bg-success">
+                                    Verified
+                                </span>
+                            }
+                            else if (ViewBag.VerificationStatus == "Submitted")
+                            {
+                                <span class="badge bg-warning text-dark">
+                                    Verification Pending
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">
+                                    Not Submitted
+                                </span>
+                            }
+
+                        </p>
+
+                    </div>
+
+
+                    @if (ViewBag.IsVerified == true)
+                    {
+                        <div class="alert alert-success text-center">
+
+                            <h4>
+                                ✓ Your account is verified
+                            </h4>
+
+                            <p class="mb-0">
+                                Your ThriftHub account has been successfully verified.
+                            </p>
+
+                        </div>
+                    }
+                    else if (ViewBag.VerificationStatus == "Submitted")
+                    {
+                        <div class="alert alert-warning text-center">
+
+                            <h4>
+                                Verification Pending
+                            </h4>
+
+                            <p class="mb-0">
+                                We have received your identification document.
+                                Your account is waiting for verification.
+                            </p>
+
+                        </div>
+                    }
+                    else
+                    {
+
+                        <div class="alert alert-info">
+
+                            <strong>What you need:</strong>
+
+                            <ul class="mb-0 mt-2">
+
+                                <li>
+                                    Ghana Card
+                                </li>
+
+                                <li>
+                                    Passport
+                                </li>
+
+                                <li>
+                                    Driver's Licence
+                                </li>
+
+                                <li>
+                                    Another valid government-issued ID
+                                </li>
+
+                            </ul>
+
+                        </div>
+
+
+                        <form asp-controller="Verification"
+                              asp-action="Submit"
+                              method="post"
+                              enctype="multipart/form-data">
+
+                            @Html.AntiForgeryToken()
+
+
+                            <div class="mb-4">
+
+                                <label class="form-label">
+                                    Upload Identification Document
+                                </label>
+
+                                <input type="file"
+                                       name="identificationDocument"
+                                       class="form-control"
+                                       accept=".jpg,.jpeg,.png,.pdf"
+                                       required />
+
+                                <div class="form-text">
+                                    JPG, JPEG, PNG or PDF. Maximum size: 5 MB.
+                                </div>
+
+                            </div>
+
+
+                            <button type="submit"
+                                    class="btn btn-primary w-100">
+
+                                Submit for Verification
+
+                            </button>
+
+                        </form>
+
+                    }
+
+
+                    <div class="text-center mt-4">
+
+                        <a asp-controller="Dashboard"
+                           asp-action="Index">
+
+                            ← Back to Dashboard
+
+                        </a>
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

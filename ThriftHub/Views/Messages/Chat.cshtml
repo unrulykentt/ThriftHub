@@ -1,0 +1,4134 @@
+@model ThriftHub.Models.ConversationViewModel
+
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Chat";
+
+    var currentUserId =
+        User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
+
+    var recipientId =
+        Model.UserId?.ToString() ?? "";
+
+    var recipientName =
+        string.IsNullOrWhiteSpace(Model.UserName)
+            ? "User"
+            : Model.UserName;
+
+    var recipientInitial =
+        !string.IsNullOrWhiteSpace(recipientName)
+            ? recipientName.Substring(0, 1).ToUpper()
+            : "U";
+}
+
+<style>
+
+    :root {
+        --primary: #7c3aed;
+        --primary-dark: #6025c7;
+        --primary-light: #eee8ff;
+        --background: #f7f5fa;
+        --white: #ffffff;
+        --text: #27232d;
+        --muted: #8c8695;
+        --border: #ebe6f0;
+        --received: #f1eef5;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --shadow: 0 14px 45px rgba(55, 38, 73, .10);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text);
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Arial, sans-serif;
+    }
+
+    /* =========================================================
+           CHAT PAGE
+           ========================================================= */
+
+    .th-chat-page {
+        width: 100%;
+        max-width: 1100px;
+        margin: 25px auto;
+        padding: 0 16px;
+    }
+
+    .chat-card {
+        width: 100%;
+        height: calc(100vh - 130px);
+        min-height: 600px;
+        background: var(--white);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow);
+    }
+
+    /* =========================================================
+           HEADER
+           ========================================================= */
+
+    .chat-header {
+        height: 76px;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 20px;
+        border-bottom: 1px solid var(--border);
+        background: white;
+    }
+
+    .chat-user {
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+    }
+
+    .back-button {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: #f6f3f9;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-size: 21px;
+        cursor: pointer;
+    }
+
+        .back-button:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+    .profile-picture,
+    .profile-placeholder {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        border-radius: 50%;
+    }
+
+    .profile-picture {
+        object-fit: cover;
+    }
+
+    .profile-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient( 135deg, #c4b5fd, #7c3aed );
+        color: white;
+        font-size: 17px;
+        font-weight: 700;
+    }
+
+    .user-info {
+        min-width: 0;
+    }
+
+    .user-name {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .user-email {
+        margin-top: 2px;
+        color: var(--muted);
+        font-size: 11px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .online-status {
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: var(--muted);
+    }
+
+    .online-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #aaa4b0;
+    }
+
+        .online-dot.online {
+            background: var(--success);
+        }
+
+    .chat-actions {
+        display: flex;
+        align-items: center;
+    }
+
+    .voice-call-button {
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-light);
+        color: var(--primary);
+        cursor: pointer;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: .2s ease;
+    }
+
+        .voice-call-button:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .voice-call-button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+    /* =========================================================
+           MESSAGES
+           ========================================================= */
+
+    .messages-container {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 22px 24px;
+        background: radial-gradient( circle at top right, rgba(124, 58, 237, .05), transparent 30% ), #fcfbfd;
+    }
+
+        .messages-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-container::-webkit-scrollbar-thumb {
+            background: #d8d1df;
+            border-radius: 20px;
+        }
+
+    .messages-list {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        width: 100%;
+    }
+
+    .date-divider {
+        display: flex;
+        justify-content: center;
+        margin: 10px 0 16px;
+    }
+
+        .date-divider span {
+            padding: 5px 11px;
+            border-radius: 20px;
+            background: #eeeaf3;
+            color: #77717f;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+    .message-row {
+        width: 100%;
+        display: flex;
+        margin-bottom: 2px;
+        padding: 0;
+    }
+
+        .message-row.sent {
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .message-row.received {
+            justify-content: flex-start;
+            align-items: flex-end;
+        }
+
+    .message-content {
+        width: fit-content;
+        max-width: min(78%, 620px);
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .message-row.sent .message-content {
+        width: fit-content;
+        max-width: min(78%, 620px);
+        align-items: flex-end;
+        text-align: left;
+    }
+
+    /*
+       RECEIVED MESSAGES:
+       The content shrinks to the message itself.
+       This prevents short messages from creating a large
+       empty bubble while still allowing long messages to wrap.
+    */
+    .message-row.received .message-content {
+        width: fit-content;
+        max-width: min(78%, 620px);
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .message-row.received .message-bubble {
+        align-self: flex-start;
+        width: fit-content;
+        max-width: 100%;
+        margin-left: 0;
+        margin-right: auto;
+    }
+
+    .message-row.received .message-meta {
+        align-self: flex-start;
+        margin-left: 7px;
+        margin-right: 7px;
+    }
+
+    /* =========================================================
+           WHATSAPP-STYLE TEXT BUBBLE
+           ========================================================= */
+
+    .message-bubble {
+        display: block;
+        width: fit-content;
+        max-width: 100%;
+        padding: 8px 11px;
+        border-radius: 18px;
+        font-size: 14px;
+        line-height: 1.42;
+        word-break: break-word;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+        text-align: left !important;
+        box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    }
+
+    .message-row.sent .message-bubble {
+        background: var(--primary);
+        text-align: left !important;
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message-row.received .message-bubble {
+        background: var(--received);
+        text-align: left !important;
+        color: var(--text);
+        border-bottom-left-radius: 5px;
+    }
+
+    /* =========================================================
+           WHATSAPP-STYLE MESSAGE TIME
+           ========================================================= */
+
+    .message-meta {
+        margin-top: -19px;
+        margin-right: 7px;
+        margin-left: 7px;
+        margin-bottom: 3px;
+        padding: 0;
+        min-height: 14px;
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 4px;
+        font-size: 9px;
+        line-height: 12px;
+        pointer-events: none;
+    }
+
+    .message-row.sent .message-meta {
+        color: rgba(255,255,255,.78);
+    }
+
+    .message-row.received .message-meta {
+        color: #8f8994;
+    }
+
+    /* Keep room at the bottom of normal bubbles for the timestamp. */
+    .message-row.sent .message-bubble,
+    .message-row.received .message-bubble {
+        padding-bottom: 23px;
+    }
+
+    /* Images and audio keep their natural layout. */
+    .message-row .image-message {
+        padding: 4px !important;
+    }
+
+    .message-row .voice-bubble {
+        padding: 7px 9px 7px !important;
+    }
+
+    /* =========================================================
+           IMAGE MESSAGE
+           ========================================================= */
+
+    .image-message {
+        padding: 4px !important;
+        overflow: hidden;
+        background: transparent !important;
+    }
+
+    .chat-image {
+        display: block;
+        width: auto;
+        max-width: min(320px, 100%);
+        max-height: 320px;
+        border-radius: 14px;
+        object-fit: cover;
+        cursor: pointer;
+    }
+
+    /* =========================================================
+           FILE MESSAGE
+           ========================================================= */
+
+    .file-message {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 220px;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .file-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 10px;
+        background: rgba(255,255,255,.18);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .received .file-icon {
+        background: white;
+    }
+
+    .file-name {
+        font-size: 13px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* =========================================================
+           VOICE NOTE
+           ========================================================= */
+
+    .voice-bubble {
+        padding: 7px 9px !important;
+        width: min(300px, 100%);
+        min-width: 240px;
+    }
+
+    .voice-player {
+        display: block;
+        width: 100%;
+        height: 40px;
+    }
+
+    /* =========================================================
+           EMPTY CHAT
+           ========================================================= */
+
+    .empty-chat {
+        height: 100%;
+        min-height: 300px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    .empty-chat-inner {
+        color: var(--muted);
+    }
+
+    .empty-icon {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        background: var(--primary-light);
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 25px;
+    }
+
+    .empty-chat h3 {
+        margin: 0 0 5px;
+        font-size: 16px;
+        color: var(--text);
+    }
+
+    .empty-chat p {
+        margin: 0;
+        font-size: 13px;
+    }
+
+    /* =========================================================
+           COMPOSER
+           ========================================================= */
+
+    .chat-input-area {
+        position: relative;
+        flex-shrink: 0;
+        padding: 10px 14px;
+        border-top: 1px solid var(--border);
+        background: white;
+    }
+
+    .input-wrapper {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+    }
+
+    .input-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border: none;
+        border-radius: 50%;
+        background: transparent;
+        color: #817a89;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+        .input-icon:hover {
+            background: var(--primary-light);
+            color: var(--primary);
+        }
+
+    .message-input {
+        flex: 1;
+        min-width: 0;
+        min-height: 40px;
+        max-height: 110px;
+        resize: none;
+        padding: 10px 14px;
+        border: 1px solid #e5e0e9;
+        border-radius: 20px;
+        outline: none;
+        background: #faf9fc;
+        font-family: inherit;
+        font-size: 14px;
+        line-height: 1.4;
+    }
+
+        .message-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(124,58,237,.08);
+        }
+
+    .send-button {
+        height: 40px;
+        padding: 0 17px;
+        border: none;
+        border-radius: 20px;
+        background: var(--primary);
+        color: white;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .send-button:hover {
+            background: var(--primary-dark);
+        }
+
+    /* =========================================================
+           EMOJI PANEL
+           ========================================================= */
+
+    .emoji-picker {
+        position: absolute;
+        left: 14px;
+        bottom: 65px;
+        width: 330px;
+        max-width: calc(100vw - 28px);
+        padding: 12px;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        box-shadow: 0 15px 45px rgba(40,30,60,.16);
+        display: none;
+        z-index: 100;
+    }
+
+        .emoji-picker.show {
+            display: block;
+        }
+
+    .emoji-title {
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .emoji-grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 3px;
+        max-height: 220px;
+        overflow-y: auto;
+    }
+
+    .emoji-item {
+        width: 100%;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        padding: 5px;
+        font-size: 21px;
+        cursor: pointer;
+    }
+
+        .emoji-item:hover {
+            background: var(--primary-light);
+        }
+
+    /* =========================================================
+           RECORDING
+           ========================================================= */
+
+    .recording-indicator {
+        position: absolute;
+        left: 50%;
+        bottom: 72px;
+        transform: translateX(-50%);
+        display: none;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 14px;
+        border-radius: 20px;
+        background: #fff;
+        border: 1px solid var(--border);
+        box-shadow: 0 8px 25px rgba(0,0,0,.12);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .recording-indicator.show {
+            display: flex;
+        }
+
+    .recording-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--danger);
+        animation: recordingPulse 1s infinite;
+    }
+
+    @@keyframes recordingPulse {
+
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: .35;
+        }
+    }
+
+    /* =========================================================
+           FILE PREVIEW
+           ========================================================= */
+
+    .file-preview {
+        display: none;
+        margin-bottom: 8px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #faf9fc;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+        .file-preview.show {
+            display: flex;
+        }
+
+    .file-preview-info {
+        min-width: 0;
+        font-size: 12px;
+    }
+
+    .file-preview-name {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .remove-file {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 50%;
+        background: #eeeaf3;
+        cursor: pointer;
+    }
+
+    /* =========================================================
+           CALL OVERLAY
+           ========================================================= */
+
+    .call-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        background: rgba(26,20,35,.65);
+    }
+
+        .call-overlay.show {
+            display: flex;
+        }
+
+    .call-card {
+        width: min(390px, calc(100% - 30px));
+        padding: 30px;
+        border-radius: 25px;
+        background: white;
+        text-align: center;
+        box-shadow: 0 25px 70px rgba(0,0,0,.25);
+    }
+
+    .call-avatar {
+        width: 82px;
+        height: 82px;
+        margin: 0 auto 15px;
+        border-radius: 50%;
+        background: linear-gradient( 135deg, #c4b5fd, #7c3aed );
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 29px;
+        font-weight: 700;
+    }
+
+    .call-name {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .call-status {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 13px;
+    }
+
+    .call-controls {
+        margin-top: 25px;
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+    }
+
+    .call-control {
+        width: 54px;
+        height: 54px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .accept-call {
+        background: var(--success);
+        color: white;
+    }
+
+    .end-call {
+        background: var(--danger);
+        color: white;
+    }
+
+    .mute-call {
+        background: var(--primary-light);
+        color: var(--primary);
+    }
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 700px) {
+
+        .th-chat-page {
+            margin: 0;
+            padding: 0;
+        }
+
+        .chat-card {
+            height: 100vh;
+            min-height: 0;
+            border: none;
+            border-radius: 0;
+        }
+
+        .chat-header {
+            height: 68px;
+            padding: 8px 12px;
+        }
+
+        .messages-container {
+            padding: 16px 11px;
+        }
+
+        .message-content {
+            max-width: 88%;
+        }
+
+        .message-row.received .message-content {
+            width: fit-content;
+            max-width: 88%;
+        }
+
+        .message-bubble {
+            font-size: 14px;
+        }
+
+        .chat-input-area {
+            padding: 8px;
+        }
+
+        .voice-bubble {
+            min-width: 220px;
+            max-width: 280px;
+        }
+
+        .emoji-picker {
+            left: 8px;
+            bottom: 62px;
+        }
+    }
+
+</style>
+
+
+<div class="th-chat-page">
+
+    <div class="chat-card">
+
+        <!-- =====================================================
+             HEADER
+             ====================================================== -->
+
+        <div class="chat-header">
+
+            <div class="chat-user">
+
+                <a href="@Url.Action("Index", "Messages")"
+                   class="back-button">
+
+                    ←
+
+                </a>
+
+
+                @if (!string.IsNullOrWhiteSpace(
+                    Model.ProfileImageUrl))
+                {
+                    <img src="@Model.ProfileImageUrl"
+                         class="profile-picture"
+                         alt="Profile" />
+                }
+                else
+                {
+                    <div class="profile-placeholder">
+
+                        @recipientInitial
+
+                    </div>
+                }
+
+
+                <div class="user-info">
+
+                    <div class="user-name">
+
+                        @recipientName
+
+                    </div>
+
+
+                    @if (!string.IsNullOrWhiteSpace(
+                        Model.UserEmail))
+                    {
+                        <div class="user-email">
+
+                            @Model.UserEmail
+
+                        </div>
+                    }
+
+
+                    <div class="online-status">
+
+                        <span id="onlineDot"
+                              class="online-dot">
+                        </span>
+
+                        <span id="onlineText">
+
+                            @(Model.IsOnline
+                                ? "Online"
+                                : "Offline")
+
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- VOICE CALL ONLY -->
+
+            <div class="chat-actions">
+
+                <button type="button"
+                        id="voiceCallButton"
+                        class="voice-call-button"
+                        title="Voice call">
+
+                    📞
+
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             MESSAGES
+             ====================================================== -->
+
+        <div id="messagesContainer"
+             class="messages-container">
+
+            <div id="messagesList"
+                 class="messages-list">
+
+                @if  (Model.Messages !=null)
+                {
+                    DateTime? lastDate = null;
+
+                    foreach (
+                        var message
+                        in Model.Messages)
+                            
+                    {
+                        var messageDate =
+                            message.SentAt
+                                .ToLocalTime()
+                                .Date;
+
+                        if (
+                            lastDate == null ||
+                            lastDate.Value != messageDate)
+                        {
+                            <div class="date-divider">
+
+                                <span>
+
+                                    @(message.SentAt
+                                        .ToLocalTime()
+                                        .ToString("hh:mm tt"))
+
+                                </span>
+
+                            </div>
+
+                            lastDate =
+                                messageDate;
+                        }
+
+                        var isSent =
+                            message.SenderId ==
+                            currentUserId;
+
+
+                        <div class="message-row @(isSent ? "sent" : "received")">
+
+                            <div class="message-content">
+
+                                @if (
+                                    message.MessageType
+                                        .Equals(
+                                            "audio",
+                                            StringComparison
+                                                .OrdinalIgnoreCase)
+                                    &&
+                                    !string.IsNullOrWhiteSpace(
+                                        message.FileUrl))
+                                {
+                                    <div class="message-bubble voice-bubble">
+
+                                        <audio controls
+                                               preload="metadata"
+                                               class="voice-player">
+
+                                            <source src="@message.FileUrl"
+                                                    type="audio/webm" />
+
+                                            <source src="@message.FileUrl"
+                                                    type="audio/ogg" />
+
+                                            <source src="@message.FileUrl"
+                                                    type="audio/mpeg" />
+
+                                        </audio>
+
+                                    </div>
+                                }
+
+                                else if (
+                                    message.MessageType
+                                        .Equals(
+                                            "image",
+                                            StringComparison
+                                                .OrdinalIgnoreCase)
+                                    &&
+                                    !string.IsNullOrWhiteSpace(
+                                        message.FileUrl))
+                                {
+                                    <div class="message-bubble image-message">
+
+                                        <img src="@message.FileUrl"
+                                             class="chat-image"
+                                             alt="Image"
+                                             loading="lazy"
+                                             onclick="window.open(this.src, '_blank')" />
+
+                                    </div>
+                                }
+
+                                else if (
+                                    message.MessageType
+                                        .Equals(
+                                            "file",
+                                            StringComparison
+                                                .OrdinalIgnoreCase)
+                                    &&
+                                    !string.IsNullOrWhiteSpace(
+                                        message.FileUrl))
+                                {
+                                    <div class="message-bubble">
+
+                                        <a href="@message.FileUrl"
+                                           class="file-message"
+                                           target="_blank"
+                                           download="@message.FileName">
+
+                                            <span class="file-icon">
+
+                                                📎
+
+                                            </span>
+
+                                            <span class="file-name">
+
+                                                @(string.IsNullOrWhiteSpace(
+                                                    message.FileName)
+                                                    ? "File"
+                                                    : message.FileName)
+
+                                            </span>
+
+                                        </a>
+
+                                    </div>
+                                }
+
+                                else if (
+                                    !string.IsNullOrWhiteSpace(
+                                        message.Content))
+                                {
+                                    <div class="message-bubble">
+
+                                        @message.Content
+
+                                    </div>
+                                }
+
+
+                                <div class="message-meta">
+
+                                    <span>
+
+                                       @(message.SentAt.ToLocalTime().ToString("hh:mm tt"))
+
+                                    </span>
+
+
+                                    @if (isSent)
+                                    {
+                                        <span>
+
+                                            @(message.IsRead
+                                                ? "✓✓"
+                                                : "✓")
+
+                                        </span>
+                                    }
+
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-chat">
+
+                        <div class="empty-chat-inner">
+
+                            <div class="empty-icon">
+
+                                💬
+
+                            </div>
+
+                            <h3>
+
+                                Start a conversation
+
+                            </h3>
+
+                            <p>
+
+                                Send a message to
+                                @recipientName
+
+                            </p>
+
+                        </div>
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================================
+             INPUT AREA
+             ====================================================== -->
+
+        <div class="chat-input-area">
+
+
+            <!-- EMOJI PICKER -->
+
+            <div id="emojiPicker"
+                 class="emoji-picker">
+
+                <div class="emoji-title">
+
+                    Emojis
+
+                </div>
+
+                <div class="emoji-grid">
+
+                    @{
+                        var emojis = new[]
+                        {
+                            "😀","😃","😄","😁","😆","😅","😂","🤣",
+                            "😊","😇","🙂","🙃","😉","😌","😍","🥰",
+                            "😘","😗","😙","😚","😋","😛","😝","😜",
+                            "🤪","🤨","🧐","🤓","😎","🤩","🥳","😏",
+                            "😢","😭","😤","😠","😡","🤬","😱","😨",
+                            "😳","🥺","😔","😞","😟","😕","🙁","☹️",
+                            "❤️","🩷","🧡","💛","💚","🩵","💙","💜",
+                            "🖤","🩶",
+                            "👍","👎","👏","🙌","🙏","💪","🤝","🔥",
+                            "✨","🎉","💯","❤️‍🔥","💔","💖","💗","💓",
+                            "💞","💘","💝","🎂","🎁","⚽","🏆","🎵"
+                        };
+                    }
+
+                    @foreach (var emoji in emojis)
+                    {
+                        <button type="button"
+                                class="emoji-item"
+                                data-emoji="@emoji">
+
+                            @emoji
+
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <!-- RECORDING INDICATOR -->
+
+            <div id="recordingIndicator"
+                 class="recording-indicator">
+
+                <span class="recording-dot">
+                </span>
+
+                <span id="recordingTime">
+
+                    00:00
+
+                </span>
+
+                <span>
+
+                    Recording...
+
+                </span>
+
+            </div>
+
+
+            <!-- SELECTED FILE -->
+
+            <div id="filePreview"
+                 class="file-preview">
+
+                <div class="file-preview-info">
+
+                    <div id="filePreviewName"
+                         class="file-preview-name">
+                    </div>
+
+                </div>
+
+                <button type="button"
+                        id="removeFileButton"
+                        class="remove-file">
+
+                    ×
+
+                </button>
+
+            </div>
+
+
+            <div class="input-wrapper">
+
+
+                <!-- EMOJI -->
+
+                <button type="button"
+                        id="emojiButton"
+                        class="input-icon"
+                        title="Emoji">
+
+                    😊
+
+                </button>
+
+
+                <!-- IMAGE -->
+
+                <button type="button"
+                        id="imageButton"
+                        class="input-icon"
+                        title="Send image">
+
+                    🖼️
+
+                </button>
+
+
+                <!-- FILE -->
+
+                <button type="button"
+                        id="fileButton"
+                        class="input-icon"
+                        title="Send file">
+
+                    📎
+
+                </button>
+
+
+                <!-- VOICE NOTE -->
+
+                <button type="button"
+                        id="recordButton"
+                        class="input-icon"
+                        title="Record voice note">
+
+                    🎙️
+
+                </button>
+
+
+                <!-- HIDDEN IMAGE INPUT -->
+
+                <input type="file"
+                       id="imageInput"
+                       accept="image/*"
+                       hidden />
+
+
+                <!-- HIDDEN FILE INPUT -->
+
+                <input type="file"
+                       id="fileInput"
+                       hidden />
+
+
+                <!-- TEXT -->
+
+                <textarea id="messageInput"
+                          class="message-input"
+                          rows="1"
+                          maxlength="5000"
+                          placeholder="Type a message..."
+                          autocomplete="off"></textarea>
+
+
+                <!-- SEND -->
+
+                <button type="button"
+                        id="sendButton"
+                        class="send-button">
+
+                    Send
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- =========================================================
+     VOICE CALL WINDOW
+     ========================================================= -->
+
+<div id="callOverlay"
+     class="call-overlay">
+
+    <div class="call-card">
+
+        <div class="call-avatar">
+
+            @recipientInitial
+
+        </div>
+
+        <div class="call-name">
+
+            @recipientName
+
+        </div>
+
+        <div id="callStatus"
+             class="call-status">
+
+            Calling...
+
+        </div>
+
+        <div class="call-controls">
+
+            <button type="button"
+                    id="acceptCallButton"
+                    class="call-control accept-call"
+                    title="Answer">
+
+                📞
+
+            </button>
+
+            <button type="button"
+                    id="muteCallButton"
+                    class="call-control mute-call"
+                    title="Mute">
+
+                🎤
+
+            </button>
+
+            <button type="button"
+                    id="endCallButton"
+                    class="call-control end-call"
+                    title="End call">
+
+                📵
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- LIVE CALL AUDIO -->
+
+<audio id="remoteAudio"
+       autoplay
+       playsinline>
+</audio>
+
+
+@section Scripts {
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.29/signalr.min.js"></script>
+
+    <script>
+
+        /* =========================================================
+           BASIC DATA
+           ========================================================= */
+
+        const currentUserId =
+            "@currentUserId";
+
+        const recipientId =
+            "@recipientId";
+
+        const recipientName =
+            "@recipientName";
+
+
+        /* =========================================================
+           DOM
+           ========================================================= */
+
+        const messagesContainer =
+            document.getElementById(
+                "messagesContainer");
+
+        const messagesList =
+            document.getElementById(
+                "messagesList");
+
+        const messageInput =
+            document.getElementById(
+                "messageInput");
+
+        const sendButton =
+            document.getElementById(
+                "sendButton");
+
+        const emojiButton =
+            document.getElementById(
+                "emojiButton");
+
+        const emojiPicker =
+            document.getElementById(
+                "emojiPicker");
+
+        const imageButton =
+            document.getElementById(
+                "imageButton");
+
+        const fileButton =
+            document.getElementById(
+                "fileButton");
+
+        const imageInput =
+            document.getElementById(
+                "imageInput");
+
+        const fileInput =
+            document.getElementById(
+                "fileInput");
+
+        const recordButton =
+            document.getElementById(
+                "recordButton");
+
+        const recordingIndicator =
+            document.getElementById(
+                "recordingIndicator");
+
+        const recordingTime =
+            document.getElementById(
+                "recordingTime");
+
+        const filePreview =
+            document.getElementById(
+                "filePreview");
+
+        const filePreviewName =
+            document.getElementById(
+                "filePreviewName");
+
+        const removeFileButton =
+            document.getElementById(
+                "removeFileButton");
+
+        const voiceCallButton =
+            document.getElementById(
+                "voiceCallButton");
+
+        const callOverlay =
+            document.getElementById(
+                "callOverlay");
+
+        const callStatus =
+            document.getElementById(
+                "callStatus");
+
+        const acceptCallButton =
+            document.getElementById(
+                "acceptCallButton");
+
+        const muteCallButton =
+            document.getElementById(
+                "muteCallButton");
+
+        const endCallButton =
+            document.getElementById(
+                "endCallButton");
+
+        const remoteAudio =
+            document.getElementById(
+                "remoteAudio");
+
+
+        /* =========================================================
+           ANTI FORGERY TOKEN
+           ========================================================= */
+
+        const antiForgeryToken =
+            document.querySelector(
+                'input[name="__RequestVerificationToken"]'
+            )?.value || "";
+
+
+        /* =========================================================
+           SIGNALR
+           ========================================================= */
+
+        const connection =
+            new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect()
+                .build();
+
+        window.chatConnection =
+            connection;
+
+
+        /* =========================================================
+           SIGNALR STATUS
+           ========================================================= */
+
+        connection.onreconnecting(function() {
+
+            setOnlineStatus(
+                "Connecting...",
+                false
+            );
+
+        });
+
+
+        connection.onreconnected(function() {
+
+            setOnlineStatus(
+                "Online",
+                true
+            );
+
+            checkRecipientStatus();
+
+        });
+
+
+        connection.onclose(function() {
+
+            setOnlineStatus(
+                "Offline",
+                false
+            );
+
+        });
+
+
+        /* =========================================================
+           ONLINE STATUS
+           ========================================================= */
+
+        function setOnlineStatus(
+            text,
+            online
+        ) {
+
+            const textElement =
+                document.getElementById(
+                    "onlineText");
+
+            const dot =
+                document.getElementById(
+                    "onlineDot");
+
+            if (textElement) {
+
+                textElement.textContent =
+                    text;
+
+            }
+
+            if (dot) {
+
+                dot.classList.toggle(
+                    "online",
+                    online
+                );
+
+            }
+
+        }
+
+
+        connection.on(
+            "UserOnline",
+            function(userId) {
+
+                if (
+                    String(userId) ===
+                    String(recipientId)
+                ) {
+
+                    setOnlineStatus(
+                        "Online",
+                        true
+                    );
+
+                }
+
+            }
+        );
+
+
+        connection.on(
+            "UserOffline",
+            function(userId) {
+
+                if (
+                    String(userId) ===
+                    String(recipientId)
+                ) {
+
+                    setOnlineStatus(
+                        "Offline",
+                        false
+                    );
+
+                }
+
+            }
+        );
+
+
+        connection.on(
+            "UserStatus",
+            function(
+                userId,
+                online
+            ) {
+
+                if (
+                    String(userId) ===
+                    String(recipientId)
+                ) {
+
+                    setOnlineStatus(
+                        online
+                            ? "Online"
+                            : "Offline",
+                        online
+                    );
+
+                }
+
+            }
+        );
+
+
+        async function checkRecipientStatus() {
+
+            if (
+                connection.state !==
+                signalR.HubConnectionState.Connected
+            ) {
+
+                return;
+
+            }
+
+            try {
+
+                await connection.invoke(
+                    "CheckUserStatus",
+                    recipientId
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           MESSAGE RECEIVING
+           ========================================================= */
+
+        connection.on(
+            "NewMessage",
+            function(message) {
+
+                if (
+                    String(message.senderId) !==
+                    String(recipientId)
+                ) {
+
+                    return;
+
+                }
+
+                appendMessage(
+                    message,
+                    false
+                );
+
+            }
+        );
+
+
+        connection.on(
+            "MessageSent",
+            function(message) {
+
+                if (
+                    String(message.recipientId) !==
+                    String(recipientId)
+                ) {
+
+                    return;
+
+                }
+
+                appendMessage(
+                    message,
+                    true
+                );
+
+            }
+        );
+
+
+        connection.on(
+            "MessagesRead",
+            function(userId) {
+
+                if (
+                    String(userId) !==
+                    String(recipientId)
+                ) {
+
+                    return;
+
+                }
+
+                document
+                    .querySelectorAll(
+                        ".message-read-status"
+                    )
+                    .forEach(
+                        element => {
+
+                            element.textContent =
+                                "✓✓";
+
+                        }
+                    );
+
+            }
+        );
+
+
+        /* =========================================================
+           BUILD MESSAGE
+           ========================================================= */
+
+        function appendMessage(
+            message,
+            isSent
+        ) {
+
+            const row =
+                document.createElement(
+                    "div");
+
+            row.className =
+                "message-row " +
+                (
+                    isSent
+                        ? "sent"
+                        : "received"
+                );
+
+
+            const content =
+                document.createElement(
+                    "div");
+
+            content.className =
+                "message-content";
+
+
+            let bubble =
+                document.createElement(
+                    "div");
+
+            bubble.className =
+                "message-bubble";
+
+
+            const type =
+                String(
+                    message.messageType ||
+                    "text"
+                ).toLowerCase();
+
+
+            /* AUDIO */
+
+            if (
+                type === "audio" &&
+                message.fileUrl
+            ) {
+
+                bubble.classList.add(
+                    "voice-bubble"
+                );
+
+
+                const audio =
+                    document.createElement(
+                        "audio");
+
+
+                audio.controls =
+                    true;
+
+                audio.preload =
+                    "metadata";
+
+                audio.className =
+                    "voice-player";
+
+
+                const source =
+                    document.createElement(
+                        "source");
+
+
+                source.src =
+                    message.fileUrl;
+
+
+                audio.appendChild(
+                    source
+                );
+
+                bubble.appendChild(
+                    audio
+                );
+
+            }
+
+
+            /* IMAGE */
+
+            else if (
+                type === "image" &&
+                message.fileUrl
+            ) {
+
+                bubble.classList.add(
+                    "image-message"
+                );
+
+
+                const image =
+                    document.createElement(
+                        "img");
+
+
+                image.src =
+                    message.fileUrl;
+
+                image.className =
+                    "chat-image";
+
+                image.alt =
+                    "Image";
+
+                image.loading =
+                    "lazy";
+
+
+                image.onclick =
+                    function() {
+
+                        window.open(
+                            this.src,
+                            "_blank"
+                        );
+
+                    };
+
+
+                bubble.appendChild(
+                    image
+                );
+
+            }
+
+
+            /* FILE */
+
+            else if (
+                type === "file" &&
+                message.fileUrl
+            ) {
+
+                const link =
+                    document.createElement(
+                        "a");
+
+
+                link.href =
+                    message.fileUrl;
+
+                link.target =
+                    "_blank";
+
+                link.download =
+                    message.fileName ||
+                    "file";
+
+                link.className =
+                    "file-message";
+
+
+                link.innerHTML =
+                    `
+                            <span class="file-icon">📎</span>
+                            <span class="file-name">
+                                ${escapeHtml(
+                        message.fileName ||
+                        "File"
+                    )}
+                            </span>
+                            `;
+
+
+                bubble.appendChild(
+                    link
+                );
+
+            }
+
+
+            /* TEXT */
+
+            else {
+
+                bubble.textContent =
+                    message.content ||
+                    "";
+
+            }
+
+
+            content.appendChild(
+                bubble
+            );
+
+
+            /* TIME */
+
+            const meta =
+                document.createElement(
+                    "div");
+
+            meta.className =
+                "message-meta";
+
+
+            const time =
+                document.createElement(
+                    "span");
+
+
+            time.textContent =
+                formatTime(
+                    message.sentAt
+                );
+
+
+            meta.appendChild(
+                time
+            );
+
+
+            if (isSent) {
+
+                const read =
+                    document.createElement(
+                        "span");
+
+
+                read.className =
+                    "message-read-status";
+
+
+                read.textContent =
+                    message.isRead
+                        ? "✓✓"
+                        : "✓";
+
+
+                meta.appendChild(
+                    read
+                );
+
+            }
+
+
+            content.appendChild(
+                meta
+            );
+
+
+            row.appendChild(
+                content
+            );
+
+
+            messagesList.appendChild(
+                row
+            );
+
+
+            scrollToBottom();
+
+
+            const audioPlayers =
+                messagesList.querySelectorAll(
+                    "audio");
+
+
+            audioPlayers.forEach(
+                audio => {
+
+                    audio.onplay =
+                        function() {
+
+                            audioPlayers.forEach(
+                                other => {
+
+                                    if (
+                                        other !==
+                                        audio
+                                    ) {
+
+                                        other.pause();
+
+                                    }
+
+                                }
+                            );
+
+                        };
+
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           ESCAPE HTML
+           ========================================================= */
+
+        function escapeHtml(
+            value
+        ) {
+
+            return String(value)
+                .replace(
+                    /&/g,
+                    "&amp;"
+                )
+                .replace(
+                    /</g,
+                    "&lt;"
+                )
+                .replace(
+                    />/g,
+                    "&gt;"
+                )
+                .replace(
+                    /"/g,
+                    "&quot;"
+                )
+                .replace(
+                    /'/g,
+                    "&#039;"
+                );
+
+        }
+
+
+        /* =========================================================
+           TIME
+           ========================================================= */
+
+        function formatTime(
+            value
+        ) {
+
+            if (!value) {
+
+                return "";
+
+            }
+
+
+            const date =
+                new Date(value);
+
+
+            if (
+                Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return "";
+
+            }
+
+
+            return date.toLocaleTimeString(
+                [],
+                {
+                    hour: "numeric",
+                    minute: "2-digit"
+                }
+            );
+
+        }
+
+
+        /* =========================================================
+           SEND TEXT
+           ========================================================= */
+
+        async function sendText() {
+
+            const text =
+                messageInput.value.trim();
+
+
+            if (!text) {
+
+                return;
+
+            }
+
+
+            sendButton.disabled =
+                true;
+
+
+            try {
+
+                const formData =
+                    new URLSearchParams();
+
+
+                formData.append(
+                    "recipientId",
+                    recipientId
+                );
+
+
+                formData.append(
+                    "content",
+                    text
+                );
+
+
+                const response =
+                    await fetch(
+                        "/Messages/Send",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "Content-Type":
+                                    "application/x-www-form-urlencoded",
+
+                                "RequestVerificationToken":
+                                    antiForgeryToken
+
+                            },
+
+                            body:
+                                formData.toString()
+
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const errorText =
+                        await response.text();
+
+
+                    console.error(
+                        errorText
+                    );
+
+
+                    throw new Error(
+                        "Message could not be sent."
+                    );
+
+                }
+
+
+                messageInput.value =
+                    "";
+
+                resizeMessageBox();
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                alert(
+                    "Message could not be sent."
+                );
+
+            }
+            finally {
+
+                sendButton.disabled =
+                    false;
+
+            }
+
+        }
+
+
+        sendButton.addEventListener(
+            "click",
+            sendText
+        );
+
+
+        messageInput.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Enter" &&
+                    !event.shiftKey
+                ) {
+
+                    event.preventDefault();
+
+                    sendText();
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           TEXT BOX RESIZE
+           ========================================================= */
+
+        function resizeMessageBox() {
+
+            messageInput.style.height =
+                "auto";
+
+
+            messageInput.style.height =
+                Math.min(
+                    messageInput.scrollHeight,
+                    110
+                ) + "px";
+
+        }
+
+
+        messageInput.addEventListener(
+            "input",
+            resizeMessageBox
+        );
+
+
+        /* =========================================================
+           EMOJIS
+           ========================================================= */
+
+        emojiButton.addEventListener(
+            "click",
+            function(event) {
+
+                event.stopPropagation();
+
+                emojiPicker.classList.toggle(
+                    "show"
+                );
+
+            }
+        );
+
+
+        document
+            .querySelectorAll(
+                ".emoji-item"
+            )
+            .forEach(
+                button => {
+
+                    button.addEventListener(
+                        "click",
+                        function() {
+
+                            insertEmoji(
+                                this.dataset.emoji
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+
+        function insertEmoji(
+            emoji
+        ) {
+
+            const start =
+                messageInput.selectionStart;
+
+            const end =
+                messageInput.selectionEnd;
+
+            const text =
+                messageInput.value;
+
+
+            messageInput.value =
+                text.substring(
+                    0,
+                    start
+                )
+                +
+                emoji
+                +
+                text.substring(
+                    end
+                );
+
+
+            const position =
+                start +
+                emoji.length;
+
+
+            messageInput.focus();
+
+
+            messageInput.setSelectionRange(
+                position,
+                position
+            );
+
+
+            resizeMessageBox();
+
+        }
+
+
+        document.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    !emojiPicker.contains(
+                        event.target
+                    ) &&
+                    event.target !==
+                    emojiButton
+                ) {
+
+                    emojiPicker.classList.remove(
+                        "show"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           IMAGE / FILE
+           ========================================================= */
+
+        imageButton.addEventListener(
+            "click",
+            function() {
+
+                imageInput.click();
+
+            }
+        );
+
+
+        fileButton.addEventListener(
+            "click",
+            function() {
+
+                fileInput.click();
+
+            }
+        );
+
+
+        imageInput.addEventListener(
+            "change",
+            function() {
+
+                if (this.files.length) {
+
+                    showFilePreview(
+                        this.files[0]
+                    );
+
+                    uploadFile(
+                        this.files[0]
+                    );
+
+                }
+
+            }
+        );
+
+
+        fileInput.addEventListener(
+            "change",
+            function() {
+
+                if (this.files.length) {
+
+                    showFilePreview(
+                        this.files[0]
+                    );
+
+                    uploadFile(
+                        this.files[0]
+                    );
+
+                }
+
+            }
+        );
+
+
+        function showFilePreview(
+            file
+        ) {
+
+            filePreviewName.textContent =
+                file.name;
+
+
+            filePreview.classList.add(
+                "show"
+            );
+
+        }
+
+
+        removeFileButton.addEventListener(
+            "click",
+            function() {
+
+                clearSelectedFile();
+
+            }
+        );
+
+
+        /* =========================================================
+           UPLOAD IMAGE / FILE / AUDIO
+           ========================================================= */
+
+        async function uploadFile(
+            file
+        ) {
+
+            if (!file) {
+
+                return;
+
+            }
+
+
+            if (
+                file.size >
+                5 * 1024 * 1024
+            ) {
+
+                alert(
+                    "The file must not exceed 5 MB."
+                );
+
+
+                clearSelectedFile();
+
+                return;
+
+            }
+
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "recipientId",
+                recipientId
+            );
+
+
+            formData.append(
+                "file",
+                file
+            );
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        "/Messages/SendFile",
+                        {
+                            method: "POST",
+
+                            headers: {
+
+                                "RequestVerificationToken":
+                                    antiForgeryToken
+
+                            },
+
+                            body:
+                                formData
+
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    const error =
+                        await response.text();
+
+
+                    console.error(
+                        error
+                    );
+
+
+                    throw new Error(
+                        "Upload failed."
+                    );
+
+                }
+
+
+                clearSelectedFile();
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                alert(
+                    "The file could not be sent."
+                );
+
+
+                clearSelectedFile();
+
+            }
+
+        }
+
+
+        function clearSelectedFile() {
+
+            imageInput.value =
+                "";
+
+            fileInput.value =
+                "";
+
+            filePreview.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        /* =========================================================
+           VOICE NOTE RECORDING
+           ========================================================= */
+
+        let mediaRecorder =
+            null;
+
+        let recordedChunks =
+            [];
+
+        let recordingStart =
+            0;
+
+        let recordingTimer =
+            null;
+
+
+        recordButton.addEventListener(
+            "click",
+            async function() {
+
+                if (
+                    mediaRecorder &&
+                    mediaRecorder.state ===
+                    "recording"
+                ) {
+
+                    stopRecording();
+
+                }
+                else {
+
+                    await startRecording();
+
+                }
+
+            }
+        );
+
+
+        async function startRecording() {
+
+            try {
+
+                const stream =
+                    await navigator.mediaDevices
+                        .getUserMedia({
+                            audio: true,
+                            video: false
+                        });
+
+
+                recordedChunks =
+                    [];
+
+
+                let mimeType =
+                    "";
+
+
+                if (
+                    MediaRecorder.isTypeSupported(
+                        "audio/webm;codecs=opus"
+                    )
+                ) {
+
+                    mimeType =
+                        "audio/webm;codecs=opus";
+
+                }
+                else if (
+                    MediaRecorder.isTypeSupported(
+                        "audio/webm"
+                    )
+                ) {
+
+                    mimeType =
+                        "audio/webm";
+
+                }
+
+
+                mediaRecorder =
+                    mimeType
+                        ? new MediaRecorder(
+                            stream,
+                            {
+                                mimeType
+                            }
+                        )
+                        : new MediaRecorder(
+                            stream
+                        );
+
+
+                mediaRecorder.ondataavailable =
+                    function(event) {
+
+                        if (
+                            event.data &&
+                            event.data.size > 0
+                        ) {
+
+                            recordedChunks.push(
+                                event.data
+                            );
+
+                        }
+
+                    };
+
+
+                mediaRecorder.onstop =
+                    async function() {
+
+                        stream
+                            .getTracks()
+                            .forEach(
+                                track =>
+                                    track.stop()
+                            );
+
+
+                        clearInterval(
+                            recordingTimer
+                        );
+
+
+                        recordingIndicator
+                            .classList.remove(
+                                "show"
+                            );
+
+
+                        recordButton.textContent =
+                            "🎙️";
+
+
+                        if (
+                            recordedChunks.length ===
+                            0
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const blob =
+                            new Blob(
+                                recordedChunks,
+                                {
+                                    type:
+                                        mimeType ||
+                                        "audio/webm"
+                                }
+                            );
+
+
+                        const extension =
+                            "webm";
+
+
+                        const audioFile =
+                            new File(
+                                [blob],
+                                `voice-note-${Date.now()}.${extension}`,
+                                {
+                                    type:
+                                        blob.type
+                                }
+                            );
+
+
+                        await uploadFile(
+                            audioFile
+                        );
+
+                    };
+
+
+                mediaRecorder.start(
+                    250
+                );
+
+
+                recordingStart =
+                    Date.now();
+
+
+                recordingIndicator
+                    .classList.add(
+                        "show"
+                    );
+
+
+                recordButton.textContent =
+                    "⏹️";
+
+
+                recordingTimer =
+                    setInterval(
+                        updateRecordingTime,
+                        250
+                    );
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                alert(
+                    "Microphone permission is required to record a voice note."
+                );
+
+            }
+
+        }
+
+
+        function stopRecording() {
+
+            if (
+                mediaRecorder &&
+                mediaRecorder.state ===
+                "recording"
+            ) {
+
+                mediaRecorder.stop();
+
+            }
+
+        }
+
+
+        function updateRecordingTime() {
+
+            const seconds =
+                Math.floor(
+                    (
+                        Date.now() -
+                        recordingStart
+                    ) / 1000
+                );
+
+
+            const minutes =
+                Math.floor(
+                    seconds / 60
+                );
+
+
+            const remaining =
+                seconds % 60;
+
+
+            recordingTime.textContent =
+                String(minutes)
+                    .padStart(2, "0")
+                +
+                ":"
+                +
+                String(remaining)
+                    .padStart(2, "0");
+
+        }
+
+
+        /* =========================================================
+           VOICE NOTE PLAYBACK
+           ========================================================= */
+
+        document
+            .querySelectorAll(
+                ".voice-player"
+            )
+            .forEach(
+                audio => {
+
+                    audio.addEventListener(
+                        "play",
+                        function() {
+
+                            document
+                                .querySelectorAll(
+                                    ".voice-player"
+                                )
+                                .forEach(
+                                    other => {
+
+                                        if (
+                                            other !==
+                                            audio
+                                        ) {
+
+                                            other.pause();
+
+                                        }
+
+                                    }
+                                );
+
+                        }
+                    );
+
+                }
+            );
+
+
+        /* =========================================================
+           LIVE VOICE CALL
+           ========================================================= */
+
+        let peerConnection =
+            null;
+
+        let localStream =
+            null;
+
+        let remoteStream =
+            null;
+
+        let currentCallUser =
+            null;
+
+        let isMuted =
+            false;
+
+
+        /* =========================================================
+           ADDED AUDIO FIX
+           ========================================================= */
+
+        let pendingIceCandidates =
+            [];
+
+        let remoteDescriptionSet =
+            false;
+
+
+        const rtcConfiguration = {
+
+            iceServers: [
+
+                {
+                    urls:
+                        "stun:stun.l.google.com:19302"
+                },
+
+                {
+                    urls:
+                        "stun:stun1.l.google.com:19302"
+                }
+
+            ]
+
+        };
+
+
+        /* =========================================================
+           START VOICE CALL
+           ========================================================= */
+
+        voiceCallButton.addEventListener(
+            "click",
+            startVoiceCall
+        );
+
+
+        async function startVoiceCall() {
+
+            try {
+
+                if (
+                    connection.state !==
+                    signalR.HubConnectionState.Connected
+                ) {
+
+                    alert(
+                        "Connecting to ThriftHub. Please try again."
+                    );
+
+                    return;
+
+                }
+
+
+                localStream =
+                    await navigator.mediaDevices
+                        .getUserMedia({
+                            audio: true,
+                            video: false
+                        });
+
+
+                currentCallUser =
+                    recipientId;
+
+
+                await createPeerConnection(
+                    recipientId
+                );
+
+
+                showCallWindow(
+                    "Calling..."
+                );
+
+
+                await connection.invoke(
+                    "StartCall",
+                    recipientId,
+                    "audio"
+                );
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Voice call error:",
+                    error
+                );
+
+
+                closeCall();
+
+
+                if (
+                    error.message &&
+                    error.message.includes(
+                        "not currently connected"
+                    )
+                ) {
+
+                    alert(
+                        "The other user is not currently online."
+                    );
+
+                }
+                else {
+
+                    alert(
+                        "Unable to start the voice call. Check microphone permission."
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /* =========================================================
+           INCOMING CALL
+           ========================================================= */
+
+        connection.on(
+            "IncomingVoiceCall",
+            function(callerId) {
+
+                currentCallUser =
+                    callerId;
+
+                showIncomingCall();
+
+            }
+        );
+
+
+        function showIncomingCall() {
+
+            callOverlay.classList.add(
+                "show"
+            );
+
+
+            callStatus.textContent =
+                "Incoming voice call...";
+
+
+            acceptCallButton.style.display =
+                "flex";
+
+
+            muteCallButton.style.display =
+                "none";
+
+        }
+
+
+        /* =========================================================
+           CALL STARTED
+           ========================================================= */
+
+        connection.on(
+            "CallStarted",
+            function() {
+
+                callStatus.textContent =
+                    "Calling...";
+
+            }
+        );
+
+
+        /* =========================================================
+           ACCEPT CALL
+           ========================================================= */
+
+        acceptCallButton.addEventListener(
+            "click",
+            acceptVoiceCall
+        );
+
+
+        async function acceptVoiceCall() {
+
+            try {
+
+                localStream =
+                    await navigator.mediaDevices
+                        .getUserMedia({
+                            audio: true,
+                            video: false
+                        });
+
+
+                await createPeerConnection(
+                    currentCallUser
+                );
+
+
+                await connection.invoke(
+                    "AcceptCall",
+                    currentCallUser
+                );
+
+
+                acceptCallButton.style.display =
+                    "none";
+
+
+                muteCallButton.style.display =
+                    "flex";
+
+
+                callStatus.textContent =
+                    "Connected";
+
+            }
+            catch (error) {
+
+                console.error(
+                    error
+                );
+
+
+                closeCall();
+
+            }
+
+        }
+
+
+        /* =========================================================
+           CALL ACCEPTED
+           ========================================================= */
+
+        connection.on(
+            "CallAccepted",
+            async function(userId) {
+
+                currentCallUser =
+                    userId;
+
+
+                acceptCallButton.style.display =
+                    "none";
+
+
+                muteCallButton.style.display =
+                    "flex";
+
+
+                callStatus.textContent =
+                    "Connected";
+
+
+                if (!peerConnection) {
+
+                    await createPeerConnection(
+                        userId
+                    );
+
+                }
+
+
+                const offer =
+                    await peerConnection
+                        .createOffer();
+
+
+                await peerConnection
+                    .setLocalDescription(
+                        offer
+                    );
+
+
+                await sendVoiceSignal(
+                    userId,
+                    {
+                        type: "offer",
+                        sdp: offer.sdp
+                    }
+                );
+
+            }
+        );
+
+
+        /* =========================================================
+           CALL DECLINED
+           ========================================================= */
+
+        connection.on(
+            "CallDeclined",
+            function() {
+
+                callStatus.textContent =
+                    "Call declined";
+
+
+                setTimeout(
+                    closeCall,
+                    1000
+                );
+
+            }
+        );
+
+
+        /* =========================================================
+           END CALL
+           ========================================================= */
+
+        endCallButton.addEventListener(
+            "click",
+            async function() {
+
+                try {
+
+                    if (
+                        currentCallUser &&
+                        connection.state ===
+                        signalR.HubConnectionState.Connected
+                    ) {
+
+                        await connection.invoke(
+                            "EndCall",
+                            currentCallUser
+                        );
+
+                    }
+
+                }
+                catch (error) {
+
+                    console.error(
+                        error
+                    );
+
+                }
+
+
+                closeCall();
+
+            }
+        );
+
+
+        connection.on(
+            "CallEnded",
+            function() {
+
+                closeCall();
+
+            }
+        );
+
+
+        /* =========================================================
+           WEBRTC SIGNAL
+           ========================================================= */
+
+        connection.on(
+            "VoiceSignal",
+            async function(
+                senderId,
+                signal
+            ) {
+
+                try {
+
+                    if (!peerConnection) {
+
+                        localStream =
+                            await navigator.mediaDevices
+                                .getUserMedia({
+                                    audio: true,
+                                    video: false
+                                });
+
+
+                        await createPeerConnection(
+                            senderId
+                        );
+
+                    }
+
+
+                    /* =================================================
+                       OFFER
+                       ================================================= */
+
+                    if (
+                        signal.type ===
+                        "offer"
+                    ) {
+
+                        await peerConnection
+                            .setRemoteDescription(
+                                new RTCSessionDescription({
+                                    type: "offer",
+                                    sdp:
+                                        signal.sdp
+                                })
+                            );
+
+
+                        remoteDescriptionSet =
+                            true;
+
+
+                        await addPendingIceCandidates();
+
+
+                        const answer =
+                            await peerConnection
+                                .createAnswer();
+
+
+                        await peerConnection
+                            .setLocalDescription(
+                                answer
+                            );
+
+
+                        await sendVoiceSignal(
+                            senderId,
+                            {
+                                type:
+                                    "answer",
+
+                                sdp:
+                                    answer.sdp
+                            }
+                        );
+
+
+                        callStatus.textContent =
+                            "Connected";
+
+                    }
+
+
+                    /* =================================================
+                       ANSWER
+                       ================================================= */
+
+                    else if (
+                        signal.type ===
+                        "answer"
+                    ) {
+
+                        await peerConnection
+                            .setRemoteDescription(
+                                new RTCSessionDescription({
+                                    type:
+                                        "answer",
+
+                                    sdp:
+                                        signal.sdp
+                                })
+                            );
+
+
+                        remoteDescriptionSet =
+                            true;
+
+
+                        await addPendingIceCandidates();
+
+
+                        callStatus.textContent =
+                            "Connected";
+
+                    }
+
+
+                    /* =================================================
+                       ICE CANDIDATE
+                       ================================================= */
+
+                    else if (
+                        signal.type ===
+                        "candidate"
+                    ) {
+
+                        if (
+                            signal.candidate
+                        ) {
+
+                            const candidate =
+                                new RTCIceCandidate(
+                                    signal.candidate
+                                );
+
+
+                            if (
+                                remoteDescriptionSet
+                            ) {
+
+                                await peerConnection
+                                    .addIceCandidate(
+                                        candidate
+                                    );
+
+                            }
+                            else {
+
+                                pendingIceCandidates
+                                    .push(
+                                        candidate
+                                    );
+
+                            }
+
+                        }
+
+                    }
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "Voice signal error:",
+                        error
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================================================
+           ADD PENDING ICE CANDIDATES
+           ========================================================= */
+
+        async function addPendingIceCandidates() {
+
+            if (!peerConnection) {
+
+                return;
+
+            }
+
+
+            if (
+                !pendingIceCandidates.length
+            ) {
+
+                return;
+
+            }
+
+
+            const candidates =
+                pendingIceCandidates
+                    .slice();
+
+
+            pendingIceCandidates =
+                [];
+
+
+            for (
+                const candidate
+                of candidates
+            ) {
+
+                try {
+
+                    await peerConnection
+                        .addIceCandidate(
+                            candidate
+                        );
+
+                }
+                catch (error) {
+
+                    console.error(
+                        "ICE candidate error:",
+                        error
+                    );
+
+                }
+
+            }
+
+        }
+
+
+        /* =========================================================
+           PEER CONNECTION
+           ========================================================= */
+
+        async function createPeerConnection(
+            userId
+        ) {
+
+            if (peerConnection) {
+
+                return;
+
+            }
+
+
+            currentCallUser =
+                userId;
+
+
+            remoteDescriptionSet =
+                false;
+
+
+            pendingIceCandidates =
+                [];
+
+
+            peerConnection =
+                new RTCPeerConnection(
+                    rtcConfiguration
+                );
+
+
+            remoteStream =
+                new MediaStream();
+
+
+            remoteAudio.srcObject =
+                remoteStream;
+
+
+            remoteAudio.autoplay =
+                true;
+
+
+            remoteAudio.playsInline =
+                true;
+
+
+            remoteAudio.muted =
+                false;
+
+
+            remoteAudio.volume =
+                1.0;
+
+
+            if (localStream) {
+
+                localStream
+                    .getTracks()
+                    .forEach(
+                        track => {
+
+                            peerConnection.addTrack(
+                                track,
+                                localStream
+                            );
+
+                        }
+                    );
+
+            }
+
+
+            peerConnection.ontrack =
+                function(event) {
+
+                    if (
+                        event.streams &&
+                        event.streams[0]
+                    ) {
+
+                        event.streams[0]
+                            .getTracks()
+                            .forEach(
+                                track => {
+
+                                    if (
+                                        !remoteStream
+                                            .getTracks()
+                                            .some(
+                                                existing =>
+                                                    existing.id ===
+                                                    track.id
+                                            )
+                                    ) {
+
+                                        remoteStream
+                                            .addTrack(
+                                                track
+                                            );
+
+                                    }
+
+                                }
+                            );
+
+                    }
+                    else if (
+                        event.track
+                    ) {
+
+                        if (
+                            !remoteStream
+                                .getTracks()
+                                .some(
+                                    existing =>
+                                        existing.id ===
+                                        event.track.id
+                                )
+                        ) {
+
+                            remoteStream.addTrack(
+                                event.track
+                            );
+
+                        }
+
+                    }
+
+
+                    remoteAudio.srcObject =
+                        remoteStream;
+
+
+                    remoteAudio.autoplay =
+                        true;
+
+
+                    remoteAudio.playsInline =
+                        true;
+
+
+                    remoteAudio.muted =
+                        false;
+
+
+                    remoteAudio.volume =
+                        1.0;
+
+
+                    const playAudio =
+                        remoteAudio.play();
+
+
+                    if (playAudio) {
+
+                        playAudio.catch(
+                            function(error) {
+
+                                console.log(
+                                    "Remote audio playback:",
+                                    error
+                                );
+
+                            }
+                        );
+
+                    }
+
+                };
+
+
+            peerConnection.onicecandidate =
+                async function(event) {
+
+                    if (
+                        event.candidate &&
+                        currentCallUser
+                    ) {
+
+                        await sendVoiceSignal(
+                            currentCallUser,
+                            {
+                                type:
+                                    "candidate",
+
+                                candidate:
+                                    event.candidate
+                            }
+                        );
+
+                    }
+
+                };
+
+
+            peerConnection.onconnectionstatechange =
+                function() {
+
+                    if (!peerConnection) {
+
+                        return;
+
+                    }
+
+
+                    const state =
+                        peerConnection
+                            .connectionState;
+
+
+                    if (
+                        state ===
+                        "connected"
+                    ) {
+
+                        callStatus.textContent =
+                            "Connected";
+
+                    }
+
+
+                    if (
+                        state ===
+                        "failed"
+                    ) {
+
+                        callStatus.textContent =
+                            "Connection failed";
+
+                    }
+
+
+                    if (
+                        state ===
+                        "disconnected"
+                    ) {
+
+                        setTimeout(
+                            function() {
+
+                                if (
+                                    peerConnection &&
+                                    peerConnection
+                                        .connectionState ===
+                                    "disconnected"
+                                ) {
+
+                                    closeCall();
+
+                                }
+
+                            },
+                            1500
+                        );
+
+                    }
+
+                };
+
+        }
+
+
+        /* =========================================================
+           SEND WEBRTC SIGNAL
+           ========================================================= */
+
+        async function sendVoiceSignal(
+            userId,
+            signal
+        ) {
+
+            if (
+                connection.state !==
+                signalR.HubConnectionState.Connected
+            ) {
+
+                return;
+
+            }
+
+
+            await connection.invoke(
+                "SendVoiceSignal",
+                userId,
+                signal
+            );
+
+        }
+
+
+        /* =========================================================
+           MUTE
+           ========================================================= */
+
+        muteCallButton.addEventListener(
+            "click",
+            function() {
+
+                if (!localStream) {
+
+                    return;
+
+                }
+
+
+                const tracks =
+                    localStream
+                        .getAudioTracks();
+
+
+                tracks.forEach(
+                    track => {
+
+                        track.enabled =
+                            !track.enabled;
+
+                    }
+                );
+
+
+                isMuted =
+                    !tracks[0]?.enabled;
+
+
+                muteCallButton.textContent =
+                    isMuted
+                        ? "🔇"
+                        : "🎤";
+
+            }
+        );
+
+
+        /* =========================================================
+           CALL WINDOW
+           ========================================================= */
+
+        function showCallWindow(
+            status
+        ) {
+
+            callOverlay.classList.add(
+                "show"
+            );
+
+
+            callStatus.textContent =
+                status;
+
+
+            acceptCallButton.style.display =
+                "none";
+
+
+            muteCallButton.style.display =
+                "flex";
+
+        }
+
+
+        /* =========================================================
+           CLOSE CALL
+           ========================================================= */
+
+        function closeCall() {
+
+            if (localStream) {
+
+                localStream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+
+                localStream =
+                    null;
+
+            }
+
+
+            if (peerConnection) {
+
+                peerConnection.close();
+
+                peerConnection =
+                    null;
+
+            }
+
+
+            if (remoteStream) {
+
+                remoteStream
+                    .getTracks()
+                    .forEach(
+                        track =>
+                            track.stop()
+                    );
+
+
+                remoteStream =
+                    null;
+
+            }
+
+
+            remoteAudio.srcObject =
+                null;
+
+
+            currentCallUser =
+                null;
+
+
+            isMuted =
+                false;
+
+
+            remoteDescriptionSet =
+                false;
+
+
+            pendingIceCandidates =
+                [];
+
+
+            muteCallButton.textContent =
+                "🎤";
+
+
+            callOverlay.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        /* =========================================================
+           START SIGNALR
+           ========================================================= */
+
+        async function startSignalR() {
+
+            try {
+
+                await connection.start();
+
+
+                setOnlineStatus(
+                    "Online",
+                    true
+                );
+
+
+                await checkRecipientStatus();
+
+            }
+            catch (error) {
+
+                console.error(
+                    "SignalR connection failed:",
+                    error
+                );
+
+
+                setOnlineStatus(
+                    "Offline",
+                    false
+                );
+
+
+                setTimeout(
+                    startSignalR,
+                    3000
+                );
+
+            }
+
+        }
+
+
+        /* =========================================================
+           SCROLL
+           ========================================================= */
+
+        function scrollToBottom() {
+
+            if (!messagesContainer) {
+
+                return;
+
+            }
+
+
+            messagesContainer.scrollTop =
+                messagesContainer.scrollHeight;
+
+        }
+
+
+        window.addEventListener(
+            "load",
+            function() {
+
+                scrollToBottom();
+
+                resizeMessageBox();
+
+            }
+        );
+
+
+        /* =========================================================
+           INITIALIZE
+           ========================================================= */
+
+        startSignalR();
+
+    </script>
+
+}

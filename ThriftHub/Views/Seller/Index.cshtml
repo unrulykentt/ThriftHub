@@ -1,0 +1,323 @@
+﻿@using Microsoft.AspNetCore.Identity
+@inject UserManager<ThriftHub.Models.ApplicationUser> UserManager
+
+@{
+    ViewData["Title"] = "Seller Dashboard";
+
+    var currentUser = await UserManager.GetUserAsync(User);
+}
+
+<style>
+
+    .seller-page {
+        width: 100%;
+        padding: 50px 20px 70px;
+        background: #fcfbfe;
+        min-height: 650px;
+    }
+
+    .seller-container {
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+    }
+
+    .seller-header {
+        margin-bottom: 35px;
+    }
+
+    .seller-small-title {
+        color: #8a8495;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .seller-title {
+        color: #252238;
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+
+    .seller-subtitle {
+        color: #777386;
+        font-size: 14px;
+    }
+
+    .seller-card {
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(70, 40, 110, 0.04);
+        margin-bottom: 25px;
+    }
+
+    .seller-user {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .seller-avatar {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #eee9f5;
+    }
+
+    .seller-default-avatar {
+        width: 75px;
+        height: 75px;
+        border-radius: 50%;
+        background: #f1e9ff;
+        color: #6f3cc3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 30px;
+    }
+
+    .seller-name {
+        font-size: 20px;
+        font-weight: 700;
+        color: #302b3c;
+    }
+
+    .seller-email {
+        color: #777386;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .seller-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 25px;
+    }
+
+    .seller-action {
+        display: block;
+        padding: 25px;
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: .2s ease;
+    }
+
+        .seller-action:hover {
+            border-color: #cbb5e8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(70, 40, 110, 0.07);
+        }
+
+    .seller-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        background: #f1e9ff;
+        color: #6f3cc3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 21px;
+        margin-bottom: 15px;
+    }
+
+    .seller-action-title {
+        color: #302b3c;
+        font-size: 15px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .seller-action-text {
+        color: #85808e;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+    .back-button {
+        display: inline-flex;
+        margin-top: 25px;
+        padding: 10px 18px;
+        border: 1px solid #cfc8da;
+        border-radius: 8px;
+        text-decoration: none;
+        color: #514b5e;
+        font-size: 12px;
+        font-weight: 700;
+        background: white;
+    }
+
+        .back-button:hover {
+            color: #6f3cc3;
+            border-color: #6f3cc3;
+        }
+
+    @@media (max-width: 750px) {
+
+        .seller-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .seller-title {
+            font-size: 26px;
+        }
+    }
+
+</style>
+
+
+<div class="seller-page">
+
+    <div class="seller-container">
+
+        <div class="seller-header">
+
+            <div class="seller-small-title">
+                THRIFTHUB SELLER
+            </div>
+
+            <div class="seller-title">
+                Seller Dashboard
+            </div>
+
+            <div class="seller-subtitle">
+                Manage your fashion items and seller account.
+            </div>
+
+        </div>
+
+
+        <!-- USER CARD -->
+
+        <div class="seller-card">
+
+            <div class="seller-user">
+
+                @if (currentUser != null &&
+                     !string.IsNullOrEmpty(currentUser.ProfileImageUrl))
+                {
+                    <img src="@currentUser.ProfileImageUrl"
+                         alt="Profile Picture"
+                         class="seller-avatar" />
+                }
+                else
+                {
+                    <div class="seller-default-avatar">
+                        👤
+                    </div>
+                }
+
+
+                <div>
+
+                    <div class="seller-name">
+
+                        @(currentUser?.FullName ?? "Seller")
+
+                    </div>
+
+                    <div class="seller-email">
+
+                        @(currentUser?.Email ?? "")
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ACTIONS -->
+
+        <div class="seller-actions">
+
+            <!-- POST ITEM -->
+
+            <a asp-controller="Seller"
+               asp-action="Create"
+               class="seller-action">
+
+                <div class="seller-icon">
+                    ➕
+                </div>
+
+                <div class="seller-action-title">
+                    Sell an Item
+                </div>
+
+                <div class="seller-action-text">
+                    Post a dress, shoe, bag or other fashion
+                    item for customers to see.
+                </div>
+
+            </a>
+
+
+            <!-- MY PRODUCTS -->
+
+            <a asp-controller="Seller"
+               asp-action="MyProducts"
+               class="seller-action">
+
+                <div class="seller-icon">
+                    🛍
+                </div>
+
+                <div class="seller-action-title">
+                    My Products
+                </div>
+
+                <div class="seller-action-text">
+                    View and manage the items you have posted
+                    for sale.
+                </div>
+
+            </a>
+
+
+            <!-- PROFILE -->
+
+            <a asp-controller="Account"
+               asp-action="Profile"
+               class="seller-action">
+
+                <div class="seller-icon">
+                    👤
+                </div>
+
+                <div class="seller-action-title">
+                    My Profile
+                </div>
+
+                <div class="seller-action-text">
+                    View and update your ThriftHub profile
+                    information.
+                </div>
+
+            </a>
+
+        </div>
+
+
+        <a asp-controller="Dashboard"
+           asp-action="Index"
+           class="back-button">
+
+            ← Back to Dashboard
+
+        </a>
+
+    </div>
+
+</div>

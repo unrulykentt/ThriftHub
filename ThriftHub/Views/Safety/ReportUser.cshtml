@@ -1,0 +1,604 @@
+﻿@model ThriftHub.Models.Report
+
+@{
+    ViewData["Title"] = "Report User";
+
+    var reportedUser =
+        ViewBag.ReportedUser as ThriftHub.Models.ApplicationUser;
+
+    var reportedUserName =
+        reportedUser?.UserName ?? "User";
+
+    var reportedUserEmail =
+        reportedUser?.Email ?? "";
+}
+
+<div class="report-page">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
+    <div class="page-header">
+
+        <div class="header-icon">
+            ⚠️
+        </div>
+
+        <div>
+
+            <div class="small-heading">
+                THRIFTHUB SAFETY
+            </div>
+
+            <h1>
+                Report User
+            </h1>
+
+            <p>
+                Help us keep ThriftHub safe by reporting
+                suspicious or inappropriate behaviour.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error-message">
+
+            @TempData["ErrorMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         REPORT CARD
+         ============================================================ -->
+
+    <div class="report-card">
+
+        <form asp-controller="Safety"
+              asp-action="Report"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+
+            <!-- ====================================================
+                 REPORTED USER ID
+                 ==================================================== -->
+
+            <input type="hidden"
+                   asp-for="ReportedUserId" />
+
+
+            <!-- ====================================================
+                 REPORTED USER
+                 ==================================================== -->
+
+            <div class="form-group">
+
+                <label>
+                    User being reported
+                </label>
+
+                @if (reportedUser != null)
+                {
+                    <div class="reported-user">
+
+                        <div class="reported-user-icon">
+                            👤
+                        </div>
+
+                        <div>
+
+                            <strong>
+                                @reportedUserName
+                            </strong>
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                reportedUserEmail))
+                            {
+                                <small>
+                                    @reportedUserEmail
+                                </small>
+                            }
+
+                        </div>
+
+                    </div>
+                }
+                else
+                {
+                    <div class="reported-user">
+
+                        👤
+
+                        <strong>
+                            User
+                        </strong>
+
+                    </div>
+                }
+
+            </div>
+
+
+            <!-- ====================================================
+                 REASON
+                 ==================================================== -->
+
+            <div class="form-group">
+
+                <label asp-for="Reason">
+
+                    Why are you reporting this user?
+
+                </label>
+
+                <select asp-for="Reason"
+                        class="form-control">
+
+                    <option value="">
+                        Select a reason
+                    </option>
+
+                    <option value="Scam or Fraud">
+                        💰 Scam or Fraud
+                    </option>
+
+                    <option value="Payment or Transaction Issue">
+                        💳 Payment or Transaction Issue
+                    </option>
+
+                    <option value="Fake Product">
+                        👗 Fake Product
+                    </option>
+
+                    <option value="Harassment or Abuse">
+                        🚨 Harassment or Abuse
+                    </option>
+
+                    <option value="Inappropriate Behaviour">
+                        ⚠️ Inappropriate Behaviour
+                    </option>
+
+                    <option value="Spam">
+                        📢 Spam
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+                <span asp-validation-for="Reason"
+                      class="validation">
+                </span>
+
+            </div>
+
+
+            <!-- ====================================================
+                 ADDITIONAL DETAILS
+                 ==================================================== -->
+
+            <div class="form-group">
+
+                <label asp-for="Description">
+
+                    Additional details
+
+                    <span>
+                        (Optional)
+                    </span>
+
+                </label>
+
+                <textarea asp-for="Description"
+                          class="form-control"
+                          rows="7"
+                          maxlength="1000"
+                          placeholder="Please explain what happened..."></textarea>
+
+                <div class="character-count">
+                    Maximum 1000 characters
+                </div>
+
+                <span asp-validation-for="Description"
+                      class="validation">
+                </span>
+
+            </div>
+
+
+            <!-- ====================================================
+                 CONFIDENTIAL MESSAGE
+                 ==================================================== -->
+
+            <div class="confidential-box">
+
+                <div class="confidential-icon">
+                    🛡️
+                </div>
+
+                <div>
+
+                    <strong>
+                        Your report is confidential
+                    </strong>
+
+                    <p>
+                        Your report will be reviewed by a ThriftHub
+                        administrator. Please provide accurate
+                        information and only report genuine concerns.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ====================================================
+                 ACTIONS
+                 ==================================================== -->
+
+            <div class="form-actions">
+
+                <a asp-controller="Safety"
+                   asp-action="MyReports"
+                   class="cancel-button">
+
+                    Cancel
+
+                </a>
+
+                <button type="submit"
+                        class="submit-button">
+
+                    ⚠️ Submit Report
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     STYLING
+     ================================================================ -->
+
+<style>
+
+    /* ============================================================
+           PAGE
+           ============================================================ */
+
+    .report-page {
+        max-width: 850px;
+        margin: 0 auto;
+        padding: 45px 25px 70px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+
+    /* ============================================================
+           HEADER
+           ============================================================ */
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 30px;
+    }
+
+    .header-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        background: #fff1f1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .small-heading {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #777;
+        margin-bottom: 6px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 30px;
+        color: #252525;
+    }
+
+    .page-header p {
+        margin: 7px 0 0;
+        color: #888;
+        font-size: 14px;
+    }
+
+
+    /* ============================================================
+           MESSAGE
+           ============================================================ */
+
+    .message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .error-message {
+        background: #fff0f0;
+        color: #b42318;
+        border: 1px solid #f3c2c2;
+    }
+
+
+    /* ============================================================
+           REPORT CARD
+           ============================================================ */
+
+    .report-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 30px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+    }
+
+
+    /* ============================================================
+           FORM
+           ============================================================ */
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+            .form-group label span {
+                font-weight: 400;
+                color: #999;
+            }
+
+
+    /* ============================================================
+           REPORTED USER
+           ============================================================ */
+
+    .reported-user {
+        padding: 15px;
+        border: 1px solid #eee;
+        border-radius: 9px;
+        background: #fafafa;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .reported-user-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: #f1ecff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+
+    .reported-user strong {
+        display: block;
+        color: #333;
+        font-size: 14px;
+    }
+
+    .reported-user small {
+        display: block;
+        color: #888;
+        margin-top: 3px;
+        font-size: 12px;
+    }
+
+
+    /* ============================================================
+           FORM CONTROL
+           ============================================================ */
+
+    .form-control {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 12px 13px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 13px;
+        background: #fff;
+        color: #333;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #6c3df4;
+            box-shadow: 0 0 0 3px rgba(108, 61, 244, 0.10);
+        }
+
+    textarea.form-control {
+        resize: vertical;
+        min-height: 150px;
+    }
+
+
+    /* ============================================================
+           VALIDATION
+           ============================================================ */
+
+    .validation {
+        display: block;
+        color: #b42318;
+        font-size: 12px;
+        margin-top: 5px;
+    }
+
+
+    /* ============================================================
+           CHARACTER COUNT
+           ============================================================ */
+
+    .character-count {
+        text-align: right;
+        color: #999;
+        font-size: 11px;
+        margin-top: 5px;
+    }
+
+
+    /* ============================================================
+           CONFIDENTIAL BOX
+           ============================================================ */
+
+    .confidential-box {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        background: #f7f9ff;
+        border: 1px solid #dde5ff;
+        border-radius: 10px;
+        margin-bottom: 25px;
+    }
+
+    .confidential-icon {
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .confidential-box strong {
+        display: block;
+        font-size: 13px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .confidential-box p {
+        margin: 0;
+        color: #777;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+           ACTIONS
+           ============================================================ */
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .cancel-button,
+    .submit-button {
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .cancel-button {
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #555;
+    }
+
+        .cancel-button:hover {
+            background: #f5f5f5;
+            color: #333;
+            text-decoration: none;
+        }
+
+    .submit-button {
+        border: none;
+        background: #dc3545;
+        color: #fff;
+    }
+
+        .submit-button:hover {
+            background: #bb2d3b;
+        }
+
+
+    /* ============================================================
+           MOBILE
+           ============================================================ */
+
+    @@media (max-width: 600px) {
+
+        .report-page {
+            padding: 25px 15px 50px;
+        }
+
+        .page-header {
+            align-items: flex-start;
+        }
+
+            .page-header h1 {
+                font-size: 25px;
+            }
+
+        .report-card {
+            padding: 20px;
+        }
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+        .cancel-button,
+        .submit-button {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+</style>
+
+
+@section Scripts {
+
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+}

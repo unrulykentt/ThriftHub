@@ -1,0 +1,957 @@
+﻿@model ThriftHub.Models.Product
+
+@{
+    ViewData["Title"] = "Post an Item";
+}
+
+<div class="create-product-page">
+
+    <!-- ========================================================= -->
+    <!-- HEADER -->
+    <!-- ========================================================= -->
+
+    <div class="page-header">
+
+        <div>
+            <h1>🛍️ Post an Item</h1>
+
+            <p>
+                Add your thrift item and make it available to buyers.
+            </p>
+        </div>
+
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="back-button">
+            ← Back to Products
+        </a>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- SUCCESS MESSAGE -->
+    <!-- ========================================================= -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success">
+            ✓ @TempData["SuccessMessage"]
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- ERROR MESSAGE -->
+    <!-- ========================================================= -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error">
+            ⚠ @TempData["ErrorMessage"]
+        </div>
+    }
+
+
+    <!-- ========================================================= -->
+    <!-- VALIDATION -->
+    <!-- ========================================================= -->
+
+    <div asp-validation-summary="ModelOnly"
+         class="validation-summary">
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PRODUCT FORM -->
+    <!-- ========================================================= -->
+
+    <div class="product-card">
+
+        <div class="card-header">
+
+            <div>
+                <h2>Product Information</h2>
+
+                <p>
+                    Provide accurate information about the item.
+                </p>
+            </div>
+
+        </div>
+
+
+        <form asp-controller="Products"
+              asp-action="Create"
+              method="post"
+              enctype="multipart/form-data">
+
+            @Html.AntiForgeryToken()
+
+
+            <!-- ================================================= -->
+            <!-- PRODUCT NAME -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Name">
+                    Product Name
+                </label>
+
+                <input asp-for="Name"
+                       class="form-control"
+                       placeholder="Example: Vintage Black Dress" />
+
+                <span asp-validation-for="Name"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- DESCRIPTION -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Description">
+                    Description
+                </label>
+
+                <textarea asp-for="Description"
+                          class="form-control textarea"
+                          placeholder="Describe the item, material, colour, style, etc."></textarea>
+
+                <span asp-validation-for="Description"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- PRICE -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Price">
+                    Price
+                </label>
+
+                <div class="price-input">
+
+                    <span class="currency">
+                        GH₵
+                    </span>
+
+                    <input asp-for="Price"
+                           type="number"
+                           step="0.01"
+                           min="0.01"
+                           class="form-control"
+                           placeholder="0.00" />
+
+                </div>
+
+                <span asp-validation-for="Price"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CATEGORY -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Category">
+                    Category
+                </label>
+
+                <select asp-for="Category"
+                        class="form-control">
+
+                    <option value="">
+                        Select a category
+                    </option>
+
+                    <option value="Women">
+                        Women's Fashion
+                    </option>
+
+                    <option value="Men">
+                        Men's Fashion
+                    </option>
+
+                    <option value="Kids">
+                        Kids' Fashion
+                    </option>
+
+                    <option value="Shoes">
+                        Shoes
+                    </option>
+
+                    <option value="Bags">
+                        Bags
+                    </option>
+
+                    <option value="Accessories">
+                        Accessories
+                    </option>
+
+                    <option value="Other">
+                        Other
+                    </option>
+
+                </select>
+
+                <span asp-validation-for="Category"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- SUBCATEGORY -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Subcategory">
+                    Subcategory
+                </label>
+
+                <input asp-for="Subcategory"
+                       class="form-control"
+                       placeholder="Example: Dresses, T-Shirts, Sneakers..." />
+
+                <span asp-validation-for="Subcategory"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- CONDITION -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Condition">
+                    Condition
+                </label>
+
+                <select asp-for="Condition"
+                        class="form-control">
+
+                    <option value="">
+                        Select condition
+                    </option>
+
+                    <option value="Brand New">
+                        Brand New
+                    </option>
+
+                    <option value="Like New">
+                        Like New
+                    </option>
+
+                    <option value="Excellent">
+                        Excellent
+                    </option>
+
+                    <option value="Good">
+                        Good
+                    </option>
+
+                    <option value="Fair">
+                        Fair
+                    </option>
+
+                </select>
+
+                <span asp-validation-for="Condition"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- SIZES -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label asp-for="Sizes">
+                    Available Sizes
+                </label>
+
+                <input asp-for="Sizes"
+                       class="form-control"
+                       placeholder="Example: S, M, L, XL or 38, 39, 40" />
+
+                <small class="help-text">
+                    If there are multiple sizes, separate them with commas.
+                </small>
+
+                <span asp-validation-for="Sizes"
+                      class="field-error">
+                </span>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- IMAGE -->
+            <!-- ================================================= -->
+
+            <div class="form-group">
+
+                <label for="image">
+                    Product Image
+                </label>
+
+                <div class="upload-box">
+
+                    <div class="upload-icon">
+                        📷
+                    </div>
+
+                    <h3>
+                        Upload Product Photo
+                    </h3>
+
+                    <p>
+                        JPG, JPEG, PNG or WEBP
+                    </p>
+
+                    <p>
+                        Maximum size: 5 MB
+                    </p>
+
+                    <input type="file"
+                           id="image"
+                           name="image"
+                           class="file-input"
+                           accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                           required />
+
+                    <div id="fileName"
+                         class="file-name">
+                    </div>
+
+                    <img id="imagePreview"
+                         class="image-preview"
+                         alt="Product preview" />
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- AGREEMENT -->
+            <!-- ================================================= -->
+
+            <div class="seller-notice">
+
+                <div class="notice-icon">
+                    🛡️
+                </div>
+
+                <div>
+
+                    <strong>
+                        Seller responsibility
+                    </strong>
+
+                    <p>
+                        Make sure your product information and images
+                        accurately represent the item you are selling.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- BUTTONS -->
+            <!-- ================================================= -->
+
+            <div class="form-actions">
+
+                <a asp-controller="Products"
+                   asp-action="Index"
+                   class="cancel-button">
+
+                    Cancel
+
+                </a>
+
+
+                <button type="submit"
+                        class="submit-button">
+
+                    🛍️ Post Item
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- JAVASCRIPT -->
+<!-- ============================================================= -->
+
+<script>
+
+    const imageInput =
+        document.getElementById("image");
+
+    const imagePreview =
+        document.getElementById("imagePreview");
+
+    const fileName =
+        document.getElementById("fileName");
+
+
+    if (imageInput) {
+
+        imageInput.addEventListener(
+            "change",
+            function() {
+
+                const file =
+                    this.files[0];
+
+                if (!file) {
+
+                    fileName.textContent = "";
+
+                    imagePreview.style.display =
+                        "none";
+
+                    imagePreview.src = "";
+
+                    return;
+                }
+
+
+                fileName.textContent =
+                    "Selected: " + file.name;
+
+
+                const allowedTypes =
+                    [
+                        "image/jpeg",
+                        "image/png",
+                        "image/webp"
+                    ];
+
+
+                if (!allowedTypes.includes(
+                    file.type)) {
+
+                    alert(
+                        "Please select a JPG, JPEG, PNG or WEBP image."
+                    );
+
+                    this.value = "";
+
+                    fileName.textContent = "";
+
+                    imagePreview.style.display =
+                        "none";
+
+                    return;
+                }
+
+
+                const maximumSize =
+                    5 * 1024 * 1024;
+
+
+                if (file.size > maximumSize) {
+
+                    alert(
+                        "The image must not be larger than 5 MB."
+                    );
+
+                    this.value = "";
+
+                    fileName.textContent = "";
+
+                    imagePreview.style.display =
+                        "none";
+
+                    return;
+                }
+
+
+                const reader =
+                    new FileReader();
+
+
+                reader.onload =
+                    function(event) {
+
+                        imagePreview.src =
+                            event.target.result;
+
+                        imagePreview.style.display =
+                            "block";
+
+                    };
+
+
+                reader.readAsDataURL(file);
+
+            }
+        );
+
+    }
+
+</script>
+
+
+<!-- ============================================================= -->
+<!-- STYLES -->
+<!-- ============================================================= -->
+
+<style>
+
+    .create-product-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+    }
+
+
+    /* ========================================================= */
+    /* HEADER */
+    /* ========================================================= */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+
+        .page-header h1 {
+            margin: 0;
+            color: #252238;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+
+        .page-header p {
+            margin: 8px 0 0;
+            color: #777386;
+        }
+
+
+    .back-button {
+        text-decoration: none;
+        background: #6f3cc3;
+        color: white;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+
+        .back-button:hover {
+            background: #54249c;
+            color: white;
+        }
+
+
+    /* ========================================================= */
+    /* MESSAGES */
+    /* ========================================================= */
+
+    .message {
+        padding: 14px 18px;
+        border-radius: 9px;
+        margin-bottom: 20px;
+        font-weight: 600;
+    }
+
+
+        .message.success {
+            background: #e5f8ed;
+            color: #27834d;
+        }
+
+
+        .message.error {
+            background: #ffe7eb;
+            color: #c23d55;
+        }
+
+
+    .validation-summary {
+        color: #c23d55;
+        margin-bottom: 20px;
+    }
+
+
+        .validation-summary:empty {
+            display: none;
+        }
+
+
+    /* ========================================================= */
+    /* CARD */
+    /* ========================================================= */
+
+    .product-card {
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 16px;
+        box-shadow: 0 5px 20px rgba(70, 40, 110, .06);
+        padding: 30px;
+    }
+
+
+    .card-header {
+        border-bottom: 1px solid #eee9f5;
+        padding-bottom: 20px;
+        margin-bottom: 25px;
+    }
+
+
+        .card-header h2 {
+            margin: 0;
+            color: #252238;
+            font-size: 22px;
+        }
+
+
+        .card-header p {
+            margin: 7px 0 0;
+            color: #777386;
+            font-size: 13px;
+        }
+
+
+    /* ========================================================= */
+    /* FORM */
+    /* ========================================================= */
+
+    .form-group {
+        margin-bottom: 22px;
+    }
+
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555064;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+
+    .form-control {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #ddd7e8;
+        border-radius: 9px;
+        padding: 13px 14px;
+        background: white;
+        color: #252238;
+        font-family: inherit;
+        font-size: 14px;
+    }
+
+
+        .form-control:focus {
+            outline: none;
+            border-color: #6f3cc3;
+            box-shadow: 0 0 0 3px rgba(111, 60, 195, .1);
+        }
+
+
+    textarea.form-control {
+        min-height: 140px;
+        resize: vertical;
+        line-height: 1.6;
+    }
+
+
+    .field-error {
+        display: block;
+        color: #c23d55;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+
+    .help-text {
+        display: block;
+        color: #9993a6;
+        font-size: 11px;
+        margin-top: 6px;
+    }
+
+
+    /* ========================================================= */
+    /* PRICE */
+    /* ========================================================= */
+
+    .price-input {
+        position: relative;
+    }
+
+
+        .price-input .currency {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6f3cc3;
+            font-weight: 800;
+            z-index: 2;
+        }
+
+
+        .price-input input {
+            padding-left: 55px;
+        }
+
+
+    /* ========================================================= */
+    /* UPLOAD */
+    /* ========================================================= */
+
+    .upload-box {
+        border: 2px dashed #d8cfee;
+        border-radius: 14px;
+        padding: 30px;
+        text-align: center;
+        background: #faf8fd;
+    }
+
+
+    .upload-icon {
+        font-size: 40px;
+        margin-bottom: 8px;
+    }
+
+
+    .upload-box h3 {
+        margin: 0;
+        color: #252238;
+        font-size: 17px;
+    }
+
+
+    .upload-box p {
+        margin: 6px 0;
+        color: #9993a6;
+        font-size: 12px;
+    }
+
+
+    .file-input {
+        display: block;
+        width: 100%;
+        margin-top: 18px;
+        padding: 10px;
+        border: 1px solid #ddd7e8;
+        border-radius: 8px;
+        background: white;
+        box-sizing: border-box;
+    }
+
+
+    .file-name {
+        margin-top: 10px;
+        color: #6f3cc3;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    .image-preview {
+        display: none;
+        width: 220px;
+        height: 220px;
+        object-fit: cover;
+        margin: 20px auto 0;
+        border-radius: 12px;
+        border: 1px solid #eee9f5;
+    }
+
+
+    /* ========================================================= */
+    /* NOTICE */
+    /* ========================================================= */
+
+    .seller-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 18px;
+        background: #f6f1ff;
+        border: 1px solid #e4d8fa;
+        border-radius: 10px;
+        margin-top: 25px;
+    }
+
+
+    .notice-icon {
+        font-size: 25px;
+    }
+
+
+    .seller-notice strong {
+        color: #5d2fa6;
+    }
+
+
+    .seller-notice p {
+        margin: 5px 0 0;
+        color: #777386;
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+
+    /* ========================================================= */
+    /* BUTTONS */
+    /* ========================================================= */
+
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 28px;
+        padding-top: 22px;
+        border-top: 1px solid #eee9f5;
+    }
+
+
+    .cancel-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        background: #f1eff5;
+        color: #555064;
+        padding: 12px 20px;
+        border-radius: 9px;
+        font-weight: 700;
+    }
+
+
+        .cancel-button:hover {
+            background: #e5e1ec;
+            color: #555064;
+        }
+
+
+    .submit-button {
+        border: none;
+        background: #6f3cc3;
+        color: white;
+        padding: 12px 22px;
+        border-radius: 9px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+
+        .submit-button:hover {
+            background: #54249c;
+        }
+
+
+    /* ========================================================= */
+    /* RESPONSIVE */
+    /* ========================================================= */
+
+    @@media (max-width: 700px) {
+
+        .create-product-page {
+            padding: 30px 15px 60px;
+        }
+
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+
+        .back-button {
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+
+        .product-card {
+            padding: 20px;
+        }
+
+
+        .form-actions {
+            flex-direction: column;
+        }
+
+
+        .cancel-button,
+        .submit-button {
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+        }
+    }
+
+
+    @@media (max-width: 450px) {
+
+        .page-header h1 {
+            font-size: 26px;
+        }
+
+
+        .upload-box {
+            padding: 20px 12px;
+        }
+
+
+        .image-preview {
+            width: 180px;
+            height: 180px;
+        }
+    }
+
+</style>
+
+
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

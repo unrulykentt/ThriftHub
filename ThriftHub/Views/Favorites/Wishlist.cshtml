@@ -1,0 +1,449 @@
+﻿@model IEnumerable<ThriftHub.Models.Product>
+
+@{
+    ViewData["Title"] = "My Wishlist";
+
+    var products = Model?.ToList()
+        ?? new List<ThriftHub.Models.Product>();
+
+    var wishlistCount = ViewBag.WishlistCount is int count
+        ? count
+        : products.Count;
+}
+
+<style>
+    :root {
+        --purple: #6f3cc3;
+        --purple-dark: #54249c;
+        --background: #fcfbfe;
+        --text: #252238;
+        --muted: #777386;
+        --border: #eee9f5;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text);
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .wishlist-page {
+        max-width: 1250px;
+        margin: 0 auto;
+        padding: 35px 24px 80px;
+    }
+
+    .wishlist-header {
+        margin-bottom: 30px;
+    }
+
+        .wishlist-header h1 {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 42px;
+        }
+
+        .wishlist-header p {
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+    .wishlist-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+        padding: 0 10px;
+        margin-left: 8px;
+        background: var(--purple);
+        color: white;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: bold;
+        vertical-align: middle;
+    }
+
+    .wishlist-message {
+        margin-bottom: 20px;
+        padding: 13px 16px;
+        background: #eaf8ef;
+        border: 1px solid #bce3c8;
+        border-radius: 10px;
+        color: #176b35;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    .wishlist-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+    .wishlist-card {
+        position: relative;
+        background: white;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(60, 40, 90, 0.06);
+    }
+
+    .wishlist-image {
+        height: 250px;
+        background: #f5f1fa;
+        position: relative;
+    }
+
+        .wishlist-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .wishlist-remove {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,.96);
+        color: #dc3545;
+        font-size: 19px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(0,0,0,.10);
+        z-index: 5;
+    }
+
+        .wishlist-remove:hover {
+            background: #fff1f1;
+            transform: scale(1.06);
+        }
+
+    .wishlist-body {
+        padding: 15px;
+    }
+
+    .wishlist-name {
+        margin: 0 0 7px;
+        font-size: 17px;
+        font-weight: 900;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .wishlist-description {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.5;
+        height: 36px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .wishlist-price {
+        font-size: 18px;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    .wishlist-button {
+        display: block;
+        width: 100%;
+        text-align: center;
+        background: var(--purple);
+        color: white;
+        text-decoration: none;
+        padding: 11px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+        .wishlist-button:hover {
+            background: var(--purple-dark);
+            color: white;
+        }
+
+    .wishlist-empty {
+        background: white;
+        border: 1px dashed var(--border);
+        border-radius: 18px;
+        padding: 60px 20px;
+        text-align: center;
+    }
+
+    .wishlist-empty-icon {
+        font-size: 55px;
+        margin-bottom: 15px;
+    }
+
+    .wishlist-empty h2 {
+        margin: 0;
+    }
+
+    .wishlist-empty p {
+        color: var(--muted);
+    }
+
+    .wishlist-browse {
+        display: inline-block;
+        margin-top: 10px;
+        padding: 12px 20px;
+        background: var(--purple);
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-weight: 800;
+    }
+
+        .wishlist-browse:hover {
+            background: var(--purple-dark);
+            color: white;
+        }
+
+    /* MOBILE */
+
+    @@media (max-width: 900px) {
+
+        .wishlist-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
+    @@media (max-width: 700px) {
+
+        .wishlist-page {
+            padding: 25px 14px 50px;
+        }
+
+        .wishlist-header h1 {
+            font-size: 32px;
+        }
+
+        .wishlist-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .wishlist-card {
+            border-radius: 15px;
+        }
+
+        .wishlist-image {
+            height: 210px;
+        }
+
+        .wishlist-remove {
+            width: 34px;
+            height: 34px;
+            font-size: 17px;
+            top: 8px;
+            right: 8px;
+        }
+
+        .wishlist-body {
+            padding: 11px;
+        }
+
+        .wishlist-name {
+            font-size: 14px;
+        }
+
+        .wishlist-description {
+            font-size: 11px;
+        }
+
+        .wishlist-price {
+            font-size: 16px;
+        }
+
+        .wishlist-button {
+            font-size: 11px;
+            padding: 10px 5px;
+        }
+    }
+
+    @@media (max-width: 390px) {
+
+        .wishlist-image {
+            height: 175px;
+        }
+
+        .wishlist-name {
+            font-size: 13px;
+        }
+
+        .wishlist-price {
+            font-size: 15px;
+        }
+    }
+</style>
+
+
+<div class="wishlist-page">
+
+    <!-- HEADER -->
+
+    <div class="wishlist-header">
+
+        <h1>
+            My Wishlist
+
+            <span class="wishlist-count">
+                @wishlistCount
+            </span>
+        </h1>
+
+        <p>
+            Products you saved for later.
+        </p>
+
+    </div>
+
+
+    <!-- SUCCESS MESSAGE -->
+    @if (TempData["WishlistMessage"] != null)
+    {
+        <div class="wishlist-message">
+            ✓ @TempData["WishlistMessage"]
+        </div>
+    }
+
+
+    <!-- PRODUCTS -->
+    @if (products.Any())
+    {
+        <div class="wishlist-grid">
+
+            @foreach (var product in products)
+            {
+                <div class="wishlist-card">
+
+                    <!-- PRODUCT IMAGE -->
+
+                    <div class="wishlist-image">
+
+                        @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl"
+                                 alt="@product.Name" />
+                        }
+                        else
+                        {
+                            <div style="
+                                height:100%;
+                                display:flex;
+                                align-items:center;
+                                justify-content:center;
+                                font-size:45px;">
+                                🛍️
+                            </div>
+                        }
+
+
+                        <!-- REMOVE BUTTON -->
+
+                        <form asp-controller="Favorites"
+                              asp-action="Remove"
+                              method="post"
+                              style="margin:0;">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="productId"
+                                   value="@product.Id" />
+
+                            <button type="submit"
+                                    class="wishlist-remove"
+                                    title="Remove from wishlist"
+                                    aria-label="Remove from wishlist"
+                                    onclick="return confirm('Remove this item from your wishlist?');">
+
+                                ♥
+                            </button>
+
+                        </form>
+
+                    </div>
+
+
+                    <!-- PRODUCT INFORMATION -->
+
+                    <div class="wishlist-body">
+
+                        <h3 class="wishlist-name">
+                            @product.Name
+                        </h3>
+
+
+                        <div class="wishlist-description">
+                            @product.Description
+                        </div>
+
+
+                        <div class="wishlist-price">
+                            GH₵ @product.Price.ToString("N2")
+                        </div>
+
+
+                        <a asp-controller="MarketPlace"
+                           asp-action="Details"
+                           asp-route-id="@product.Id"
+                           class="wishlist-button">
+
+                            View Item →
+
+                        </a>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <!-- EMPTY WISHLIST -->
+
+        <div class="wishlist-empty">
+
+            <div class="wishlist-empty-icon">
+                ♡
+            </div>
+
+            <h2>
+                Your wishlist is empty
+            </h2>
+
+            <p>
+                Tap the heart on any product to save it here.
+            </p>
+
+            <a asp-controller="MarketPlace"
+               asp-action="Index"
+               class="wishlist-browse">
+
+                Browse Marketplace →
+
+            </a>
+
+        </div>
+    }
+
+</div>

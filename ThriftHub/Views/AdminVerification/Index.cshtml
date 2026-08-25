@@ -1,0 +1,198 @@
+﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Verification Management";
+}
+
+<div class="container py-5">
+
+    <!-- PAGE HEADER -->
+    <div class="mb-4">
+        <h1 class="fw-bold">
+            🔐 Verification Management
+        </h1>
+
+        <p class="text-muted">
+            Review identification documents submitted by ThriftHub users.
+        </p>
+    </div>
+
+
+    <!-- PENDING USERS -->
+    @if (Model != null && Model.Any())
+    {
+        foreach (var user in Model)
+        {
+            <div class="card shadow-sm mb-4 border-0">
+
+                <div class="card-body p-4">
+
+                    <div class="row">
+
+                        <!-- USER INFORMATION -->
+                        <div class="col-md-6">
+
+                            <h5 class="fw-bold mb-3">
+                                User Information
+                            </h5>
+
+                            <p>
+                                <strong>Name:</strong>
+                                @(string.IsNullOrEmpty(user.FullName)
+                                    ? "Not provided"
+                                    : user.FullName)
+                            </p>
+
+                            <p>
+                                <strong>Email:</strong>
+                                @(string.IsNullOrEmpty(user.Email)
+                                    ? "Not provided"
+                                    : user.Email)
+                            </p>
+
+                            <p>
+                                <strong>Phone:</strong>
+                                @(string.IsNullOrEmpty(user.PhoneNumber)
+                                    ? "Not provided"
+                                    : user.PhoneNumber)
+                            </p>
+
+                            <p>
+                                <strong>Account Type:</strong>
+                                @(string.IsNullOrEmpty(user.UserType)
+                                    ? "Customer"
+                                    : user.UserType)
+                            </p>
+
+                        </div>
+
+
+                        <!-- LOCATION / STATUS -->
+                        <div class="col-md-6">
+
+                            <h5 class="fw-bold mb-3">
+                                Verification Details
+                            </h5>
+
+                            <p>
+                                <strong>Country:</strong>
+                                @(string.IsNullOrEmpty(user.Country)
+                                    ? "Not provided"
+                                    : user.Country)
+                            </p>
+
+                            <p>
+                                <strong>City:</strong>
+                                @(string.IsNullOrEmpty(user.City)
+                                    ? "Not provided"
+                                    : user.City)
+                            </p>
+
+                            <p>
+                                <strong>Verification Status:</strong>
+
+                                <span class="badge bg-warning text-dark">
+                                    @user.VerificationStatus
+                                </span>
+                            </p>
+
+                            <p>
+                                <strong>Verified:</strong>
+
+                                @if (user.IsVerified)
+                                {
+                                    <span class="badge bg-success">
+                                        Yes
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">
+                                        No
+                                    </span>
+                                }
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <hr />
+
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="d-flex gap-2 flex-wrap">
+
+                        <!-- APPROVE -->
+                        <form asp-controller="AdminVerification"
+                              asp-action="Approve"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@user.Id" />
+
+                            <button type="submit"
+                                    class="btn btn-success"
+                                    onclick="return confirm('Are you sure you want to approve this account?');">
+
+                                ✅ Approve
+                            </button>
+
+                        </form>
+
+
+                        <!-- REJECT -->
+                        <form asp-controller="AdminVerification"
+                              asp-action="Reject"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@user.Id" />
+
+                            <button type="submit"
+                                    class="btn btn-danger"
+                                    onclick="return confirm('Are you sure you want to reject this account?');">
+
+                                ❌ Reject
+                            </button>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        }
+    }
+    else
+    {
+        <!-- NO PENDING USERS -->
+
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+
+                <div style="font-size: 50px;">
+                    ✅
+                </div>
+
+                <h3 class="mt-3">
+                    No Pending Verifications
+                </h3>
+
+                <p class="text-muted">
+                    There are currently no users waiting for verification.
+                </p>
+
+            </div>
+        </div>
+    }
+
+</div>

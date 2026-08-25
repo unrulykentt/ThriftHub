@@ -1,0 +1,1531 @@
+﻿@{
+    ViewData["Title"] = "Dashboard";
+
+    var fullName = ViewBag.FullName as string ?? "User";
+    var email = ViewBag.Email as string ?? "";
+    var userType = ViewBag.UserType as string ?? "Customer";
+    var profileImageUrl = ViewBag.ProfileImageUrl as string;
+
+    var verificationStatus =
+        ViewBag.VerificationStatus as string ?? "Pending";
+
+    var isVerified =
+        ViewBag.IsVerified is bool verified && verified;
+
+    var isOnline =
+        ViewBag.IsOnline is bool online && online;
+
+    var isSeller =
+        string.Equals(
+            userType,
+            "Seller",
+            StringComparison.OrdinalIgnoreCase);
+
+    // ============================================================
+    // ACTIVE SELLER SUBSCRIPTION
+    // ============================================================
+    // Seller verification does NOT give posting permission.
+    // An active subscription gives posting permission.
+    // ============================================================
+
+    var hasActiveSubscription =
+        ViewBag.HasActiveSubscription is bool activeSubscription &&
+        activeSubscription;
+
+    // ============================================================
+    // ADMINISTRATOR
+    // ============================================================
+    // The system uses "Admin" for the UserType.
+    // "Administrator" is also accepted for compatibility.
+    // ============================================================
+
+    var isAdministrator =
+        ViewBag.IsAdmin is bool admin && admin
+        || string.Equals(
+            userType,
+            "Admin",
+            StringComparison.OrdinalIgnoreCase)
+        || string.Equals(
+            userType,
+            "Administrator",
+            StringComparison.OrdinalIgnoreCase);
+}
+
+
+<div class="dashboard-page">
+
+    <!-- ============================================================
+         DASHBOARD HEADER
+         ============================================================ -->
+
+    <div class="dashboard-header">
+
+        <div>
+
+            <div class="small-heading">
+                YOUR THRIFTHUB ACCOUNT
+            </div>
+
+            <h1>
+                Welcome, @fullName 👋
+            </h1>
+
+            <p>
+                Manage your profile, products, messages and marketplace activity.
+            </p>
+
+        </div>
+
+
+        <!-- ONLINE STATUS -->
+
+        <div class="online-status">
+
+            <span class="status-dot @(isOnline ? "online" : "offline")"></span>
+
+            @(isOnline ? "Online" : "Offline")
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUCCESS MESSAGE
+         ============================================================ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success-message">
+
+            @TempData["SuccessMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error-message">
+
+            @TempData["ErrorMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         PROFILE CARD
+         ============================================================ -->
+
+    <div class="profile-card">
+
+        <div class="profile-left">
+
+
+            <!-- PROFILE PICTURE -->
+
+            <div class="profile-picture-container">
+
+                @if (!string.IsNullOrWhiteSpace(profileImageUrl))
+                {
+                    <img src="@profileImageUrl"
+                         alt="Profile Picture"
+                         class="profile-picture" />
+                }
+                else
+                {
+                    <div class="default-profile-picture">
+                        👤
+                    </div>
+                }
+
+            </div>
+
+
+            <!-- USER INFORMATION -->
+
+            <div class="profile-information">
+
+                <h2>
+                    @fullName
+                </h2>
+
+                <p class="email">
+                    @email
+                </p>
+
+
+                <!-- ACCOUNT TYPE -->
+
+                <p class="account-type">
+
+                    Account Type:
+
+                    @if (isAdministrator)
+                    {
+                        <strong>
+                            Administrator
+                        </strong>
+                    }
+                    else if (isSeller)
+                    {
+                        <strong>
+                            Seller
+                        </strong>
+                    }
+                    else
+                    {
+                        <strong>
+                            Customer
+                        </strong>
+                    }
+
+                </p>
+
+
+                <!-- VERIFICATION STATUS -->
+                @if (isAdministrator)
+                {
+                    <div class="verification verified">
+
+                        ✓ Administrator
+
+                    </div>
+                }
+                else if (isSeller && isVerified)
+                {
+                    <div class="verification verified">
+
+                        ✓ Seller Verified
+
+                    </div>
+                }
+                else if (isSeller)
+                {
+                    <div class="verification pending">
+
+                        ⏳ Seller Verification Pending
+
+                    </div>
+                }
+                else
+                {
+                    <div class="verification verified">
+
+                        ✓ Customer Account
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- EDIT PROFILE BUTTON -->
+
+        <div class="profile-actions">
+
+            <a asp-controller="Account"
+               asp-action="EditProfile"
+               class="edit-profile-button">
+
+                Edit Profile
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         THRIFTHUB SECTION
+         ============================================================ -->
+
+    <div class="thrifthub-section">
+
+        <div class="section-title">
+
+            <h2>
+                Your ThriftHub
+            </h2>
+
+            <p>
+                Everything you need in one place
+            </p>
+
+        </div>
+
+
+        <!-- ========================================================
+             DASHBOARD GRID
+             ======================================================== -->
+
+        <div class="dashboard-grid">
+
+
+            <!-- ====================================================
+                 MY PROFILE
+                 ==================================================== -->
+
+            <a asp-controller="Account"
+               asp-action="Profile"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    👤
+                </div>
+
+                <h3>
+                    My Profile
+                </h3>
+
+                <p>
+                    View and edit your ThriftHub profile information.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 CUSTOMER
+                 BECOME A SELLER
+                 ==================================================== -->
+            @if (!isSeller && !isAdministrator)
+            {
+                <div class="dashboard-card">
+
+                    <div class="card-icon">
+                        🛍️
+                    </div>
+
+                    <h3>
+                        Become a Seller
+                    </h3>
+
+                    <p>
+                        Start selling clothes, shoes, bags and other
+                        fashion items on ThriftHub.
+                    </p>
+
+
+                    <form asp-controller="Dashboard"
+                          asp-action="BecomeSeller"
+                          method="post"
+                          class="seller-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="seller-button"
+                                onclick="return confirm('Do you want to become a seller?');">
+
+                            Become a Seller
+
+                        </button>
+
+                    </form>
+
+                </div>
+            }
+
+
+            <!-- ====================================================
+                 SELLER
+                 SUBSCRIPTION CONTROLS POSTING
+                 ==================================================== -->
+            @if (isSeller)
+            {
+                <div class="dashboard-card">
+
+                    <div class="card-icon">
+                        🛍️
+                    </div>
+
+
+                    @if (hasActiveSubscription)
+                    {
+                        <h3>
+                            Sell an Item
+                        </h3>
+
+                        <p>
+                            Your subscription is active.
+                            You can now post clothes, shoes, bags
+                            and other fashion items.
+                        </p>
+
+
+                        <a asp-controller="Seller"
+                           asp-action="Create"
+                           class="seller-button">
+
+                            Sell an Item
+
+                        </a>
+                    }
+                    else
+                    {
+                        <h3>
+                            Subscribe to Sell
+                        </h3>
+
+                        <p>
+                            An active seller subscription is required
+                            before you can post an item.
+                        </p>
+
+
+                        <a asp-controller="Subscription"
+                           asp-action="Index"
+                           class="seller-button">
+
+                            Subscribe Now
+
+                        </a>
+                    }
+
+                </div>
+            }
+
+
+            <!-- ====================================================
+                 MY PRODUCTS
+                 ONLY SELLERS
+                 ==================================================== -->
+            @if (isSeller)
+            {
+                <a asp-controller="Seller"
+                   asp-action="MyProducts"
+                   class="dashboard-card">
+
+                    <div class="card-icon">
+                        👗
+                    </div>
+
+                    <h3>
+                        My Products
+                    </h3>
+
+                    <p>
+                        Manage the fashion items you have posted
+                        for sale.
+                    </p>
+
+                </a>
+            }
+
+
+            <!-- ====================================================
+                 SELLER SUBSCRIPTION
+                 ONLY SELLERS
+                 ==================================================== -->
+            @if (isSeller)
+            {
+                <a asp-controller="Subscription"
+                   asp-action="Index"
+                   class="dashboard-card">
+
+                    <div class="card-icon">
+                        💎
+                    </div>
+
+                    <h3>
+                        Seller Subscription
+                    </h3>
+
+                    <p>
+                        Manage your 4-month seller subscription and
+                        keep your seller account active.
+                    </p>
+
+                    <span class="seller-button">
+
+                        View Subscription
+
+                    </span>
+
+                </a>
+            }
+
+
+            <!-- ====================================================
+                 BROWSE MARKETPLACE
+                 ==================================================== -->
+
+            <a asp-controller="MarketPlace"
+               asp-action="Index"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    Browse Marketplace
+                </h3>
+
+                <p>
+                    Discover thrift fashion from sellers around
+                    the world.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 MESSAGES
+                 ==================================================== -->
+
+            <a asp-controller="Messages"
+               asp-action="Index"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    💬
+                </div>
+
+                <h3>
+                    Messages
+                </h3>
+
+                <p>
+                    Chat with buyers, sellers and other
+                    ThriftHub users.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 NOTIFICATIONS
+                 ==================================================== -->
+
+            <a asp-controller="Notifications"
+               asp-action="Index"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    🔔
+                </div>
+
+                <h3>
+                    Notifications
+                </h3>
+
+                <p>
+                    View your latest ThriftHub notifications
+                    and important updates.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 EDIT PROFILE
+                 ==================================================== -->
+
+            <a asp-controller="Account"
+               asp-action="EditProfile"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    ⚙️
+                </div>
+
+                <h3>
+                    Edit Profile
+                </h3>
+
+                <p>
+                    Update your personal information and profile.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 VERIFICATION
+                 ==================================================== -->
+            @if (isSeller)
+            {
+                <a asp-controller="Account"
+                   asp-action="SellerVerification"
+                   class="dashboard-card">
+
+                    <div class="card-icon">
+                        🛡️
+                    </div>
+
+                    <h3>
+                        Seller Verification
+                    </h3>
+
+                    <p>
+                        Check the verification status of your
+                        seller account.
+                    </p>
+
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account"
+                   asp-action="Profile"
+                   class="dashboard-card">
+
+                    <div class="card-icon">
+                        🛡️
+                    </div>
+
+                    <h3>
+                        Verification
+                    </h3>
+
+                    <p>
+                        Check your ThriftHub account information.
+                    </p>
+
+                </a>
+            }
+
+
+            <!-- ====================================================
+                 SOCIAL MEDIA
+                 ==================================================== -->
+
+            <a asp-controller="Account"
+               asp-action="EditProfile"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    🔗
+                </div>
+
+                <h3>
+                    Social Media
+                </h3>
+
+                <p>
+                    Add your Instagram, TikTok, Facebook and other
+                    social accounts.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 CONTACT THRIFTHUB ADMIN
+                 ==================================================== -->
+
+            <a asp-controller="ContactAdmin"
+               asp-action="Index"
+               class="dashboard-card">
+
+                <div class="card-icon">
+                    📞
+                </div>
+
+                <h3>
+                    Contact Admin
+                </h3>
+
+                <p>
+                    Contact the ThriftHub administrator through email,
+                    phone, WhatsApp or social media.
+                </p>
+
+            </a>
+
+
+            <!-- ====================================================
+                 SWITCH TO CUSTOMER
+                 ONLY SELLERS
+                 ==================================================== -->
+            @if (isSeller)
+            {
+                <div class="dashboard-card">
+
+                    <div class="card-icon">
+                        🔄
+                    </div>
+
+                    <h3>
+                        Switch to Customer
+                    </h3>
+
+                    <p>
+                        Change your account back to a customer account.
+                    </p>
+
+
+                    <form asp-controller="Account"
+                          asp-action="SwitchToCustomer"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="customer-button"
+                                onclick="return confirm('Switch your account to Customer?');">
+
+                            Switch to Customer
+
+                        </button>
+
+                    </form>
+
+                </div>
+            }
+
+        </div>
+
+
+        <!-- ========================================================
+             SAFETY SECTION
+             ======================================================== -->
+
+        <div class="safety-section">
+
+            <div class="safety-section-title">
+
+                <div>
+
+                    <h2>
+                        🛡️ Customer & Seller Safety
+                    </h2>
+
+                    <p>
+                        Protect your account and report unsafe activity
+                        on ThriftHub.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="dashboard-grid safety-grid">
+
+
+                <!-- ==================================================
+                     BLOCKED USERS
+                     ================================================== -->
+
+                <a asp-controller="Safety"
+                   asp-action="BlockedUsers"
+                   class="dashboard-card safety-card">
+
+                    <div class="card-icon safety-blue">
+                        🚫
+                    </div>
+
+                    <h3>
+                        Blocked Users
+                    </h3>
+
+                    <p>
+                        View users you have blocked and unblock them
+                        when necessary.
+                    </p>
+
+                    <span class="safety-link">
+                        Manage Blocked Users →
+                    </span>
+
+                </a>
+
+
+                <!-- ==================================================
+                     MY REPORTS
+                     ================================================== -->
+
+                <a asp-controller="Safety"
+                   asp-action="MyReports"
+                   class="dashboard-card safety-card">
+
+                    <div class="card-icon safety-orange">
+                        🚩
+                    </div>
+
+                    <h3>
+                        My Reports
+                    </h3>
+
+                    <p>
+                        View reports you have submitted and check
+                        their current status.
+                    </p>
+
+                    <span class="safety-link">
+                        View My Reports →
+                    </span>
+
+                </a>
+
+
+                <!-- ==================================================
+                     REPORT USER
+                     ================================================== -->
+
+                <a asp-controller="Safety"
+                   asp-action="ReportUser"
+                   class="dashboard-card safety-card">
+
+                    <div class="card-icon safety-red">
+                        ⚠️
+                    </div>
+
+                    <h3>
+                        Report a User
+                    </h3>
+
+                    <p>
+                        Report suspicious, abusive or inappropriate
+                        user activity to ThriftHub administrators.
+                    </p>
+
+                    <span class="safety-link">
+                        Submit a Report →
+                    </span>
+
+                </a>
+
+
+                <!-- ==================================================
+                     SAFETY INFORMATION
+                     ================================================== -->
+
+                <div class="dashboard-card safety-card">
+
+                    <div class="card-icon safety-green">
+                        🔐
+                    </div>
+
+                    <h3>
+                        Safety Information
+                    </h3>
+
+                    <p>
+                        Never share your password, verification codes
+                        or sensitive payment information with another
+                        user.
+                    </p>
+
+                    <span class="safety-note">
+                        Stay safe on ThriftHub.
+                    </span>
+
+                </div>
+
+
+                <!-- ==================================================
+                     ADMIN REPORT MANAGEMENT
+                     ONLY ADMINISTRATORS
+                     ================================================== -->
+                @if (isAdministrator)
+                {
+                    <a asp-controller="Safety"
+                       asp-action="AdminReports"
+                       class="dashboard-card safety-card admin-safety-card">
+
+                        <div class="card-icon safety-purple">
+                            👮
+                        </div>
+
+                        <h3>
+                            Manage Reports
+                        </h3>
+
+                        <p>
+                            Review reports submitted by customers and
+                            sellers and take appropriate action.
+                        </p>
+
+                        <span class="safety-link">
+                            Manage Reports →
+                        </span>
+
+                    </a>
+                }
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SELLER PENDING MESSAGE
+         ============================================================ -->
+    @if (isSeller && !isVerified)
+    {
+        <div class="seller-pending-box">
+
+            <div class="pending-icon">
+                ⏳
+            </div>
+
+            <div>
+
+                <h3>
+                    Seller Verification Pending
+                </h3>
+
+                <p>
+                    Your request to become a seller has been submitted.
+                    An administrator needs to review and approve your
+                    seller account.
+                    You must also have an active subscription before
+                    you can post items.
+                </p>
+
+            </div>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         SELLER WITHOUT SUBSCRIPTION MESSAGE
+         ============================================================ -->
+    @if (isSeller && !hasActiveSubscription)
+    {
+        <div class="subscription-required-box">
+
+            <div class="subscription-icon">
+                💎
+            </div>
+
+            <div>
+
+                <h3>
+                    Active Subscription Required
+                </h3>
+
+                <p>
+                    Seller verification does not automatically allow
+                    you to post products. You need an active seller
+                    subscription before you can post an item.
+                </p>
+
+                <a asp-controller="Subscription"
+                   asp-action="Index"
+                   class="seller-button">
+
+                    View Subscription Plans
+
+                </a>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+
+<!-- ================================================================
+     PAGE STYLING
+     ================================================================ -->
+
+<style>
+
+    /* ============================================================
+           PAGE
+           ============================================================ */
+
+    .dashboard-page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 45px 25px 70px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+
+    /* ============================================================
+           MESSAGES
+           ============================================================ */
+
+    .message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 14px;
+    }
+
+    .success-message {
+        background: #e9f9ef;
+        color: #16803c;
+        border: 1px solid #bde8ca;
+    }
+
+    .error-message {
+        background: #fff0f0;
+        color: #b42318;
+        border: 1px solid #f3c2c2;
+    }
+
+
+    /* ============================================================
+           HEADER
+           ============================================================ */
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 30px;
+        gap: 20px;
+    }
+
+    .small-heading {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #777;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 34px;
+        font-weight: 700;
+        color: #252525;
+    }
+
+    .dashboard-header p {
+        margin-top: 10px;
+        margin-bottom: 0;
+        color: #777;
+        font-size: 15px;
+    }
+
+
+    /* ============================================================
+           ONLINE STATUS
+           ============================================================ */
+
+    .online-status {
+        font-size: 13px;
+        color: #777;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        white-space: nowrap;
+    }
+
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+        .status-dot.online {
+            background: #22c55e;
+        }
+
+        .status-dot.offline {
+            background: #aaa;
+        }
+
+
+    /* ============================================================
+           PROFILE CARD
+           ============================================================ */
+
+    .profile-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .profile-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        min-width: 0;
+    }
+
+
+    /* ============================================================
+           PROFILE PICTURE
+           ============================================================ */
+
+    .profile-picture-container {
+        width: 76px;
+        height: 76px;
+        flex-shrink: 0;
+    }
+
+    .profile-picture {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+        border: 3px solid #eee;
+    }
+
+    .default-profile-picture {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: #f0eaff;
+        color: #7047e8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        border: 3px solid #eee;
+    }
+
+
+    /* ============================================================
+           PROFILE INFORMATION
+           ============================================================ */
+
+    .profile-information h2 {
+        margin: 0 0 6px;
+        font-size: 20px;
+        color: #252525;
+    }
+
+    .profile-information p {
+        margin: 4px 0;
+        font-size: 13px;
+        color: #777;
+    }
+
+    .profile-information strong {
+        color: #333;
+    }
+
+
+    /* ============================================================
+           VERIFICATION
+           ============================================================ */
+
+    .verification {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 5px 9px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+        .verification.verified {
+            background: #e9f9ef;
+            color: #16803c;
+        }
+
+        .verification.pending {
+            background: #fff5dc;
+            color: #9a6a00;
+        }
+
+
+    /* ============================================================
+           EDIT PROFILE
+           ============================================================ */
+
+    .edit-profile-button {
+        display: inline-block;
+        background: #6c3df4;
+        color: #fff;
+        text-decoration: none;
+        padding: 11px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        transition: 0.2s ease;
+    }
+
+        .edit-profile-button:hover {
+            background: #5830d4;
+            color: #fff;
+            text-decoration: none;
+        }
+
+
+    /* ============================================================
+           THRIFTHUB SECTION
+           ============================================================ */
+
+    .thrifthub-section {
+        margin-top: 55px;
+    }
+
+    .section-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .section-title h2 {
+            margin: 0;
+            font-size: 25px;
+            color: #333;
+        }
+
+        .section-title p {
+            margin-top: 8px;
+            color: #888;
+            font-size: 13px;
+        }
+
+
+    /* ============================================================
+           GRID
+           ============================================================ */
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+    }
+
+
+    /* ============================================================
+           CARDS
+           ============================================================ */
+
+    .dashboard-card {
+        min-height: 175px;
+        padding: 25px 20px;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        background: #fff;
+        text-decoration: none;
+        color: inherit;
+        transition: 0.2s ease;
+        display: block;
+    }
+
+        .dashboard-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+            border-color: #ddd;
+            color: inherit;
+            text-decoration: none;
+        }
+
+    .card-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: #f1ecff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-bottom: 18px;
+    }
+
+    .dashboard-card h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+        color: #333;
+    }
+
+    .dashboard-card p {
+        margin: 0 0 15px;
+        color: #888;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+
+
+    /* ============================================================
+           SELLER BUTTON
+           ============================================================ */
+
+    .seller-button {
+        display: inline-block;
+        border: none;
+        background: #6c3df4;
+        color: #fff;
+        padding: 9px 14px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+        .seller-button:hover {
+            background: #5830d4;
+            color: #fff;
+            text-decoration: none;
+        }
+
+
+    /* ============================================================
+           PENDING BUTTON
+           ============================================================ */
+
+    .pending-button {
+        display: inline-block;
+        background: #fff5dc;
+        color: #9a6a00;
+        border: 1px solid #f0d88a;
+        padding: 9px 14px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+
+    /* ============================================================
+           SWITCH CUSTOMER
+           ============================================================ */
+
+    .customer-button {
+        border: 1px solid #ddd;
+        background: #fff;
+        color: #555;
+        padding: 9px 14px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .customer-button:hover {
+            background: #f5f5f5;
+        }
+
+
+    /* ============================================================
+           SAFETY SECTION
+           ============================================================ */
+
+    .safety-section {
+        margin-top: 60px;
+        padding-top: 35px;
+        border-top: 1px solid #eee;
+    }
+
+    .safety-section-title {
+        margin-bottom: 25px;
+    }
+
+        .safety-section-title h2 {
+            margin: 0;
+            font-size: 24px;
+            color: #292929;
+        }
+
+        .safety-section-title p {
+            margin: 8px 0 0;
+            color: #888;
+            font-size: 13px;
+        }
+
+    .safety-grid {
+        margin-top: 0;
+    }
+
+    .safety-card {
+        min-height: 190px;
+    }
+
+    .safety-blue {
+        background: #eaf3ff;
+    }
+
+    .safety-orange {
+        background: #fff3df;
+    }
+
+    .safety-red {
+        background: #fff0f0;
+    }
+
+    .safety-green {
+        background: #eaf9ef;
+    }
+
+    .safety-purple {
+        background: #f1ecff;
+    }
+
+    .safety-link {
+        display: inline-block;
+        margin-top: 3px;
+        color: #6c3df4;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .safety-note {
+        display: inline-block;
+        color: #16803c;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .admin-safety-card {
+        border-color: #ddd0ff;
+    }
+
+
+    /* ============================================================
+           SELLER PENDING BOX
+           ============================================================ */
+
+    .seller-pending-box {
+        margin-top: 35px;
+        padding: 20px;
+        border: 1px solid #f0d88a;
+        background: #fffaf0;
+        border-radius: 12px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .pending-icon {
+        font-size: 28px;
+    }
+
+    .seller-pending-box h3 {
+        margin: 0 0 7px;
+        font-size: 17px;
+        color: #755600;
+    }
+
+    .seller-pending-box p {
+        margin: 0;
+        color: #806b35;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    /* ============================================================
+           SUBSCRIPTION REQUIRED BOX
+           ============================================================ */
+
+    .subscription-required-box {
+        margin-top: 20px;
+        padding: 20px;
+        border: 1px solid #ddd5ff;
+        background: #faf9ff;
+        border-radius: 12px;
+        display: flex;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .subscription-icon {
+        width: 45px;
+        height: 45px;
+        border-radius: 10px;
+        background: #f1ecff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+    .subscription-required-box h3 {
+        margin: 0 0 7px;
+        font-size: 17px;
+        color: #4f35a8;
+    }
+
+    .subscription-required-box p {
+        margin: 0 0 14px;
+        color: #777;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    /* ============================================================
+           SELLER FORM
+           ============================================================ */
+
+    .seller-form {
+        margin: 0;
+    }
+
+
+    /* ============================================================
+           TABLET
+           ============================================================ */
+
+    @@media (max-width: 900px) {
+
+        .dashboard-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+
+    /* ============================================================
+           MOBILE
+           ============================================================ */
+
+    @@media (max-width: 600px) {
+
+        .dashboard-page {
+            padding: 25px 15px 50px;
+        }
+
+        .dashboard-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+            .dashboard-header h1 {
+                font-size: 27px;
+            }
+
+        .profile-card {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .profile-left {
+            width: 100%;
+        }
+
+        .profile-actions {
+            width: 100%;
+        }
+
+        .edit-profile-button {
+            display: block;
+            text-align: center;
+        }
+
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .safety-section-title h2 {
+            font-size: 21px;
+        }
+
+        .subscription-required-box {
+            flex-direction: column;
+        }
+    }
+
+</style>

@@ -1,0 +1,170 @@
+﻿@model IEnumerable<ThriftHub.Models.Product>
+
+@{
+    ViewData["Title"] = "My Products";
+}
+
+<div class="container py-5">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="fw-bold mb-2">My Products</h1>
+            <p class="text-muted mb-0">
+                Manage the items you have posted on ThriftHub.
+            </p>
+        </div>
+
+        <a asp-controller="Seller"
+           asp-action="Create"
+           class="btn btn-primary">
+            + Post an Item
+        </a>
+    </div>
+
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+        </div>
+    }
+
+    <!-- Products -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var product in Model)
+            {
+                <div class="col-12 col-md-6 col-lg-4">
+
+                    <div class="card h-100 shadow-sm border-0">
+
+                        <!-- Product Image -->
+                        @if (!string.IsNullOrEmpty(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl"
+                                 class="card-img-top"
+                                 alt="@product.Name"
+                                 style="height: 260px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <div class="d-flex align-items-center justify-content-center bg-light"
+                                 style="height: 260px;">
+                                <span class="text-muted">
+                                    No Image
+                                </span>
+                            </div>
+                        }
+
+                        <div class="card-body">
+
+                            <!-- Product Name -->
+                            <h5 class="card-title fw-bold">
+                                @product.Name
+                            </h5>
+
+                            <!-- Category -->
+                            <p class="text-muted mb-2">
+                                @product.Category
+                            </p>
+
+                            <!-- Condition -->
+                            @if (!string.IsNullOrEmpty(product.Condition))
+                            {
+                                <p class="small text-muted mb-2">
+                                    Condition: @product.Condition
+                                </p>
+                            }
+
+                            <!-- Price -->
+                            <h5 class="text-primary fw-bold mb-3">
+                                GH₵ @product.Price.ToString("N2")
+                            </h5>
+
+                            <!-- Availability -->
+                            @if (product.IsSold)
+                            {
+                                <span class="badge bg-danger mb-3">
+                                    Sold
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-success mb-3">
+                                    Available
+                                </span>
+                            }
+
+                            <!-- Buttons -->
+                            <div class="d-flex gap-2 mt-3">
+
+                                <a asp-controller="Seller"
+                                   asp-action="Edit"
+                                   asp-route-id="@product.Id"
+                                   class="btn btn-outline-primary btn-sm flex-fill">
+                                    Edit
+                                </a>
+
+                                <form asp-controller="Seller"
+                                      asp-action="Delete"
+                                      asp-route-id="@product.Id"
+                                      method="post"
+                                      class="flex-fill"
+                                      onsubmit="return confirm('Are you sure you want to delete this item?');">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <button type="submit"
+                                            class="btn btn-outline-danger btn-sm w-100">
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <!-- No Products -->
+        <div class="text-center py-5">
+
+            <div style="font-size: 60px;">
+                🛍️
+            </div>
+
+            <h3 class="fw-bold mt-3">
+                No Products Yet
+            </h3>
+
+            <p class="text-muted">
+                You haven't posted any items yet.
+                Start selling your thrift fashion today.
+            </p>
+
+            <a asp-controller="Seller"
+               asp-action="Create"
+               class="btn btn-primary mt-2">
+                + Post Your First Item
+            </a>
+
+        </div>
+    }
+
+</div>

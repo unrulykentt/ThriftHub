@@ -1,0 +1,237 @@
+﻿@{
+    ViewData["Title"] = "Account Suspended";
+}
+
+<div class="suspended-page">
+
+    <div class="suspended-card">
+
+        <div class="suspended-icon">
+            ⚠️
+        </div>
+
+
+        <div class="suspended-label">
+            THRIFTHUB ACCOUNT
+        </div>
+
+
+        <h1>
+            Account Suspended
+        </h1>
+
+
+        <p class="main-message">
+            @(ViewBag.Message ??
+                "Your ThriftHub account has been suspended.")
+        </p>
+
+
+        @if (!string.IsNullOrWhiteSpace(
+            ViewBag.Reason as string))
+        {
+            <div class="reason-box">
+
+                <div class="reason-title">
+                    Reason for suspension
+                </div>
+
+                <div class="reason-text">
+                    @ViewBag.Reason
+                </div>
+
+            </div>
+        }
+
+
+        @if (ViewBag.SuspendedAt != null)
+        {
+            <div class="suspension-date">
+
+                Suspended on:
+
+                <strong>
+                    @{
+                        DateTime suspendedAt =
+                            (DateTime)ViewBag.SuspendedAt;
+                    }
+
+                    @suspendedAt
+                    .ToLocalTime()
+                    .ToString("dd MMM yyyy, hh:mm tt")
+                </strong>
+
+            </div>
+        }
+
+
+        <p class="help-text">
+            You cannot use your ThriftHub account while
+            the suspension is active.
+        </p>
+
+
+        <form asp-controller="Account"
+              asp-action="Logout"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="logout-button">
+
+                Sign Out
+
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .suspended-page {
+        min-height: 75vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px 20px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+
+    .suspended-card {
+        width: 100%;
+        max-width: 550px;
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 18px;
+        padding: 45px 35px;
+        text-align: center;
+        box-shadow: 0 10px 35px rgba(60, 40, 90, .08);
+    }
+
+
+    .suspended-icon {
+        width: 75px;
+        height: 75px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: #fff3cd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 35px;
+    }
+
+
+    .suspended-label {
+        color: #6f3cc3;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 8px;
+    }
+
+
+    .suspended-card h1 {
+        margin: 0;
+        color: #252238;
+        font-size: 30px;
+        font-weight: 800;
+    }
+
+
+    .main-message {
+        margin: 12px auto 25px;
+        color: #777386;
+        font-size: 14px;
+        line-height: 1.6;
+        max-width: 430px;
+    }
+
+
+    .reason-box {
+        text-align: left;
+        background: #fff8e8;
+        border: 1px solid #f1dfaa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 18px;
+    }
+
+
+    .reason-title {
+        color: #8a6500;
+        font-size: 11px;
+        font-weight: 800;
+        margin-bottom: 6px;
+    }
+
+
+    .reason-text {
+        color: #4f4630;
+        font-size: 13px;
+        line-height: 1.5;
+        white-space: pre-line;
+    }
+
+
+    .suspension-date {
+        color: #777386;
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+
+        .suspension-date strong {
+            color: #252238;
+        }
+
+
+    .help-text {
+        color: #9993a5;
+        font-size: 12px;
+        line-height: 1.5;
+        margin-bottom: 22px;
+    }
+
+
+    .logout-button {
+        border: none;
+        background: #6f3cc3;
+        color: white;
+        padding: 11px 25px;
+        border-radius: 9px;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+
+        .logout-button:hover {
+            background: #54249c;
+        }
+
+
+    @@media (max-width: 600px) {
+
+        .suspended-page {
+            padding: 25px 15px;
+        }
+
+
+        .suspended-card {
+            padding: 35px 22px;
+        }
+
+
+            .suspended-card h1 {
+                font-size: 26px;
+            }
+    }
+
+</style>

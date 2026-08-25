@@ -1,0 +1,353 @@
+﻿@model ThriftHub.Models.EditProfileViewModel
+
+@{
+    ViewData["Title"] = "Edit Profile";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-8 col-md-10">
+
+            <!-- ===================================================== -->
+            <!-- PAGE HEADER -->
+            <!-- ===================================================== -->
+
+            <div class="mb-4">
+
+                <h2 class="fw-bold mb-1">
+                    Edit Profile
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Update your personal information and social media links.
+                </p>
+
+            </div>
+
+
+            <!-- ===================================================== -->
+            <!-- EDIT PROFILE CARD -->
+            <!-- ===================================================== -->
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-header bg-dark text-white">
+
+                    <h4 class="mb-0">
+                        Profile Information
+                    </h4>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <!-- ================================================= -->
+                    <!-- VALIDATION SUMMARY -->
+                    <!-- ================================================= -->
+
+                    <div asp-validation-summary="ModelOnly"
+                         class="alert alert-danger"
+                         role="alert">
+                    </div>
+
+
+                    <!-- ================================================= -->
+                    <!-- EDIT PROFILE FORM -->
+                    <!-- ================================================= -->
+
+                    <form asp-controller="Account"
+                          asp-action="EditProfile"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- ================================================= -->
+                        <!-- PERSONAL INFORMATION -->
+                        <!-- ================================================= -->
+
+                        <h5 class="fw-bold mb-3">
+                            Personal Information
+                        </h5>
+
+
+                        <!-- FULL NAME -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="FullName"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <input asp-for="FullName"
+                                   class="form-control"
+                                   placeholder="Enter your full name" />
+
+                            <span asp-validation-for="FullName"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- COUNTRY -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Country"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <input asp-for="Country"
+                                   class="form-control"
+                                   placeholder="Enter your country" />
+
+                            <span asp-validation-for="Country"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- CITY -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="City"
+                                   class="form-label fw-semibold">
+                            </label>
+
+                            <input asp-for="City"
+                                   class="form-control"
+                                   placeholder="Enter your city" />
+
+                            <span asp-validation-for="City"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- SOCIAL MEDIA -->
+                        <!-- ================================================= -->
+
+                        <div class="border-top pt-4">
+
+                            <h5 class="fw-bold mb-2">
+                                Social Media & Links
+                            </h5>
+
+                            <p class="text-muted small mb-4">
+                                Add your social media accounts so customers
+                                can find you easily.
+                            </p>
+
+
+                            <div class="row">
+
+
+                                <!-- INSTAGRAM -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="InstagramUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="InstagramUrl"
+                                           class="form-control"
+                                           placeholder="https://instagram.com/username" />
+
+                                    <span asp-validation-for="InstagramUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- TIKTOK -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="TikTokUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="TikTokUrl"
+                                           class="form-control"
+                                           placeholder="https://tiktok.com/@@username" />
+
+                                    <span asp-validation-for="TikTokUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- FACEBOOK -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="FacebookUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="FacebookUrl"
+                                           class="form-control"
+                                           placeholder="https://facebook.com/username" />
+
+                                    <span asp-validation-for="FacebookUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- X -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="XUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="XUrl"
+                                           class="form-control"
+                                           placeholder="https://x.com/username" />
+
+                                    <span asp-validation-for="XUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- WHATSAPP -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="WhatsAppUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="WhatsAppUrl"
+                                           class="form-control"
+                                           placeholder="https://wa.me/233XXXXXXXXX" />
+
+                                    <span asp-validation-for="WhatsAppUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- YOUTUBE -->
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label asp-for="YouTubeUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="YouTubeUrl"
+                                           class="form-control"
+                                           placeholder="https://youtube.com/@@username" />
+
+                                    <span asp-validation-for="YouTubeUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+
+                                <!-- WEBSITE -->
+
+                                <div class="col-12 mb-3">
+
+                                    <label asp-for="WebsiteUrl"
+                                           class="form-label fw-semibold">
+                                    </label>
+
+                                    <input asp-for="WebsiteUrl"
+                                           class="form-control"
+                                           placeholder="https://yourwebsite.com" />
+
+                                    <span asp-validation-for="WebsiteUrl"
+                                          class="text-danger">
+                                    </span>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ================================================= -->
+                        <!-- BUTTONS -->
+                        <!-- ================================================= -->
+
+                        <div class="border-top pt-4 mt-4">
+
+                            <div class="d-flex gap-2 flex-wrap">
+
+                                <!-- SAVE -->
+
+                                <button type="submit"
+                                        class="btn btn-primary">
+
+                                    Save Changes
+
+                                </button>
+
+
+                                <!-- CANCEL -->
+
+                                <a asp-controller="Account"
+                                   asp-action="Profile"
+                                   class="btn btn-secondary">
+
+                                    Cancel
+
+                                </a>
+
+
+                                <!-- HOME -->
+
+                                <a asp-controller="Home"
+                                   asp-action="Index"
+                                   class="btn btn-outline-dark">
+
+                                    Home
+
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ============================================================= -->
+<!-- CLIENT-SIDE VALIDATION -->
+<!-- ============================================================= -->
+@section Scripts {
+
+    <partial name="_ValidationScriptsPartial" />
+
+}

@@ -1,0 +1,301 @@
+﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Make Customer";
+}
+
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h1 class="fw-bold mb-1">
+                Make Customer
+            </h1>
+
+            <p class="text-muted mb-0">
+                Convert an existing ThriftHub account into a customer.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="btn btn-outline-secondary">
+
+            ← Admin Dashboard
+
+        </a>
+
+    </div>
+
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            <strong>Success!</strong>
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            <strong>Error!</strong>
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+
+    <div class="card border-0 shadow-sm">
+
+        <div class="card-body p-4">
+
+            <div class="mb-4">
+
+                <h4 class="fw-bold">
+                    Existing Users
+                </h4>
+
+                <p class="text-muted">
+                    Select a user below to convert the account to Customer.
+                </p>
+
+            </div>
+
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="text-center py-5">
+
+                    <div style="font-size: 45px;">
+                        👥
+                    </div>
+
+                    <h5 class="mt-3">
+                        No users available
+                    </h5>
+
+                    <p class="text-muted">
+                        There are currently no other user accounts
+                        available for conversion.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+
+                    <table class="table align-middle">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    Name
+                                </th>
+
+                                <th>
+                                    Email
+                                </th>
+
+                                <th>
+                                    Phone
+                                </th>
+
+                                <th>
+                                    Account Type
+                                </th>
+
+                                <th>
+                                    Verification
+                                </th>
+
+                                <th class="text-end">
+                                    Action
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+
+                                    <td>
+
+                                        <strong>
+                                            @(string.IsNullOrWhiteSpace(user.FullName)
+                                                ? "No name"
+                                                : user.FullName)
+                                        </strong>
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @user.Email
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @(string.IsNullOrWhiteSpace(user.PhoneNumber)
+                                            ? "Not provided"
+                                            : user.PhoneNumber)
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @if (user.UserType == "Seller")
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                Seller
+                                            </span>
+                                        }
+                                        else if (user.UserType == "Admin")
+                                        {
+                                            <span class="badge bg-danger">
+                                                Admin
+                                            </span>
+                                        }
+                                        else if (user.UserType == "Customer")
+                                        {
+                                            <span class="badge bg-primary">
+                                                Customer
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                @user.UserType
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <td>
+
+                                        @if (user.IsVerified)
+                                        {
+                                            <span class="text-success">
+                                                ✓ Verified
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">
+                                                Not Verified
+                                            </span>
+                                        }
+
+                                    </td>
+
+
+                                    <td class="text-end">
+
+                                        @if (user.UserType == "Customer")
+                                        {
+                                            <span class="badge bg-success">
+                                                Already Customer
+                                            </span>
+                                        }
+                                        else if (user.UserType == "Admin")
+                                        {
+                                            <span class="badge bg-secondary">
+                                                Protected
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <form asp-controller="Admin"
+                                                  asp-action="MakeCustomer"
+                                                  method="post"
+                                                  class="d-inline">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="id"
+                                                       value="@user.Id" />
+
+                                                <button type="submit"
+                                                        class="btn btn-primary btn-sm"
+                                                        onclick="return confirm('Are you sure you want to convert this account into a Customer?');">
+
+                                                    Make Customer
+
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+
+    <div class="card border-0 bg-light mt-4">
+
+        <div class="card-body">
+
+            <h5 class="fw-bold">
+                What happens when you make someone a Customer?
+            </h5>
+
+            <ul class="text-muted mb-0">
+
+                <li>
+                    Their account type changes to <strong>Customer</strong>.
+                </li>
+
+                <li>
+                    Their Seller role is removed if they had one.
+                </li>
+
+                <li>
+                    The Customer role is added.
+                </li>
+
+                <li>
+                    Seller verification status is reset.
+                </li>
+
+                <li>
+                    Seller subscription access is removed.
+                </li>
+
+                <li>
+                    Administrator accounts are protected and cannot be converted.
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>

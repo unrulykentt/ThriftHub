@@ -1,0 +1,572 @@
+﻿@model ThriftHub.Models.RegisterViewModel
+
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-7 col-md-9">
+
+            <div class="card shadow-sm border-0">
+
+                <!-- ====================================================
+                     HEADER
+                     ==================================================== -->
+
+                <div class="card-header bg-dark text-white">
+
+                    <h3 class="mb-1">
+                        Create Your ThriftHub Account
+                    </h3>
+
+                    <small>
+                        Create your account and verify your identity.
+                    </small>
+
+                </div>
+
+
+                <div class="card-body p-4">
+
+                    <form asp-controller="Account"
+                          asp-action="Register"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- =================================================
+                             VALIDATION SUMMARY
+                             ================================================= -->
+
+                        <div asp-validation-summary="ModelOnly"
+                             class="text-danger mb-3">
+                        </div>
+
+
+                        <!-- =================================================
+                             PERSONAL INFORMATION
+                             ================================================= -->
+
+                        <h5 class="section-title">
+                            Personal Information
+                        </h5>
+
+
+                        <!-- FULL NAME -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="FullName"
+                                   class="form-label">
+                                Full Name
+                            </label>
+
+                            <input asp-for="FullName"
+                                   class="form-control"
+                                   placeholder="Enter your full name"
+                                   autocomplete="name" />
+
+                            <span asp-validation-for="FullName"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- PHONE -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="PhoneNumber"
+                                   class="form-label">
+                                Phone Number
+                            </label>
+
+                            <input asp-for="PhoneNumber"
+                                   class="form-control"
+                                   placeholder="Enter your phone number"
+                                   autocomplete="tel" />
+
+                            <span asp-validation-for="PhoneNumber"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- COUNTRY -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Country"
+                                   class="form-label">
+                                Country
+                            </label>
+
+                            <input asp-for="Country"
+                                   class="form-control"
+                                   placeholder="Enter your country"
+                                   autocomplete="country-name" />
+
+                            <span asp-validation-for="Country"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- CITY -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="City"
+                                   class="form-label">
+                                City
+                            </label>
+
+                            <input asp-for="City"
+                                   class="form-control"
+                                   placeholder="Enter your city"
+                                   autocomplete="address-level2" />
+
+                            <span asp-validation-for="City"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             ACCOUNT INFORMATION
+                             ================================================= -->
+
+                        <h5 class="section-title mt-4">
+                            Account Information
+                        </h5>
+
+
+                        <!-- EMAIL -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Email"
+                                   class="form-label">
+                                Email Address
+                            </label>
+
+                            <input asp-for="Email"
+                                   class="form-control"
+                                   placeholder="Enter your email address"
+                                   autocomplete="email" />
+
+                            <span asp-validation-for="Email"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- ACCOUNT TYPE -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="UserType"
+                                   class="form-label">
+                                Account Type
+                            </label>
+
+                            <select asp-for="UserType"
+                                    class="form-select">
+
+                                <option value="Customer">
+                                    Customer
+                                </option>
+
+                                <option value="Seller">
+                                    Seller
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="UserType"
+                                  class="text-danger">
+                            </span>
+
+                            <small class="text-muted d-block mt-2">
+
+                                <strong>Customer:</strong>
+                                Browse products, message sellers,
+                                buy items and report sellers.
+
+                                <br />
+
+                                <strong>Seller:</strong>
+                                Apply to sell products on ThriftHub.
+                                Seller accounts require administrator
+                                verification and an active subscription.
+
+                            </small>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             IDENTITY VERIFICATION
+                             ================================================= -->
+
+                        <div class="identity-section mt-4">
+
+                            <h5 class="section-title">
+                                Identity Verification
+                            </h5>
+
+                            <div class="identity-notice">
+
+                                <strong>
+                                    🔐 Your identity information is private.
+                                </strong>
+
+                                <p class="mb-0 mt-2">
+
+                                    Your identification details are used
+                                    to help keep ThriftHub safe and prevent
+                                    fraudulent accounts.
+
+                                    Your ID card information will not be
+                                    displayed publicly on your profile.
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- ID TYPE -->
+
+                            <div class="mb-3">
+
+                                <label asp-for="IdCardType"
+                                       class="form-label">
+                                    ID Type
+                                </label>
+
+                                <select asp-for="IdCardType"
+                                        class="form-select">
+
+                                    <option value="">
+                                        Select your ID type
+                                    </option>
+
+                                    <option value="Ghana Card">
+                                        Ghana Card
+                                    </option>
+
+                                    <option value="Passport">
+                                        Passport
+                                    </option>
+
+                                    <option value="Driver's License">
+                                        Driver's License
+                                    </option>
+
+                                    <option value="Voter ID">
+                                        Voter ID
+                                    </option>
+
+                                    <option value="National ID">
+                                        National ID
+                                    </option>
+
+                                </select>
+
+                                <span asp-validation-for="IdCardType"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- ID NUMBER -->
+
+                            <div class="mb-3">
+
+                                <label asp-for="IdCardNumber"
+                                       class="form-label">
+                                    ID Card Number
+                                </label>
+
+                                <input asp-for="IdCardNumber"
+                                       class="form-control"
+                                       placeholder="Enter your ID number"
+                                       autocomplete="off" />
+
+                                <span asp-validation-for="IdCardNumber"
+                                      class="text-danger">
+                                </span>
+
+                            </div>
+
+
+                            <!-- ID FRONT -->
+
+                            <div class="mb-3">
+
+                                <label asp-for="IdCardFront"
+                                       class="form-label">
+
+                                    ID Card Front
+
+                                </label>
+
+                                <input asp-for="IdCardFront"
+                                       type="file"
+                                       class="form-control"
+                                       accept=".jpg,.jpeg,.png,.webp" />
+
+                                <span asp-validation-for="IdCardFront"
+                                      class="text-danger">
+                                </span>
+
+                                <small class="text-muted">
+                                    Upload a clear image of the front
+                                    of your ID card.
+                                </small>
+
+                            </div>
+
+
+                            <!-- ID BACK -->
+
+                            <div class="mb-3">
+
+                                <label asp-for="IdCardBack"
+                                       class="form-label">
+
+                                    ID Card Back
+                                    <span class="text-muted">
+                                        (Optional)
+                                    </span>
+
+                                </label>
+
+                                <input asp-for="IdCardBack"
+                                       type="file"
+                                       class="form-control"
+                                       accept=".jpg,.jpeg,.png,.webp" />
+
+                                <span asp-validation-for="IdCardBack"
+                                      class="text-danger">
+                                </span>
+
+                                <small class="text-muted">
+                                    Upload the back of your ID if required.
+                                </small>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             PASSWORD
+                             ================================================= -->
+
+                        <h5 class="section-title mt-4">
+                            Create Password
+                        </h5>
+
+
+                        <!-- PASSWORD -->
+
+                        <div class="mb-3">
+
+                            <label asp-for="Password"
+                                   class="form-label">
+                                Password
+                            </label>
+
+                            <input asp-for="Password"
+                                   class="form-control"
+                                   placeholder="Create a password"
+                                   autocomplete="new-password" />
+
+                            <span asp-validation-for="Password"
+                                  class="text-danger">
+                            </span>
+
+                            <small class="text-muted">
+                                Your password must contain at least
+                                6 characters.
+                            </small>
+
+                        </div>
+
+
+                        <!-- CONFIRM PASSWORD -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="ConfirmPassword"
+                                   class="form-label">
+                                Confirm Password
+                            </label>
+
+                            <input asp-for="ConfirmPassword"
+                                   class="form-control"
+                                   placeholder="Confirm your password"
+                                   autocomplete="new-password" />
+
+                            <span asp-validation-for="ConfirmPassword"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             PRIVACY NOTICE
+                             ================================================= -->
+
+                        <div class="privacy-notice mb-4">
+
+                            <strong>
+                                🔒 Privacy & Security
+                            </strong>
+
+                            <p class="mb-0 mt-2">
+
+                                Your ID information is private and is
+                                intended for ThriftHub verification and
+                                safety purposes. It will not appear on
+                                your public seller or customer profile.
+
+                            </p>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             REGISTER BUTTON
+                             ================================================= -->
+
+                        <button type="submit"
+                                class="btn btn-primary w-100 register-button">
+
+                            Create Account
+
+                        </button>
+
+
+                        <!-- LOGIN -->
+
+                        <div class="text-center mt-3">
+
+                            <span>
+                                Already have an account?
+                            </span>
+
+                            <a asp-controller="Account"
+                               asp-action="Login">
+
+                                Login
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     STYLES
+     ================================================================ -->
+
+<style>
+
+    .section-title {
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 18px;
+    }
+
+
+    .identity-section {
+        padding: 22px;
+        background: #f8f7ff;
+        border: 1px solid #e6e0ff;
+        border-radius: 12px;
+    }
+
+
+    .identity-notice {
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        background: #ffffff;
+        border-left: 4px solid #6c3df4;
+        border-radius: 6px;
+        color: #555;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    .privacy-notice {
+        padding: 15px;
+        background: #f5f5f5;
+        border: 1px solid #e5e5e5;
+        border-radius: 8px;
+        color: #555;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    .register-button {
+        padding: 13px;
+        font-weight: 600;
+        border-radius: 8px;
+    }
+
+
+    input[type="file"] {
+        cursor: pointer;
+    }
+
+
+    @@media (max-width: 600px) {
+
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .card-body {
+            padding: 20px !important;
+        }
+
+        .identity-section {
+            padding: 16px;
+        }
+    }
+
+</style>
+
+
+@section Scripts
+{
+    <partial name="_ValidationScriptsPartial" />
+}

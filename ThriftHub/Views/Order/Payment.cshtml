@@ -1,0 +1,202 @@
+﻿@model ThriftHub.Models.Order
+
+@{
+    ViewData["Title"] = "Payment";
+}
+
+<div class="container" style="max-width: 900px; margin: 50px auto;">
+
+    <h1 style="margin-bottom: 10px;">Payment</h1>
+
+    <p style="color: #666;">
+        Complete your payment to confirm your order.
+    </p>
+
+    <div style="
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+        ">
+
+        <!-- ===================================================== -->
+        <!-- ORDER SUMMARY -->
+        <!-- ===================================================== -->
+
+        <div style="
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            background: white;
+            ">
+
+            <h2>Order Summary</h2>
+
+            <div style="margin-top: 25px;">
+
+                <p>
+                    <strong>Order Number:</strong>
+                    #@Model.Id
+                </p>
+
+                <p>
+                    <strong>Product ID:</strong>
+                    @Model.ProductId
+                </p>
+
+                <p>
+                    <strong>Product Price:</strong>
+                    GH₵ @Model.ProductPrice.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>ThriftHub Commission:</strong>
+                    @Model.CommissionPercentage.ToString("N2")%
+                </p>
+
+                <p>
+                    <strong>Commission Amount:</strong>
+                    GH₵ @Model.CommissionAmount.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>Seller Receives:</strong>
+                    GH₵ @Model.SellerAmount.ToString("N2")
+                </p>
+
+                <hr style="margin: 25px 0;" />
+
+                <h3>
+                    Total to Pay:
+                    <span style="color: #6c4cff;">
+                        GH₵ @Model.TotalAmount.ToString("N2")
+                    </span>
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- PAYMENT -->
+        <!-- ===================================================== -->
+
+        <div style="
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            background: white;
+            ">
+
+            <h2>Choose Payment Method</h2>
+
+            <p style="color: #666; margin-top: 15px;">
+                Select how you would like to pay for your order.
+            </p>
+
+
+            <!-- MOBILE MONEY -->
+
+            <div style="
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 25px;
+                ">
+
+                <h3>Mobile Money</h3>
+
+                <p style="color: #666;">
+                    Pay securely using your mobile money account.
+                </p>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        style="
+                    width: 100%;
+                    padding: 13px;
+                    border-radius: 8px;
+                    border: none;
+                    cursor: pointer;
+                    "
+                        onclick="alert('Mobile Money payment integration will be connected here.')">
+
+                    Pay with Mobile Money
+
+                </button>
+
+            </div>
+
+
+            <!-- CARD PAYMENT -->
+
+            <div style="
+                border: 1px solid #ddd;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+                ">
+
+                <h3>Bank Card</h3>
+
+                <p style="color: #666;">
+                    Pay using your Visa or Mastercard.
+                </p>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        style="
+                    width: 100%;
+                    padding: 13px;
+                    border-radius: 8px;
+                    border: none;
+                    cursor: pointer;
+                    "
+                        onclick="alert('Card payment integration will be connected here.')">
+
+                    Pay with Card
+
+                </button>
+
+            </div>
+
+
+            <!-- CANCEL ORDER -->
+
+            <div style="margin-top: 20px;">
+
+                <form asp-action="Cancel"
+                      asp-controller="Order"
+                      method="post">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="hidden"
+                           name="id"
+                           value="@Model.Id" />
+
+                    <button type="submit"
+                            style="
+                        width: 100%;
+                        padding: 12px;
+                        border-radius: 8px;
+                        border: 1px solid #dc3545;
+                        background: white;
+                        color: #dc3545;
+                        cursor: pointer;
+                        ">
+
+                        Cancel Order
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>

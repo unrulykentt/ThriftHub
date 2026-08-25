@@ -1,0 +1,324 @@
+﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Identity Verification";
+}
+
+<div class="container py-5">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
+    <div class="mb-4">
+
+        <h1 class="fw-bold">
+            Identity Verification
+        </h1>
+
+        <p class="text-muted">
+            Review government-issued identification documents
+            submitted by ThriftHub users.
+        </p>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUCCESS MESSAGE
+         ============================================================ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+
+            @TempData["SuccessMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+
+            @TempData["ErrorMessage"]
+
+            <button type="button"
+                    class="btn-close"
+                    data-bs-dismiss="alert">
+            </button>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         PENDING USERS
+         ============================================================ -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var user in Model)
+            {
+                <div class="col-12 col-lg-6">
+
+                    <div class="card shadow-sm border-0 h-100">
+
+                        <div class="card-body">
+
+                            <!-- ====================================================
+                                 USER INFORMATION
+                                 ==================================================== -->
+
+                            <div class="d-flex justify-content-between
+                                align-items-start mb-3">
+
+                                <div>
+
+                                    <h4 class="fw-bold mb-1">
+                                        @(user.FullName ?? "No name")
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+                                        @(user.Email ?? "No email")
+                                    </p>
+
+                                </div>
+
+
+                                <span class="badge bg-warning text-dark">
+                                    Pending
+                                </span>
+
+                            </div>
+
+
+                            <!-- ====================================================
+                                 PERSONAL INFORMATION
+                                 ==================================================== -->
+
+                            <div class="mb-3">
+
+                                <h6 class="fw-bold">
+                                    Personal Information
+                                </h6>
+
+
+                                <p class="mb-1">
+                                    <strong>Phone:</strong>
+                                    @(user.PhoneNumber ?? "Not provided")
+                                </p>
+
+
+                                <p class="mb-1">
+                                    <strong>Country:</strong>
+                                    @(user.Country ?? "Not provided")
+                                </p>
+
+
+                                <p class="mb-1">
+                                    <strong>City:</strong>
+                                    @(user.City ?? "Not provided")
+                                </p>
+
+
+                                <p class="mb-1">
+                                    <strong>Account Type:</strong>
+                                    @(user.UserType ?? "Customer")
+                                </p>
+
+                            </div>
+
+
+                            <!-- ====================================================
+                                 ID INFORMATION
+                                 ==================================================== -->
+
+                            <div class="border rounded p-3 mb-3">
+
+                                <h6 class="fw-bold mb-3">
+                                    🪪 Identity Information
+                                </h6>
+
+
+                                <p class="mb-2">
+
+                                    <strong>ID Type:</strong>
+
+                                    @(user.IdCardType ?? "Not provided")
+
+                                </p>
+
+
+                                <p class="mb-0">
+
+                                    <strong>ID Number:</strong>
+
+                                    @(user.IdCardNumber ?? "Not provided")
+
+                                </p>
+
+                            </div>
+
+
+                            <!-- ====================================================
+                                 ID FRONT
+                                 ==================================================== -->
+                            @if (!string.IsNullOrWhiteSpace(
+                                                            user.IdCardFrontUrl))
+                            {
+                                <div class="mb-3">
+
+                                    <h6 class="fw-bold">
+                                        ID Card Front
+                                    </h6>
+
+
+                                    <a href="@user.IdCardFrontUrl"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-outline-dark">
+
+                                        View ID Front
+
+                                    </a>
+
+                                </div>
+                            }
+
+
+                            <!-- ====================================================
+                                 ID BACK
+                                 ==================================================== -->
+                            @if (!string.IsNullOrWhiteSpace(
+                                                            user.IdCardBackUrl))
+                            {
+                                <div class="mb-3">
+
+                                    <h6 class="fw-bold">
+                                        ID Card Back
+                                    </h6>
+
+
+                                    <a href="@user.IdCardBackUrl"
+                                       target="_blank"
+                                       rel="noopener noreferrer"
+                                       class="btn btn-outline-dark">
+
+                                        View ID Back
+
+                                    </a>
+
+                                </div>
+                            }
+
+
+                            <!-- ====================================================
+                                 VERIFICATION ACTIONS
+                                 ==================================================== -->
+
+                            <div class="d-flex gap-2 mt-4">
+
+                                <!-- VERIFY -->
+
+                                <form asp-controller="Admin"
+                                      asp-action="VerifyIdentity"
+                                      method="post"
+                                      class="flex-fill">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@user.Id" />
+
+
+                                    <button type="submit"
+                                            class="btn btn-success w-100">
+
+                                        ✓ Verify Identity
+
+                                    </button>
+
+                                </form>
+
+
+                                <!-- REJECT -->
+
+                                <form asp-controller="Admin"
+                                      asp-action="RejectIdentity"
+                                      method="post"
+                                      class="flex-fill">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@user.Id" />
+
+
+                                    <button type="submit"
+                                            class="btn btn-danger w-100">
+
+                                        ✕ Reject
+
+                                    </button>
+
+                                </form>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <!-- ============================================================
+             NO PENDING VERIFICATIONS
+             ============================================================ -->
+
+        <div class="text-center py-5">
+
+            <div style="font-size:60px;">
+                ✅
+            </div>
+
+
+            <h3 class="fw-bold mt-3">
+                No Pending Identity Verifications
+            </h3>
+
+
+            <p class="text-muted">
+                There are currently no identity documents
+                waiting for administrator review.
+            </p>
+
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="btn btn-dark mt-2">
+
+                Back to Dashboard
+
+            </a>
+
+        </div>
+    }
+
+</div>

@@ -1,0 +1,1382 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0" />
+
+    <title>@ViewData["Title"] - ThriftHub</title>
+
+    <link rel="stylesheet"
+          href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <link rel="stylesheet"
+          href="~/css/site.css"
+          asp-append-version="true" />
+
+    <style>
+
+        /* ============================================================
+           GLOBAL
+           ============================================================ */
+
+        html,
+        body {
+            width: 100%;
+            min-width: 0;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+        }
+
+        body {
+            background: #fcfbfe;
+            color: #252238;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+
+        /* ============================================================
+           NAVBAR
+           ============================================================ */
+
+        .th-navbar {
+            width: 100%;
+            min-height: 70px;
+            background: white;
+            border-bottom: 1px solid #eee9f5;
+            box-shadow: 0 2px 12px rgba(70, 40, 110, 0.04);
+            position: relative;
+            z-index: 1000;
+        }
+
+
+        .th-navbar-inner {
+            width: 100%;
+            max-width: 1240px;
+            min-height: 70px;
+            margin: 0 auto;
+            padding: 0 24px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+
+            box-sizing: border-box;
+        }
+
+
+        /* ============================================================
+           LOGO
+           ============================================================ */
+
+        .th-logo {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+
+            color: #252238;
+            text-decoration: none;
+
+            font-size: 21px;
+            font-weight: 800;
+
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+
+        .th-logo:hover {
+            color: #6f3cc3;
+        }
+
+
+        .th-logo-icon {
+            width: 32px;
+            height: 32px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #6f3cc3;
+            color: white;
+
+            border-radius: 9px;
+
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+
+        /* ============================================================
+           MAIN NAVIGATION
+           ============================================================ */
+
+        .th-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            gap: 22px;
+
+            flex: 1;
+            min-width: 0;
+        }
+
+
+        .th-nav a {
+            color: #4f4a5d;
+            text-decoration: none;
+
+            font-size: 13px;
+            font-weight: 600;
+
+            white-space: nowrap;
+
+            transition: color .2s ease;
+        }
+
+
+        .th-nav a:hover {
+            color: #6f3cc3;
+        }
+
+
+        /* ============================================================
+           RIGHT NAVIGATION
+           ============================================================ */
+
+        .th-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+
+        /* ============================================================
+           SELL BUTTON
+           ============================================================ */
+
+        .th-sell-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 10px 15px;
+
+            border: 1px solid #bdb0ce;
+            border-radius: 9px;
+
+            background: white;
+            color: #252238;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition: .2s ease;
+        }
+
+
+        .th-sell-button:hover {
+            border-color: #6f3cc3;
+            color: #6f3cc3;
+        }
+
+
+        /* ============================================================
+           DASHBOARD BUTTON
+           ============================================================ */
+
+        .th-dashboard-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 10px 13px;
+
+            border-radius: 9px;
+
+            background: #f1e9ff;
+            color: #6f3cc3;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+
+        .th-dashboard-button:hover {
+            background: #e9ddff;
+            color: #54249c;
+        }
+
+
+        /* ============================================================
+           NOTIFICATION BUTTON
+           ============================================================ */
+
+        .th-notification-button {
+            position: relative;
+
+            width: 40px;
+            height: 40px;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 10px;
+
+            background: white;
+            color: #4f4a5d;
+
+            text-decoration: none;
+
+            font-size: 19px;
+
+            transition: .2s ease;
+
+            flex-shrink: 0;
+        }
+
+
+        .th-notification-button:hover {
+            background: #f1e9ff;
+            color: #6f3cc3;
+        }
+
+
+        .th-notification-count {
+            position: absolute;
+
+            top: 1px;
+            right: 1px;
+
+            min-width: 17px;
+            height: 17px;
+
+            display: none;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 0 4px;
+
+            background: #dc3545;
+            color: white;
+
+            border-radius: 20px;
+
+            font-size: 9px;
+            font-weight: 900;
+
+            border: 2px solid white;
+        }
+
+
+        .th-notification-count.visible {
+            display: flex;
+        }
+
+
+        /* ============================================================
+           LOGIN
+           ============================================================ */
+
+        .th-login-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 10px 17px;
+
+            border-radius: 9px;
+
+            background: #6f3cc3;
+            color: white;
+
+            text-decoration: none;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+
+        .th-login-button:hover {
+            background: #54249c;
+            color: white;
+        }
+
+
+        /* ============================================================
+           LOGOUT
+           ============================================================ */
+
+        .th-logout-button {
+            border: none;
+
+            background: transparent;
+            color: #c05b6c;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            padding: 8px 4px;
+        }
+
+
+        .th-logout-button:hover {
+            color: #a33e50;
+        }
+
+
+        /* ============================================================
+           MOBILE MENU BUTTON
+           ============================================================ */
+
+        .th-mobile-menu-button {
+            display: none;
+
+            width: 40px;
+            height: 40px;
+
+            border: 1px solid #e5deef;
+            border-radius: 9px;
+
+            background: white;
+            color: #4f4a5d;
+
+            align-items: center;
+            justify-content: center;
+
+            font-size: 21px;
+
+            cursor: pointer;
+
+            flex-shrink: 0;
+        }
+
+
+        .th-mobile-menu-button:hover {
+            background: #f1e9ff;
+            color: #6f3cc3;
+        }
+
+
+        /* ============================================================
+           MOBILE MENU
+           ============================================================ */
+
+        .th-mobile-menu {
+            display: none;
+
+            width: 100%;
+
+            background: white;
+            border-top: 1px solid #eee9f5;
+            border-bottom: 1px solid #eee9f5;
+
+            padding: 10px 16px 16px;
+
+            box-sizing: border-box;
+        }
+
+
+        .th-mobile-menu.open {
+            display: block;
+        }
+
+
+        .th-mobile-menu-links {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+
+        .th-mobile-menu-links a {
+            display: block;
+
+            padding: 12px 13px;
+
+            border-radius: 8px;
+
+            color: #4f4a5d;
+            text-decoration: none;
+
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+
+        .th-mobile-menu-links a:hover {
+            background: #f1e9ff;
+            color: #6f3cc3;
+        }
+
+
+        .th-mobile-menu-divider {
+            height: 1px;
+            background: #eee9f5;
+            margin: 8px 0;
+        }
+
+
+        /* ============================================================
+           MAIN
+           ============================================================ */
+
+        .th-main {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        .th-main-content {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+
+        /* ============================================================
+           FOOTER
+           ============================================================ */
+
+        .th-footer {
+            width: 100%;
+            background: white;
+            border-top: 1px solid #eee9f5;
+            margin-top: 50px;
+        }
+
+
+        .th-footer-inner {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+
+            padding: 28px 24px;
+
+            text-align: center;
+
+            color: #777386;
+            font-size: 12px;
+
+            box-sizing: border-box;
+        }
+
+
+        .th-footer-inner a {
+            color: #6f3cc3;
+            text-decoration: none;
+        }
+
+
+        /* ============================================================
+           TABLET
+           ============================================================ */
+
+        @@media (max-width: 1050px) {
+
+            .th-navbar-inner {
+                padding: 0 18px;
+                gap: 12px;
+            }
+
+            .th-nav {
+                gap: 13px;
+            }
+
+            .th-nav a {
+                font-size: 11px;
+            }
+
+            .th-sell-button {
+                padding: 9px 11px;
+            }
+
+            .th-dashboard-button {
+                padding: 9px 10px;
+            }
+
+        }
+
+
+        /* ============================================================
+           SMALL TABLET
+           ============================================================ */
+
+        @@media (max-width: 850px) {
+
+            .th-nav {
+                gap: 8px;
+            }
+
+            .th-nav a {
+                font-size: 10px;
+            }
+
+            .th-sell-button {
+                display: none;
+            }
+
+            .th-dashboard-button {
+                font-size: 11px;
+            }
+
+        }
+
+
+        /* ============================================================
+           MOBILE
+           ============================================================ */
+
+        @@media (max-width: 650px) {
+
+            .th-navbar {
+                min-height: 62px;
+            }
+
+
+            .th-navbar-inner {
+                min-height: 62px;
+
+                padding: 0 13px;
+
+                gap: 8px;
+            }
+
+
+            /* Hide desktop navigation */
+
+            .th-nav {
+                display: none;
+            }
+
+
+            /* Logo */
+
+            .th-logo {
+                font-size: 18px;
+                gap: 7px;
+            }
+
+
+            .th-logo-icon {
+                width: 30px;
+                height: 30px;
+                border-radius: 8px;
+                font-size: 15px;
+            }
+
+
+            /* Right side */
+
+            .th-nav-right {
+                margin-left: auto;
+                gap: 5px;
+            }
+
+
+            /* Notification */
+
+            .th-notification-button {
+                width: 36px;
+                height: 36px;
+                font-size: 17px;
+            }
+
+
+            /* Dashboard */
+
+            .th-dashboard-button {
+                padding: 8px 10px;
+                font-size: 10px;
+            }
+
+
+            /* Logout */
+
+            .th-logout-button {
+                font-size: 10px;
+                padding: 7px 3px;
+            }
+
+
+            /* Mobile menu */
+
+            .th-mobile-menu-button {
+                display: inline-flex;
+            }
+
+
+            .th-mobile-menu {
+                padding-left: 13px;
+                padding-right: 13px;
+            }
+
+
+            /* Login */
+
+            .th-login-button {
+                padding: 8px 12px;
+                font-size: 11px;
+            }
+
+        }
+
+
+        /* ============================================================
+           VERY SMALL PHONES
+           ============================================================ */
+
+        @@media (max-width: 400px) {
+
+            .th-navbar-inner {
+                padding: 0 10px;
+            }
+
+
+            .th-logo {
+                font-size: 16px;
+            }
+
+
+            .th-logo-icon {
+                width: 28px;
+                height: 28px;
+                font-size: 14px;
+            }
+
+
+            .th-dashboard-button {
+                font-size: 0;
+                width: 36px;
+                height: 36px;
+                padding: 0;
+            }
+
+
+            .th-dashboard-button::before {
+                content: "👤";
+                font-size: 16px;
+            }
+
+
+            .th-logout-button {
+                font-size: 0;
+                width: 32px;
+                height: 32px;
+                padding: 0;
+            }
+
+
+            .th-logout-button::before {
+                content: "↪";
+                font-size: 18px;
+            }
+
+
+            .th-notification-button {
+                width: 34px;
+                height: 34px;
+            }
+
+
+            .th-mobile-menu-button {
+                width: 34px;
+                height: 34px;
+                font-size: 18px;
+            }
+
+        }
+
+
+        /* ============================================================
+           EXTRA SMALL PHONES
+           ============================================================ */
+
+        @@media (max-width: 340px) {
+
+            .th-logo span:last-child {
+                display: none;
+            }
+
+            .th-nav-right {
+                gap: 3px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
+    <header class="th-navbar">
+
+        <div class="th-navbar-inner">
+
+
+            <!-- ====================================================
+                 LOGO
+                 ==================================================== -->
+
+            <a asp-controller="Home"
+               asp-action="Index"
+               class="th-logo">
+
+                <span class="th-logo-icon">
+                    🛍
+                </span>
+
+                <span>
+                    ThriftHub
+                </span>
+
+            </a>
+
+
+            <!-- ====================================================
+                 DESKTOP NAVIGATION
+                 ==================================================== -->
+
+            <nav class="th-nav">
+
+                <a asp-controller="Home"
+                   asp-action="Index">
+                    Home
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Women">
+                    Women
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Men">
+                    Men
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Kids">
+                    Kids
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Shoes">
+                    Shoes
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Bags">
+                    Bags
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Accessories">
+                    Accessories
+                </a>
+
+
+                <!-- =================================================
+                     WISHLIST
+                     ================================================= -->
+
+                @if (User.Identity != null &&
+                     User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="Favorites"
+                       asp-action="Index">
+                        ♡ Wishlist
+                    </a>
+                }
+
+            </nav>
+
+
+            <!-- ====================================================
+                 RIGHT SIDE
+                 ==================================================== -->
+
+            <div class="th-nav-right">
+
+
+                @if (User.Identity != null &&
+                     User.Identity.IsAuthenticated)
+                {
+
+                    <!-- ============================================
+                         NOTIFICATIONS
+                         ============================================ -->
+
+                    <a asp-controller="Notifications"
+                       asp-action="Index"
+                       class="th-notification-button"
+                       title="Notifications">
+
+                        🔔
+
+                        <span id="thNotificationCount"
+                              class="th-notification-count">
+                            0
+                        </span>
+
+                    </a>
+
+
+                    <!-- ============================================
+                         SELL AN ITEM
+                         ============================================ -->
+
+                    <a asp-controller="Seller"
+                       asp-action="Create"
+                       class="th-sell-button">
+
+                        Sell an Item
+
+                    </a>
+
+
+                    <!-- ============================================
+                         DASHBOARD
+                         ============================================ -->
+
+                    <a asp-controller="Dashboard"
+                       asp-action="Index"
+                       class="th-dashboard-button">
+
+                        👤 Dashboard
+
+                    </a>
+
+
+                    <!-- ============================================
+                         LOGOUT
+                         ============================================ -->
+
+                    <form asp-controller="Account"
+                          asp-action="Logout"
+                          method="post"
+                          style="margin:0;">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="th-logout-button">
+
+                            Logout
+
+                        </button>
+
+                    </form>
+
+
+                    <!-- ============================================
+                         MOBILE MENU BUTTON
+                         ============================================ -->
+
+                    <button type="button"
+                            class="th-mobile-menu-button"
+                            id="thMobileMenuButton"
+                            aria-label="Open navigation menu"
+                            aria-expanded="false">
+
+                        ☰
+
+                    </button>
+
+                }
+                else
+                {
+
+                    <!-- ============================================
+                         LOGIN
+                         ============================================ -->
+
+                    <a asp-controller="Account"
+                       asp-action="Login"
+                       class="th-login-button">
+
+                        Login
+
+                    </a>
+
+
+                    <!-- ============================================
+                         MOBILE MENU BUTTON FOR GUESTS
+                         ============================================ -->
+
+                    <button type="button"
+                            class="th-mobile-menu-button"
+                            id="thMobileMenuButton"
+                            aria-label="Open navigation menu"
+                            aria-expanded="false">
+
+                        ☰
+
+                    </button>
+
+                }
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             MOBILE NAVIGATION MENU
+             ======================================================== -->
+
+        <div class="th-mobile-menu"
+             id="thMobileMenu">
+
+            <div class="th-mobile-menu-links">
+
+                <a asp-controller="Home"
+                   asp-action="Index">
+                    🏠 Home
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Women">
+                    👗 Women
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Men">
+                    👔 Men
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Kids">
+                    🧒 Kids
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Shoes">
+                    👟 Shoes
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Bags">
+                    👜 Bags
+                </a>
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="Accessories">
+                    💍 Accessories
+                </a>
+
+
+                @if (User.Identity != null &&
+                     User.Identity.IsAuthenticated)
+                {
+
+                    <!-- =================================================
+                         WISHLIST
+                         ================================================= -->
+
+                    <a asp-controller="Favorites"
+                       asp-action="Index">
+                        ♡ Wishlist
+                    </a>
+
+
+                    <div class="th-mobile-menu-divider"></div>
+
+
+                    <a asp-controller="Seller"
+                       asp-action="Create">
+                        🛍️ Sell an Item
+                    </a>
+
+
+                    <a asp-controller="Dashboard"
+                       asp-action="Index">
+                        👤 Dashboard
+                    </a>
+
+
+                    <a asp-controller="Notifications"
+                       asp-action="Index">
+                        🔔 Notifications
+                    </a>
+
+                }
+
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <!-- ============================================================
+         PAGE CONTENT
+         ============================================================ -->
+
+    <main class="th-main">
+
+        <div class="th-main-content">
+
+            @RenderBody()
+
+        </div>
+
+    </main>
+
+
+    <!-- ============================================================
+         FOOTER
+         ============================================================ -->
+
+    <footer class="th-footer">
+
+        <div class="th-footer-inner">
+
+            ©️ 2026 - ThriftHub
+
+            &nbsp; | &nbsp;
+
+            <a asp-controller="Home"
+               asp-action="Privacy">
+
+                Privacy
+
+            </a>
+
+        </div>
+
+    </footer>
+
+
+    <!-- ============================================================
+         JAVASCRIPT
+         ============================================================ -->
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="~/js/site.js"
+            asp-append-version="true"></script>
+
+
+    <!-- ============================================================
+         MOBILE MENU JAVASCRIPT
+         ============================================================ -->
+
+    <script>
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+
+                const menuButton =
+                    document.getElementById(
+                        "thMobileMenuButton"
+                    );
+
+                const mobileMenu =
+                    document.getElementById(
+                        "thMobileMenu"
+                    );
+
+
+                if (!menuButton || !mobileMenu) {
+                    return;
+                }
+
+
+                menuButton.addEventListener(
+                    "click",
+                    function () {
+
+                        const isOpen =
+                            mobileMenu.classList.toggle(
+                                "open"
+                            );
+
+
+                        menuButton.setAttribute(
+                            "aria-expanded",
+                            isOpen ? "true" : "false"
+                        );
+
+
+                        menuButton.innerHTML =
+                            isOpen
+                                ? "✕"
+                                : "☰";
+
+                    }
+                );
+
+
+                /* ----------------------------------------------------
+                   CLOSE MENU AFTER SELECTING A LINK
+                   ---------------------------------------------------- */
+
+                const menuLinks =
+                    mobileMenu.querySelectorAll(
+                        "a"
+                    );
+
+
+                menuLinks.forEach(
+                    function (link) {
+
+                        link.addEventListener(
+                            "click",
+                            function () {
+
+                                mobileMenu.classList.remove(
+                                    "open"
+                                );
+
+
+                                menuButton.setAttribute(
+                                    "aria-expanded",
+                                    "false"
+                                );
+
+
+                                menuButton.innerHTML =
+                                    "☰";
+
+                            }
+                        );
+
+                    }
+                );
+
+
+                /* ----------------------------------------------------
+                   CLOSE MENU WHEN SCREEN BECOMES DESKTOP SIZE
+                   ---------------------------------------------------- */
+
+                window.addEventListener(
+                    "resize",
+                    function () {
+
+                        if (window.innerWidth > 650) {
+
+                            mobileMenu.classList.remove(
+                                "open"
+                            );
+
+
+                            menuButton.setAttribute(
+                                "aria-expanded",
+                                "false"
+                            );
+
+
+                            menuButton.innerHTML =
+                                "☰";
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+    </script>
+
+
+    <!-- ============================================================
+         NOTIFICATION COUNT
+         ============================================================ -->
+
+    @if (User.Identity != null &&
+         User.Identity.IsAuthenticated)
+    {
+        <script>
+
+            async function updateNotificationCount() {
+
+                try {
+
+                    const response =
+                        await fetch(
+                            '/Notifications/UnreadCount',
+                            {
+                                method: 'GET',
+                                credentials: 'same-origin'
+                            }
+                        );
+
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+
+                    const data =
+                        await response.json();
+
+
+                    const badge =
+                        document.getElementById(
+                            'thNotificationCount'
+                        );
+
+
+                    if (!badge) {
+                        return;
+                    }
+
+
+                    const count =
+                        Number(data.count || 0);
+
+
+                    if (count > 0) {
+
+                        badge.textContent =
+                            count > 99
+                                ? '99+'
+                                : count;
+
+
+                        badge.classList.add(
+                            'visible'
+                        );
+
+                    }
+                    else {
+
+                        badge.textContent = '0';
+
+
+                        badge.classList.remove(
+                            'visible'
+                        );
+
+                    }
+
+                }
+                catch (error) {
+
+                    console.log(
+                        'Unable to load notification count.'
+                    );
+
+                }
+
+            }
+
+
+            /* ========================================================
+               LOAD COUNT WHEN PAGE OPENS
+               ======================================================== */
+
+            updateNotificationCount();
+
+
+            /* ========================================================
+               CHECK AGAIN EVERY 10 SECONDS
+               ======================================================== */
+
+            setInterval(
+                updateNotificationCount,
+                10000
+            );
+
+
+            /* ========================================================
+               REAL-TIME NOTIFICATION
+               ======================================================== */
+
+            if (typeof signalR !== 'undefined') {
+
+                try {
+
+                    const notificationConnection =
+                        new signalR.HubConnectionBuilder()
+                            .withUrl('/chatHub')
+                            .withAutomaticReconnect()
+                            .build();
+
+
+                    notificationConnection.on(
+                        'NewNotification',
+                        function () {
+
+                            updateNotificationCount();
+
+                        }
+                    );
+
+
+                    notificationConnection.start()
+                        .catch(function () {
+
+                            // Existing chat functionality
+                            // can continue normally.
+
+                        });
+
+                }
+                catch (error) {
+
+                    console.log(
+                        'Notification connection unavailable.'
+                    );
+
+                }
+
+            }
+
+        </script>
+    }
+
+
+    @await RenderSectionAsync(
+        "Scripts",
+        required: false)
+
+</body>
+
+</html>

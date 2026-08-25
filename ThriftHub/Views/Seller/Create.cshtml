@@ -1,0 +1,1620 @@
+﻿@model ThriftHub.Models.Product
+
+@{
+    ViewData["Title"] = "Sell an Item";
+}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+
+        <div class="col-lg-9">
+
+            <!-- =========================================================
+                 HEADER
+                 ========================================================= -->
+
+            <div class="mb-4">
+
+                <h1 class="fw-bold">
+                    Sell an Item
+                </h1>
+
+                <p class="text-muted">
+                    Sell fashion, electronics, books, hostel items and other
+                    products students need on ThriftHub.
+                </p>
+
+            </div>
+
+
+            <!-- =========================================================
+                 SUCCESS MESSAGE
+                 ========================================================= -->
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+
+
+            <!-- =========================================================
+                 ERROR MESSAGE
+                 ========================================================= -->
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+
+            <!-- =========================================================
+                 VALIDATION ERRORS
+                 ========================================================= -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+
+                    <strong>
+                        Please correct the following:
+                    </strong>
+
+                    <div asp-validation-summary="All"></div>
+
+                </div>
+            }
+
+
+            <!-- =========================================================
+                 CREATE PRODUCT CARD
+                 ========================================================= -->
+
+            <div class="card shadow-sm border-0">
+
+                <div class="card-body p-4">
+
+                    <form asp-action="Create"
+                          asp-controller="Seller"
+                          method="post"
+                          enctype="multipart/form-data">
+
+                        @Html.AntiForgeryToken()
+
+
+                        <!-- =================================================
+                             PRODUCT NAME
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Name"
+                                   class="form-label fw-semibold">
+
+                                Item Name
+
+                            </label>
+
+                            <input asp-for="Name"
+                                   class="form-control"
+                                   placeholder="e.g. HP Laptop, Accounting Textbook, Vintage Black Dress" />
+
+                            <span asp-validation-for="Name"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             DESCRIPTION
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Description"
+                                   class="form-label fw-semibold">
+
+                                Description
+
+                            </label>
+
+                            <textarea asp-for="Description"
+                                      class="form-control"
+                                      rows="5"
+                                      placeholder="Describe the item, condition, colour, brand, model, material, features, etc."></textarea>
+
+                            <span asp-validation-for="Description"
+                                  class="text-danger">
+                            </span>
+
+                            <div class="form-text">
+
+                                Give buyers enough information to understand
+                                exactly what you are selling.
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             PRICE
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Price"
+                                   class="form-label fw-semibold">
+
+                                Price
+
+                            </label>
+
+                            <div class="input-group">
+
+                                <span class="input-group-text">
+                                    GHS
+                                </span>
+
+                                <input asp-for="Price"
+                                       type="number"
+                                       step="0.01"
+                                       min="0.01"
+                                       class="form-control"
+                                       placeholder="0.00" />
+
+                            </div>
+
+                            <span asp-validation-for="Price"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             MAIN CATEGORY
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Category"
+                                   class="form-label fw-semibold">
+
+                                Category
+
+                            </label>
+
+                            <select asp-for="Category"
+                                    id="categorySelect"
+                                    class="form-select">
+
+                                <option value="">
+                                    Select a category
+                                </option>
+
+
+                                <!-- ================================
+                                     FASHION
+                                     ================================ -->
+
+                                <optgroup label="Fashion">
+
+                                    <option value="Women">
+                                        Women
+                                    </option>
+
+                                    <option value="Men">
+                                        Men
+                                    </option>
+
+                                    <option value="Kids">
+                                        Kids
+                                    </option>
+
+                                    <option value="Shoes">
+                                        Shoes
+                                    </option>
+
+                                    <option value="Bags">
+                                        Bags
+                                    </option>
+
+                                    <option value="Accessories">
+                                        Accessories
+                                    </option>
+
+                                </optgroup>
+
+
+                                <!-- ================================
+                                     UNIVERSITY & STUDENT
+                                     ================================ -->
+
+                                <optgroup label="University & Student Essentials">
+
+                                    <option value="Books & Textbooks">
+                                        Books & Textbooks
+                                    </option>
+
+                                    <option value="Laptops & Computers">
+                                        Laptops & Computers
+                                    </option>
+
+                                    <option value="Phones & Tablets">
+                                        Phones & Tablets
+                                    </option>
+
+                                    <option value="Electronics">
+                                        Electronics
+                                    </option>
+
+                                    <option value="Computer Accessories">
+                                        Computer Accessories
+                                    </option>
+
+                                    <option value="Chargers & Cables">
+                                        Chargers & Cables
+                                    </option>
+
+                                    <option value="Power Banks">
+                                        Power Banks
+                                    </option>
+
+                                    <option value="Stationery">
+                                        Stationery & School Supplies
+                                    </option>
+
+                                    <option value="Calculators">
+                                        Calculators
+                                    </option>
+
+                                    <option value="Backpacks">
+                                        Backpacks & School Bags
+                                    </option>
+
+                                    <option value="Hostel Essentials">
+                                        Hostel Essentials
+                                    </option>
+
+                                    <option value="Furniture">
+                                        Furniture
+                                    </option>
+
+                                    <option value="Kitchen Appliances">
+                                        Kitchen Appliances
+                                    </option>
+
+                                    <option value="Printers & Accessories">
+                                        Printers & Accessories
+                                    </option>
+
+                                    <option value="Laboratory Equipment">
+                                        Laboratory Equipment
+                                    </option>
+
+                                    <option value="Sports & Fitness">
+                                        Sports & Fitness
+                                    </option>
+
+                                    <option value="Bicycles & Transportation">
+                                        Bicycles & Transportation
+                                    </option>
+
+                                    <option value="Gaming">
+                                        Gaming
+                                    </option>
+
+                                    <option value="Beauty & Personal Care">
+                                        Beauty & Personal Care
+                                    </option>
+
+                                    <option value="Cleaning & Laundry">
+                                        Cleaning & Laundry
+                                    </option>
+
+                                    <option value="Other Student Items">
+                                        Other Student Items
+                                    </option>
+
+                                </optgroup>
+
+                            </select>
+
+                            <span asp-validation-for="Category"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             SUBCATEGORY
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Subcategory"
+                                   class="form-label fw-semibold">
+
+                                Subcategory
+
+                            </label>
+
+                            <select asp-for="Subcategory"
+                                    id="subcategorySelect"
+                                    class="form-select">
+
+                                <option value="">
+                                    Select a subcategory
+                                </option>
+
+                            </select>
+
+                            <div class="form-text">
+                                Choose a more specific type of product.
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             CONDITION
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label asp-for="Condition"
+                                   class="form-label fw-semibold">
+
+                                Item Condition
+
+                            </label>
+
+                            <select asp-for="Condition"
+                                    class="form-select">
+
+                                <option value="">
+                                    Select condition
+                                </option>
+
+                                <option value="Brand New">
+                                    Brand New
+                                </option>
+
+                                <option value="Like New">
+                                    Like New
+                                </option>
+
+                                <option value="Very Good">
+                                    Very Good
+                                </option>
+
+                                <option value="Good">
+                                    Good
+                                </option>
+
+                                <option value="Fair">
+                                    Fair
+                                </option>
+
+                                <option value="Used">
+                                    Used
+                                </option>
+
+                            </select>
+
+                            <span asp-validation-for="Condition"
+                                  class="text-danger">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             SIZE SELECTION
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+                                Available Sizes
+                            </label>
+
+                            <p class="text-muted small mb-3">
+
+                                For clothes and shoes, select the available
+                                sizes. For other products, you can select
+                                "One Size" where appropriate.
+
+                            </p>
+
+
+                            <!-- Hidden field -->
+
+                            <input type="hidden"
+                                   asp-for="Sizes"
+                                   id="selectedSizes" />
+
+
+                            <!-- SIZE OPTIONS -->
+
+                            <div id="sizeOptions"
+                                 class="size-options">
+
+                                <div class="text-muted small">
+                                    Select a category first.
+                                </div>
+
+                            </div>
+
+
+                            <!-- CUSTOM SIZE -->
+
+                            <div class="mt-3">
+
+                                <label for="customSize"
+                                       class="form-label small fw-semibold">
+
+                                    Other / Custom Size
+
+                                </label>
+
+                                <div class="input-group">
+
+                                    <input type="text"
+                                           id="customSize"
+                                           class="form-control"
+                                           placeholder="e.g. 32, 34, 2XL, 5T" />
+
+                                    <button type="button"
+                                            id="addCustomSize"
+                                            class="btn btn-outline-primary">
+
+                                        Add Size
+
+                                    </button>
+
+                                </div>
+
+                                <div class="form-text">
+
+                                    Use this if your item's size is not listed.
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- SELECTED SIZE DISPLAY -->
+
+                            <div id="selectedSizeDisplay"
+                                 class="selected-size-display mt-3"
+                                 style="display:none;">
+
+                                <div class="small fw-semibold mb-2">
+                                    Selected sizes:
+                                </div>
+
+                                <div id="selectedSizeTags">
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             PRODUCT IMAGE
+                             ================================================= -->
+
+                        <div class="mb-4">
+
+                            <label class="form-label fw-semibold">
+
+                                Product Picture
+
+                            </label>
+
+                            <input type="file"
+                                   name="productImage"
+                                   id="productImage"
+                                   class="form-control"
+                                   accept=".jpg,.jpeg,.png,.webp" />
+
+                            <div class="form-text">
+
+                                Upload a clear picture of the actual item.
+
+                                <br />
+
+                                JPG, JPEG, PNG or WEBP.
+
+                                <br />
+
+                                Maximum file size: 10 MB.
+
+                            </div>
+
+                            <span class="text-danger"
+                                  asp-validation-for="ImageUrl">
+                            </span>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             IMAGE PREVIEW
+                             ================================================= -->
+
+                        <div class="mb-4 text-center">
+
+                            <img id="imagePreview"
+                                 src="#"
+                                 alt="Image Preview"
+                                 style="
+                            display:none;
+                            max-width:350px;
+                            max-height:350px;
+                            object-fit:cover;
+                            border-radius:12px;
+                            border:1px solid #ddd;
+                            " />
+
+                        </div>
+
+
+                        <!-- =================================================
+                             SELLER INFORMATION NOTICE
+                             ================================================= -->
+
+                        <div class="student-marketplace-notice mb-4">
+
+                            <div class="notice-icon">
+                                🎓
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Selling to university students?
+                                </strong>
+
+                                <p class="mb-0">
+
+                                    Make sure your description includes useful
+                                    details such as the item's condition,
+                                    brand, model, size, location and any
+                                    important defects.
+
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                             BUTTONS
+                             ================================================= -->
+
+                        <div class="d-flex gap-3 flex-wrap">
+
+                            <button type="submit"
+                                    class="btn btn-primary px-4">
+
+                                Post Item
+
+                            </button>
+
+
+                            <a asp-controller="Dashboard"
+                               asp-action="Index"
+                               class="btn btn-outline-secondary px-4">
+
+                                Cancel
+
+                            </a>
+
+                        </div>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     STYLING
+     ================================================================ -->
+
+<style>
+
+    .size-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 15px;
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 10px;
+        min-height: 55px;
+    }
+
+
+    .size-option {
+        position: relative;
+    }
+
+
+        .size-option input {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+
+        .size-option label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 55px;
+            padding: 9px 14px;
+            border: 1px solid #d9d9d9;
+            border-radius: 8px;
+            background: #fff;
+            color: #444;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+
+            .size-option label:hover {
+                border-color: #6c3df4;
+                color: #6c3df4;
+            }
+
+
+        .size-option input:checked + label {
+            background: #6c3df4;
+            border-color: #6c3df4;
+            color: #fff;
+        }
+
+
+    .selected-size-display {
+        padding: 12px;
+        background: #f4efff;
+        border: 1px solid #ddd0ff;
+        border-radius: 10px;
+    }
+
+
+    #selectedSizeTags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+    }
+
+
+    .selected-size-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #6c3df4;
+        color: #fff;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+
+    .remove-size {
+        border: none;
+        background: transparent;
+        color: #fff;
+        font-size: 15px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+    }
+
+
+        .remove-size:hover {
+            opacity: 0.7;
+        }
+
+
+    .student-marketplace-notice {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        padding: 18px;
+        background: #f7f4ff;
+        border: 1px solid #e3dcff;
+        border-radius: 12px;
+    }
+
+
+    .notice-icon {
+        font-size: 28px;
+        line-height: 1;
+    }
+
+
+    .student-marketplace-notice strong {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+
+    .student-marketplace-notice p {
+        color: #666;
+        font-size: 14px;
+    }
+
+
+    @@media (max-width: 576px) {
+
+        .card-body {
+            padding: 20px !important;
+        }
+
+        .student-marketplace-notice {
+            flex-direction: column;
+        }
+    }
+
+</style>
+
+
+@section Scripts
+{
+
+    <partial name="_ValidationScriptsPartial" />
+
+
+    <script>
+
+        // ============================================================
+        // CATEGORY → SUBCATEGORY
+        // ============================================================
+
+        const subcategories = {
+
+            Women: [
+                "Dresses",
+                "Tops",
+                "Trousers",
+                "Skirts",
+                "Jeans",
+                "Jackets",
+                "Jumpsuits",
+                "Traditional Wear",
+                "Other"
+            ],
+
+            Men: [
+                "Shirts",
+                "T-Shirts",
+                "Trousers",
+                "Jeans",
+                "Shorts",
+                "Jackets",
+                "Suits",
+                "Traditional Wear",
+                "Other"
+            ],
+
+            Kids: [
+                "Boys Clothing",
+                "Girls Clothing",
+                "Baby Clothing",
+                "School Wear",
+                "Other"
+            ],
+
+            Shoes: [
+                "Sneakers",
+                "Trainers",
+                "Boots",
+                "Formal Shoes",
+                "Sandals",
+                "Slippers",
+                "Heels",
+                "Other"
+            ],
+
+            Bags: [
+                "Backpacks",
+                "Handbags",
+                "Laptop Bags",
+                "Travel Bags",
+                "School Bags",
+                "Other"
+            ],
+
+            Accessories: [
+                "Watches",
+                "Belts",
+                "Jewellery",
+                "Sunglasses",
+                "Caps",
+                "Hats",
+                "Other"
+            ],
+
+            "Books & Textbooks": [
+                "Engineering",
+                "Computer Science",
+                "Business",
+                "Accounting",
+                "Law",
+                "Mathematics",
+                "Science",
+                "Research Materials",
+                "Novels",
+                "Other"
+            ],
+
+            "Laptops & Computers": [
+                "Laptop",
+                "Desktop Computer",
+                "Monitor",
+                "Keyboard",
+                "Mouse",
+                "Computer Parts",
+                "Other"
+            ],
+
+            "Phones & Tablets": [
+                "Smartphone",
+                "iPhone",
+                "Android Phone",
+                "Tablet",
+                "iPad",
+                "Other"
+            ],
+
+            Electronics: [
+                "Headphones",
+                "Earbuds",
+                "Speakers",
+                "Television",
+                "Camera",
+                "Smart Watch",
+                "Other"
+            ],
+
+            "Computer Accessories": [
+                "Keyboard",
+                "Mouse",
+                "Laptop Stand",
+                "USB Hub",
+                "Webcam",
+                "Cooling Pad",
+                "External Hard Drive",
+                "Flash Drive",
+                "Other"
+            ],
+
+            "Chargers & Cables": [
+                "Phone Charger",
+                "Laptop Charger",
+                "USB Cable",
+                "Type-C Cable",
+                "Lightning Cable",
+                "HDMI Cable",
+                "Extension Cable",
+                "Other"
+            ],
+
+            "Power Banks": [
+                "10000mAh",
+                "20000mAh",
+                "30000mAh",
+                "Other"
+            ],
+
+            Stationery: [
+                "Notebooks",
+                "Pens",
+                "Pencils",
+                "Markers",
+                "Files & Folders",
+                "Drawing Materials",
+                "School Supplies",
+                "Other"
+            ],
+
+            Calculators: [
+                "Scientific Calculator",
+                "Financial Calculator",
+                "Graphing Calculator",
+                "Other"
+            ],
+
+            Backpacks: [
+                "Laptop Backpack",
+                "School Backpack",
+                "Travel Backpack",
+                "Other"
+            ],
+
+            "Hostel Essentials": [
+                "Mattress",
+                "Pillow",
+                "Bedsheets",
+                "Blanket",
+                "Mosquito Net",
+                "Curtains",
+                "Storage Box",
+                "Other"
+            ],
+
+            Furniture: [
+                "Chair",
+                "Table",
+                "Desk",
+                "Bed",
+                "Wardrobe",
+                "Shelf",
+                "Other"
+            ],
+
+            "Kitchen Appliances": [
+                "Microwave",
+                "Blender",
+                "Rice Cooker",
+                "Electric Cooker",
+                "Kettle",
+                "Fridge",
+                "Hot Plate",
+                "Other"
+            ],
+
+            "Printers & Accessories": [
+                "Printer",
+                "Ink",
+                "Toner",
+                "Printer Cable",
+                "Other"
+            ],
+
+            "Laboratory Equipment": [
+                "Lab Coat",
+                "Safety Goggles",
+                "Calculator",
+                "Measuring Equipment",
+                "Laboratory Materials",
+                "Other"
+            ],
+
+            "Sports & Fitness": [
+                "Football",
+                "Basketball",
+                "Running Shoes",
+                "Gym Equipment",
+                "Sports Wear",
+                "Other"
+            ],
+
+            "Bicycles & Transportation": [
+                "Bicycle",
+                "Bicycle Parts",
+                "Helmet",
+                "Other"
+            ],
+
+            Gaming: [
+                "PlayStation",
+                "Xbox",
+                "Nintendo",
+                "Gaming Controller",
+                "Gaming Headset",
+                "Gaming Accessories",
+                "Other"
+            ],
+
+            "Beauty & Personal Care": [
+                "Hair Products",
+                "Skincare",
+                "Hair Dryer",
+                "Trimmer",
+                "Personal Care",
+                "Other"
+            ],
+
+            "Cleaning & Laundry": [
+                "Iron",
+                "Ironing Board",
+                "Bucket",
+                "Laundry Basket",
+                "Cleaning Equipment",
+                "Other"
+            ],
+
+            "Other Student Items": [
+                "Student Equipment",
+                "Hostel Item",
+                "School Item",
+                "Other"
+            ]
+
+        };
+
+
+        // ============================================================
+        // SIZE OPTIONS
+        // ============================================================
+
+        const sizeOptions = {
+
+            Women: [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "XXXL"
+            ],
+
+            Men: [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "XXXL"
+            ],
+
+            Kids: [
+                "0-3M",
+                "3-6M",
+                "6-12M",
+                "1-2T",
+                "2-3T",
+                "3-4T",
+                "4-5T",
+                "5-6T",
+                "6-7Y",
+                "8-9Y",
+                "10-11Y",
+                "12-13Y",
+                "14-15Y"
+            ],
+
+            Shoes: [
+                "36",
+                "37",
+                "38",
+                "39",
+                "40",
+                "41",
+                "42",
+                "43",
+                "44",
+                "45",
+                "46",
+                "47"
+            ],
+
+            Bags: [
+                "One Size"
+            ],
+
+            Accessories: [
+                "One Size"
+            ],
+
+            "Backpacks": [
+                "Small",
+                "Medium",
+                "Large",
+                "One Size"
+            ],
+
+            "Hostel Essentials": [
+                "Small",
+                "Medium",
+                "Large",
+                "One Size"
+            ],
+
+            "Sports & Fitness": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ]
+
+        };
+
+
+        // ============================================================
+        // ELEMENTS
+        // ============================================================
+
+        const categorySelect =
+            document.getElementById("categorySelect");
+
+        const subcategorySelect =
+            document.getElementById("subcategorySelect");
+
+        const sizeOptionsContainer =
+            document.getElementById("sizeOptions");
+
+        const selectedSizesInput =
+            document.getElementById("selectedSizes");
+
+        const selectedSizeDisplay =
+            document.getElementById("selectedSizeDisplay");
+
+        const selectedSizeTags =
+            document.getElementById("selectedSizeTags");
+
+        const customSizeInput =
+            document.getElementById("customSize");
+
+        const addCustomSizeButton =
+            document.getElementById("addCustomSize");
+
+
+        // ============================================================
+        // SELECTED SIZES
+        // ============================================================
+
+        let selectedSizes = [];
+
+
+        // ============================================================
+        // LOAD EXISTING SIZES
+        // ============================================================
+
+        if (selectedSizesInput.value) {
+
+            selectedSizes =
+                selectedSizesInput.value
+                    .split(",")
+                    .map(size => size.trim())
+                    .filter(size => size !== "");
+
+        }
+
+
+        // ============================================================
+        // UPDATE HIDDEN SIZE FIELD
+        // ============================================================
+
+        function updateHiddenSizes() {
+
+            selectedSizesInput.value =
+                selectedSizes.join(",");
+
+        }
+
+
+        // ============================================================
+        // DISPLAY SELECTED SIZE TAGS
+        // ============================================================
+
+        function displaySelectedSizes() {
+
+            selectedSizeTags.innerHTML = "";
+
+
+            if (selectedSizes.length === 0) {
+
+                selectedSizeDisplay.style.display =
+                    "none";
+
+                return;
+
+            }
+
+
+            selectedSizeDisplay.style.display =
+                "block";
+
+
+            selectedSizes.forEach(function(size) {
+
+                const tag =
+                    document.createElement("span");
+
+                tag.className =
+                    "selected-size-tag";
+
+
+                const text =
+                    document.createElement("span");
+
+                text.textContent =
+                    size;
+
+
+                const removeButton =
+                    document.createElement("button");
+
+                removeButton.type =
+                    "button";
+
+                removeButton.className =
+                    "remove-size";
+
+                removeButton.innerHTML =
+                    "×";
+
+                removeButton.title =
+                    "Remove size";
+
+
+                removeButton.addEventListener(
+                    "click",
+                    function() {
+
+                        selectedSizes =
+                            selectedSizes.filter(
+                                s => s !== size
+                            );
+
+                        updateHiddenSizes();
+
+                        displaySelectedSizes();
+
+                        updateCheckboxes();
+
+                    }
+                );
+
+
+                tag.appendChild(text);
+
+                tag.appendChild(removeButton);
+
+                selectedSizeTags.appendChild(tag);
+
+            });
+
+        }
+
+
+        // ============================================================
+        // UPDATE CHECKBOXES
+        // ============================================================
+
+        function updateCheckboxes() {
+
+            const checkboxes =
+                sizeOptionsContainer.querySelectorAll(
+                    "input[type='checkbox']"
+                );
+
+
+            checkboxes.forEach(function(checkbox) {
+
+                checkbox.checked =
+                    selectedSizes.includes(
+                        checkbox.value
+                    );
+
+            });
+
+        }
+
+
+        // ============================================================
+        // RENDER SIZE OPTIONS
+        // ============================================================
+
+        function renderSizeOptions() {
+
+            const category =
+                categorySelect.value;
+
+
+            sizeOptionsContainer.innerHTML =
+                "";
+
+
+            if (!category ||
+                !sizeOptions[category]) {
+
+                sizeOptionsContainer.innerHTML =
+                    '<div class="text-muted small">' +
+                    'This product does not require a size.' +
+                    '</div>';
+
+                return;
+
+            }
+
+
+            const sizes =
+                sizeOptions[category];
+
+
+            sizes.forEach(function(size, index) {
+
+                const wrapper =
+                    document.createElement("div");
+
+                wrapper.className =
+                    "size-option";
+
+
+                const checkbox =
+                    document.createElement("input");
+
+                checkbox.type =
+                    "checkbox";
+
+                checkbox.id =
+                    "size_" + index;
+
+                checkbox.value =
+                    size;
+
+
+                const label =
+                    document.createElement("label");
+
+                label.htmlFor =
+                    checkbox.id;
+
+                label.textContent =
+                    size;
+
+
+                checkbox.addEventListener(
+                    "change",
+                    function() {
+
+                        if (checkbox.checked) {
+
+                            if (!selectedSizes.includes(size)) {
+
+                                selectedSizes.push(size);
+
+                            }
+
+                        }
+                        else {
+
+                            selectedSizes =
+                                selectedSizes.filter(
+                                    s => s !== size
+                                );
+
+                        }
+
+
+                        updateHiddenSizes();
+
+                        displaySelectedSizes();
+
+                    }
+                );
+
+
+                wrapper.appendChild(checkbox);
+
+                wrapper.appendChild(label);
+
+                sizeOptionsContainer.appendChild(wrapper);
+
+            });
+
+
+            updateCheckboxes();
+
+        }
+
+
+        // ============================================================
+        // RENDER SUBCATEGORIES
+        // ============================================================
+
+        function renderSubcategories() {
+
+            const category =
+                categorySelect.value;
+
+
+            subcategorySelect.innerHTML =
+                '<option value="">Select a subcategory</option>';
+
+
+            if (!category ||
+                !subcategories[category]) {
+
+                return;
+
+            }
+
+
+            subcategories[category].forEach(
+                function(subcategory) {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value =
+                        subcategory;
+
+                    option.textContent =
+                        subcategory;
+
+                    subcategorySelect.appendChild(
+                        option
+                    );
+
+                }
+            );
+
+        }
+
+
+        // ============================================================
+        // CATEGORY CHANGED
+        // ============================================================
+
+        categorySelect.addEventListener(
+            "change",
+            function() {
+
+                selectedSizes = [];
+
+                updateHiddenSizes();
+
+                displaySelectedSizes();
+
+                renderSubcategories();
+
+                renderSizeOptions();
+
+            }
+        );
+
+
+        // ============================================================
+        // ADD CUSTOM SIZE
+        // ============================================================
+
+        addCustomSizeButton.addEventListener(
+            "click",
+            function() {
+
+                const customSize =
+                    customSizeInput.value.trim();
+
+
+                if (!customSize) {
+
+                    return;
+
+                }
+
+
+                if (!selectedSizes.includes(customSize)) {
+
+                    selectedSizes.push(customSize);
+
+                }
+
+
+                customSizeInput.value =
+                    "";
+
+
+                updateHiddenSizes();
+
+                displaySelectedSizes();
+
+                updateCheckboxes();
+
+            }
+        );
+
+
+        // ============================================================
+        // ENTER KEY FOR CUSTOM SIZE
+        // ============================================================
+
+        customSizeInput.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (event.key === "Enter") {
+
+                    event.preventDefault();
+
+                    addCustomSizeButton.click();
+
+                }
+
+            }
+        );
+
+
+        // ============================================================
+        // INITIALIZE
+        // ============================================================
+
+        renderSubcategories();
+
+        renderSizeOptions();
+
+        displaySelectedSizes();
+
+
+        // ============================================================
+        // IMAGE PREVIEW
+        // ============================================================
+
+        document
+            .getElementById("productImage")
+            .addEventListener(
+                "change",
+                function(event) {
+
+                    const file =
+                        event.target.files[0];
+
+
+                    const preview =
+                        document.getElementById(
+                            "imagePreview"
+                        );
+
+
+                    if (file) {
+
+                        const reader =
+                            new FileReader();
+
+
+                        reader.onload =
+                            function(e) {
+
+                                preview.src =
+                                    e.target.result;
+
+                                preview.style.display =
+                                    "inline-block";
+
+                            };
+
+
+                        reader.readAsDataURL(file);
+
+                    }
+                    else {
+
+                        preview.style.display =
+                            "none";
+
+                    }
+
+                }
+            );
+
+    </script>
+}

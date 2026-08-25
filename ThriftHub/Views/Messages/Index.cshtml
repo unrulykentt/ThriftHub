@@ -1,0 +1,506 @@
+﻿@model IEnumerable<ThriftHub.Models.ConversationViewModel>
+
+@{
+    ViewData["Title"] = "Messages";
+}
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    .messages-page {
+        max-width: 900px;
+        margin: 40px auto;
+        padding: 0 20px 50px;
+    }
+
+    .messages-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 25px;
+        gap: 15px;
+    }
+
+        .messages-header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .messages-header p {
+            margin: 5px 0 0;
+            color: #777;
+            font-size: 14px;
+        }
+
+    .marketplace-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 18px;
+        border: 1px solid #0d6efd;
+        border-radius: 8px;
+        background: white;
+        color: #0d6efd;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: 0.2s ease;
+        white-space: nowrap;
+    }
+
+        .marketplace-btn:hover {
+            background: #0d6efd;
+            color: white;
+            text-decoration: none;
+        }
+
+    .conversation-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .conversation-card {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+        min-height: 92px;
+        padding: 15px 18px;
+        background: #fff;
+        border: 1px solid #e5e5e5;
+        border-radius: 12px;
+        text-decoration: none;
+        color: inherit;
+        transition: 0.2s ease;
+    }
+
+        .conversation-card:hover {
+            text-decoration: none;
+            color: inherit;
+            background: #fafafa;
+            border-color: #d7d7d7;
+            transform: translateY(-1px);
+        }
+
+    .avatar-wrapper {
+        position: relative;
+        flex: 0 0 auto;
+        margin-right: 14px;
+    }
+
+    .avatar {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+        border: 1px solid #ddd;
+        background: #f1f1f1;
+    }
+
+    .online-dot {
+        position: absolute;
+        right: 1px;
+        bottom: 1px;
+        width: 14px;
+        height: 14px;
+        background: #20c55a;
+        border: 2px solid white;
+        border-radius: 50%;
+    }
+
+    .conversation-content {
+        flex: 1;
+        min-width: 0;
+        padding-right: 10px;
+    }
+
+    .conversation-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 4px;
+    }
+
+    .user-name {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 16px;
+        font-weight: 700;
+        color: #222;
+    }
+
+    .user-role {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 6px;
+        padding: 2px 7px;
+        border-radius: 20px;
+        background: #eaf3ff;
+        color: #0d6efd;
+        font-size: 10px;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+
+    .message-time {
+        flex: 0 0 auto;
+        color: #999;
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .conversation-bottom {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .last-message {
+        min-width: 0;
+        color: #777;
+        font-size: 13px;
+        line-height: 1.4;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .unread-message {
+        font-weight: 700;
+        color: #222;
+    }
+
+    .unread-badge {
+        flex: 0 0 auto;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 7px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50px;
+        background: #25d366;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+    .conversation-arrow {
+        flex: 0 0 auto;
+        margin-left: 8px;
+        color: #aaa;
+        font-size: 22px;
+        line-height: 1;
+    }
+
+    .empty-messages {
+        padding: 70px 20px;
+        text-align: center;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 14px;
+    }
+
+    .empty-icon {
+        width: 65px;
+        height: 65px;
+        margin: 0 auto 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #f1f3f5;
+        font-size: 28px;
+    }
+
+    .empty-messages h3 {
+        margin: 0 0 8px;
+        color: #333;
+        font-size: 20px;
+    }
+
+    .empty-messages p {
+        margin: 0 0 20px;
+        color: #777;
+        font-size: 14px;
+    }
+
+    .empty-messages a {
+        display: inline-flex;
+        padding: 10px 18px;
+        background: #0d6efd;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+        .empty-messages a:hover {
+            background: #0958d9;
+            color: white;
+            text-decoration: none;
+        }
+
+    @@media (max-width: 650px) {
+        .messages-page {
+            margin: 20px auto;
+            padding: 0 12px 35px;
+        }
+
+        .messages-header {
+            align-items: flex-start;
+        }
+
+            .messages-header h1 {
+                font-size: 24px;
+            }
+
+        .marketplace-btn {
+            padding: 9px 12px;
+            font-size: 12px;
+        }
+
+        .conversation-card {
+            min-height: 80px;
+            padding: 12px;
+            border-radius: 10px;
+        }
+
+        .avatar {
+            width: 48px;
+            height: 48px;
+        }
+
+        .online-dot {
+            width: 12px;
+            height: 12px;
+        }
+
+        .user-name {
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 9px;
+        }
+
+        .last-message {
+            font-size: 12px;
+        }
+
+        .message-time {
+            font-size: 10px;
+        }
+
+        .conversation-arrow {
+            font-size: 18px;
+        }
+    }
+</style>
+
+<div class="messages-page">
+
+    <!-- HEADER -->
+    <div class="messages-header">
+
+        <div>
+            <h1>Messages</h1>
+            <p>Your conversations</p>
+        </div>
+
+        <a asp-controller="MarketPlace"
+           asp-action="Index"
+           class="marketplace-btn">
+            Browse Marketplace
+        </a>
+
+    </div>
+
+
+    <!-- CONVERSATIONS -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="conversation-list">
+
+            @foreach (var conversation in Model)
+            {
+                var messages = conversation.Messages?
+                    .OrderBy(m => m.SentAt)
+                    .ToList();
+
+                var lastMessage = messages?
+                    .LastOrDefault();
+
+                var hasMessages = lastMessage != null;
+
+                var lastMessageText = "";
+
+                if (hasMessages)
+                {
+                    if (lastMessage!.MessageType == "image")
+                    {
+                        lastMessageText = "📷 Image";
+                    }
+                    else if (lastMessage.MessageType == "audio")
+                    {
+                        lastMessageText = "🎤 Voice message";
+                    }
+                    else if (lastMessage.MessageType == "video")
+                    {
+                        lastMessageText = "🎥 Video";
+                    }
+                    else if (lastMessage.MessageType == "file")
+                    {
+                        lastMessageText = "📎 " +
+                            (string.IsNullOrWhiteSpace(lastMessage.FileName)
+                                ? "File"
+                                : lastMessage.FileName);
+                    }
+                    else if (!string.IsNullOrWhiteSpace(lastMessage.Content))
+                    {
+                        lastMessageText = lastMessage.Content;
+                    }
+                    else
+                    {
+                        lastMessageText = "Message";
+                    }
+                }
+
+                var lastMessageTime = hasMessages
+                    ? lastMessage!.SentAt.ToLocalTime()
+                    : DateTime.MinValue;
+
+                var unreadCount = conversation.UnreadCount;
+
+                <a asp-controller="Messages"
+                   asp-action="Chat"
+                   asp-route-userId="@conversation.UserId"
+                   class="conversation-card">
+
+                    <!-- PROFILE IMAGE -->
+                    <div class="avatar-wrapper">
+
+                        <img src="@(
+                             string.IsNullOrWhiteSpace(conversation.ProfileImageUrl)
+                                 ? "/images/default-avatar.png"
+                                 : conversation.ProfileImageUrl
+                                            )"
+                             alt="Profile"
+                             class="avatar"
+                             onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+
+                        @if (conversation.IsOnline)
+                        {
+                            <span class="online-dot"></span>
+                        }
+
+                    </div>
+
+
+                    <!-- CONVERSATION CONTENT -->
+                    <div class="conversation-content">
+
+                        <!-- NAME + TIME -->
+                        <div class="conversation-top">
+
+                            <div class="user-name">
+
+                                @(
+                                    string.IsNullOrWhiteSpace(conversation.UserName)
+                                        ? "User"
+                                        : conversation.UserName
+                                )
+
+                                @if (!string.IsNullOrWhiteSpace(conversation.UserRole))
+                                {
+                                    <span class="user-role">
+                                        @conversation.UserRole
+                                    </span>
+                                }
+
+                            </div>
+
+                            @if (hasMessages)
+                            {
+                                <span class="message-time">
+                                    @lastMessageTime.ToString("dd/MM/yyyy h:mm tt")
+                                </span>
+                            }
+
+                        </div>
+
+
+                        <!-- LAST MESSAGE + UNREAD COUNT -->
+                        <div class="conversation-bottom">
+
+                            <div class="last-message @(unreadCount > 0 ? "unread-message" : "")">
+
+                                @if (hasMessages)
+                                {
+                                    @lastMessageText
+                                }
+                                else
+                                {
+                                    <span>Start a conversation</span>
+                                }
+
+                            </div>
+
+
+                            @if (unreadCount > 0)
+                            {
+                                <span class="unread-badge">
+                                    @(unreadCount > 99 ? "99+" : unreadCount)
+                                </span>
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- ARROW -->
+                    <div class="conversation-arrow">
+                        ›
+                    </div>
+
+                </a>
+            }
+
+        </div>
+    }
+    else
+    {
+        <!-- EMPTY STATE -->
+        <div class="empty-messages">
+
+            <div class="empty-icon">
+                💬
+            </div>
+
+            <h3>No conversations yet</h3>
+
+            <p>
+                Start chatting with a seller or buyer from the marketplace.
+            </p>
+
+            <a asp-controller="MarketPlace"
+               asp-action="Index">
+                Browse Marketplace
+            </a>
+
+        </div>
+    }
+
+</div>

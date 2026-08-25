@@ -1,0 +1,35 @@
+# Build and output directories
+[Bb]in/
+[Oo]bj/
+[Out]put/
+
+# Visual Studio files
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Database files (SQLite / EF Core)
+*.db
+*.db-shm
+*.db-wal
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# IDE / Editor configuration
+.idea/
+.vscode/
+
+# OS-generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Secrets and local configurations
+ThriftHub/appsettings.json
+

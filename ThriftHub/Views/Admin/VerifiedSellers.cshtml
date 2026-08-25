@@ -1,0 +1,347 @@
+﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Verified Sellers";
+}
+
+<style>
+    .admin-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 24px 70px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        gap: 20px;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 32px;
+        font-weight: 800;
+        color: #252238;
+    }
+
+    .page-subtitle {
+        margin-top: 8px;
+        color: #777386;
+        font-size: 14px;
+    }
+
+    .back-button {
+        display: inline-block;
+        padding: 11px 18px;
+        background: #6f3cc3;
+        color: white;
+        text-decoration: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+        .back-button:hover {
+            background: #54249c;
+            color: white;
+        }
+
+    .seller-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 22px;
+    }
+
+    .seller-card {
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 16px;
+        padding: 22px;
+        box-shadow: 0 5px 20px rgba(70, 40, 110, 0.06);
+    }
+
+    .seller-top {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .seller-photo {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #f1e9ff;
+    }
+
+    .seller-placeholder {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        background: #f1e9ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+    .seller-name {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+        color: #252238;
+    }
+
+    .seller-email {
+        margin-top: 5px;
+        color: #777386;
+        font-size: 13px;
+        word-break: break-word;
+    }
+
+    .seller-info {
+        border-top: 1px solid #eee9f5;
+        padding-top: 15px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 11px;
+        font-size: 13px;
+    }
+
+    .info-label {
+        color: #888;
+    }
+
+    .info-value {
+        color: #252238;
+        font-weight: 600;
+        text-align: right;
+    }
+
+    .verified-badge {
+        display: inline-block;
+        margin-top: 5px;
+        padding: 6px 10px;
+        border-radius: 20px;
+        background: #e8f8ef;
+        color: #218653;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .empty-box {
+        padding: 70px 20px;
+        text-align: center;
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 16px;
+    }
+
+    .empty-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+    .empty-box h3 {
+        color: #252238;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+
+    .empty-box p {
+        color: #777386;
+    }
+
+    @@media (max-width: 700px) {
+
+        .admin-page {
+            padding: 30px 16px 50px;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .page-title {
+            font-size: 26px;
+        }
+
+        .back-button {
+            width: 100%;
+            text-align: center;
+        }
+
+        .seller-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+
+<div class="admin-page">
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+        <div>
+            <h1 class="page-title">
+                ✅ Verified Sellers
+            </h1>
+
+            <p class="page-subtitle">
+                View sellers who have been approved by ThriftHub.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="back-button">
+            ← Admin Dashboard
+        </a>
+
+    </div>
+
+
+    <!-- SELLERS -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="seller-grid">
+
+            @foreach (var seller in Model)
+            {
+                <div class="seller-card">
+
+                    <div class="seller-top">
+
+                        @if (!string.IsNullOrWhiteSpace(seller.ProfileImageUrl))
+                        {
+                            <img src="@seller.ProfileImageUrl"
+                                 alt="@seller.FullName"
+                                 class="seller-photo" />
+                        }
+                        else
+                        {
+                            <div class="seller-placeholder">
+                                👤
+                            </div>
+                        }
+
+                        <div>
+
+                            <h2 class="seller-name">
+                                @(string.IsNullOrWhiteSpace(seller.FullName)
+                                    ? "Unnamed Seller"
+                                    : seller.FullName)
+                            </h2>
+
+                            <div class="seller-email">
+                                @seller.Email
+                            </div>
+
+                            <span class="verified-badge">
+                                ✓ Verified Seller
+                            </span>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="seller-info">
+
+                        <div class="info-row">
+                            <span class="info-label">
+                                Country
+                            </span>
+
+                            <span class="info-value">
+                                @(string.IsNullOrWhiteSpace(seller.Country)
+                                    ? "Not provided"
+                                    : seller.Country)
+                            </span>
+                        </div>
+
+
+                        <div class="info-row">
+                            <span class="info-label">
+                                City
+                            </span>
+
+                            <span class="info-value">
+                                @(string.IsNullOrWhiteSpace(seller.City)
+                                    ? "Not provided"
+                                    : seller.City)
+                            </span>
+                        </div>
+
+
+                        <div class="info-row">
+                            <span class="info-label">
+                                Phone
+                            </span>
+
+                            <span class="info-value">
+                                @(string.IsNullOrWhiteSpace(seller.PhoneNumber)
+                                    ? "Not provided"
+                                    : seller.PhoneNumber)
+                            </span>
+                        </div>
+
+
+                        <div class="info-row">
+                            <span class="info-label">
+                                Account Type
+                            </span>
+
+                            <span class="info-value">
+                                @seller.UserType
+                            </span>
+                        </div>
+
+
+                        <div class="info-row">
+                            <span class="info-label">
+                                Joined
+                            </span>
+
+                            <span class="info-value">
+                                @seller.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+    else
+    {
+        <div class="empty-box">
+
+            <div class="empty-icon">
+                🏪
+            </div>
+
+            <h3>
+                No verified sellers yet
+            </h3>
+
+            <p>
+                Sellers approved by the administrator will appear here.
+            </p>
+
+        </div>
+    }
+
+</div>

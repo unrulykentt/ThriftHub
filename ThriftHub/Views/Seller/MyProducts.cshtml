@@ -1,0 +1,866 @@
+﻿@model IEnumerable<ThriftHub.Models.Product>
+
+@{
+    ViewData["Title"] = "My Products";
+
+    var products =
+        Model?.ToList()
+        ?? new List<ThriftHub.Models.Product>();
+}
+
+<div class="container py-5">
+
+    <!-- =========================================================
+         PAGE HEADER
+         ========================================================= -->
+
+    <div class="page-header">
+
+        <div>
+
+            <div class="small-heading">
+                SELLER DASHBOARD
+            </div>
+
+            <h1>
+                My Products
+            </h1>
+
+            <p>
+                Manage the products you have posted for sale on
+                ThriftHub.
+            </p>
+
+        </div>
+
+
+        <a asp-controller="Seller"
+           asp-action="Create"
+           class="post-button">
+
+            + Post an Item
+
+        </a>
+
+    </div>
+
+
+    <!-- =========================================================
+         SUCCESS MESSAGE
+         ========================================================= -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert-box success">
+
+            <span class="alert-icon">
+                ✓
+            </span>
+
+            <span>
+                @TempData["SuccessMessage"]
+            </span>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         ERROR MESSAGE
+         ========================================================= -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert-box error">
+
+            <span class="alert-icon">
+                !
+            </span>
+
+            <span>
+                @TempData["ErrorMessage"]
+            </span>
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         PRODUCT COUNT
+         ========================================================= -->
+    @if (products.Any())
+    {
+        <div class="product-count">
+
+            <strong>
+                @products.Count
+            </strong>
+
+            @(products.Count == 1 ? "product" : "products")
+
+        </div>
+    }
+
+
+    <!-- =========================================================
+         NO PRODUCTS
+         ========================================================= -->
+    @if (!products.Any())
+    {
+        <div class="empty-products">
+
+            <div class="empty-icon">
+                🛍️
+            </div>
+
+            <h4>
+                You haven't posted any products yet.
+            </h4>
+
+            <p>
+                Start selling by posting your first item.
+            </p>
+
+            <a asp-controller="Seller"
+               asp-action="Create"
+               class="post-button">
+
+                + Post an Item
+
+            </a>
+
+        </div>
+    }
+    else
+    {
+
+        <!-- =====================================================
+             PRODUCTS
+             ====================================================== -->
+
+        <div class="row g-4">
+
+            @foreach (var product in products)
+            {
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+                    <div class="product-card">
+
+
+                        <!-- =====================================
+                             PRODUCT IMAGE
+                             ===================================== -->
+
+                        <div class="product-image">
+
+                            @if (!string.IsNullOrWhiteSpace(
+                                product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl"
+                                     alt="@product.Name" />
+                            }
+                            else
+                            {
+                                <div class="no-image">
+
+                                    <span>
+                                        🛍️
+                                    </span>
+
+                                    No image
+
+                                </div>
+                            }
+
+
+                            <!-- STATUS -->
+                            @if (product.IsSold)
+                            {
+                                <span class="status-badge sold">
+
+                                    Sold
+
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-badge available">
+
+                                    Available
+
+                                </span>
+                            }
+
+                        </div>
+
+
+                        <!-- =====================================
+                             PRODUCT INFORMATION
+                             ===================================== -->
+
+                        <div class="product-body">
+
+                            <h5 class="product-name">
+
+                                @product.Name
+
+                            </h5>
+
+
+                            <p class="product-description">
+
+                                @(string.IsNullOrWhiteSpace(
+                                    product.Description)
+                                    ? "No description provided."
+                                    : product.Description)
+
+                            </p>
+
+
+                            <!-- PRICE -->
+
+                            <div class="product-price">
+
+                                GH₵ @product.Price.ToString("N2")
+
+                            </div>
+
+
+                            <!-- SIZE -->
+                            @if (!string.IsNullOrWhiteSpace(
+                                                            product.Sizes))
+                            {
+                                <div class="size-section">
+
+                                    <span class="size-title">
+                                        Sizes:
+                                    </span>
+
+                                    <span class="size-text">
+                                        @product.Sizes
+                                    </span>
+
+                                </div>
+                            }
+
+
+                            <!-- CATEGORY -->
+
+                            <div class="product-details">
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    product.Category))
+                                {
+                                    <span class="category-badge">
+
+                                        @product.Category
+
+                                    </span>
+                                }
+
+
+                                @if (!string.IsNullOrWhiteSpace(
+                                    product.Subcategory))
+                                {
+                                    <span class="subcategory-badge">
+
+                                        @product.Subcategory
+
+                                    </span>
+                                }
+
+                            </div>
+
+
+                            <!-- =================================
+                                 VIEW PRODUCT
+                                 ================================= -->
+
+                            <a asp-controller="MarketPlace"
+                               asp-action="Details"
+                               asp-route-id="@product.Id"
+                               class="action-button view-button">
+
+                                View Product
+
+                            </a>
+
+
+                            <!-- =================================
+                                 SOLD PRODUCT
+                                 ================================= -->
+                            @if (product.IsSold)
+                            {
+                                <!-- =================================
+                                     EDIT AND MAKE AVAILABLE
+                                     ================================= -->
+
+                                <a asp-controller="Seller"
+                                   asp-action="EditAvailable"
+                                   asp-route-id="@product.Id"
+                                   class="action-button available-button">
+
+                                    ↻ Edit & Make Available
+
+                                </a>
+                            }
+                            else
+                            {
+                                <!-- =================================
+                                     MARK AS SOLD
+                                     ================================= -->
+
+                                <form asp-controller="MarketPlace"
+                                      asp-action="MarkAsSold"
+                                      method="post"
+                                      class="product-form">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@product.Id" />
+
+                                    <button type="submit"
+                                            class="action-button sold-button"
+                                            onclick="return confirm('Are you sure you want to mark this product as sold?');">
+
+                                        ✓ Mark as Sold
+
+                                    </button>
+
+                                </form>
+                            }
+
+
+                            <!-- =================================
+                                 DELETE
+                                 ================================= -->
+
+                            <form asp-controller="Seller"
+                                  asp-action="Delete"
+                                  method="post"
+                                  class="product-form">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@product.Id" />
+
+                                <button type="submit"
+                                        class="action-button delete-button"
+                                        onclick="return confirm('Are you sure you want to delete this product? This action cannot be undone.');">
+
+                                    Delete
+
+                                </button>
+
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+</div>
+
+
+<!-- =============================================================
+     STYLING
+     ============================================================= -->
+
+<style>
+
+    body {
+        background: #fcfbfe;
+    }
+
+
+    /* =========================================================
+           PAGE HEADER
+           ========================================================= */
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+
+    .small-heading {
+        color: #777386;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        margin-bottom: 7px;
+    }
+
+
+    .page-header h1 {
+        margin: 0 0 7px;
+        color: #252238;
+        font-size: 32px;
+        font-weight: 800;
+    }
+
+
+    .page-header p {
+        margin: 0;
+        color: #777386;
+        font-size: 13px;
+    }
+
+
+    /* =========================================================
+           POST BUTTON
+           ========================================================= */
+
+    .post-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 11px 18px;
+        background: #6f3cc3;
+        color: white;
+        border-radius: 9px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+        .post-button:hover {
+            background: #54249c;
+            color: white;
+            text-decoration: none;
+        }
+
+
+    /* =========================================================
+           ALERTS
+           ========================================================= */
+
+    .alert-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 16px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+        .alert-box.success {
+            background: #eaf8ef;
+            color: #176b35;
+            border: 1px solid #bce3c8;
+        }
+
+
+        .alert-box.error {
+            background: #fff1f1;
+            color: #9b1c1c;
+            border: 1px solid #f0c4c4;
+        }
+
+
+    .alert-icon {
+        font-weight: 900;
+        font-size: 16px;
+    }
+
+
+    /* =========================================================
+           PRODUCT COUNT
+           ========================================================= */
+
+    .product-count {
+        color: #777386;
+        font-size: 12px;
+        margin-bottom: 18px;
+    }
+
+
+        .product-count strong {
+            color: #6f3cc3;
+        }
+
+
+    /* =========================================================
+           EMPTY PRODUCTS
+           ========================================================= */
+
+    .empty-products {
+        text-align: center;
+        background: #ffffff;
+        border: 1px solid #eee9f5;
+        border-radius: 18px;
+        padding: 70px 20px;
+        margin-top: 30px;
+    }
+
+
+    .empty-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+
+    .empty-products h4 {
+        font-weight: 700;
+        color: #252238;
+    }
+
+
+    .empty-products p {
+        color: #777386;
+        margin-bottom: 20px;
+    }
+
+
+    /* =========================================================
+           PRODUCT CARD
+           ========================================================= */
+
+    .product-card {
+        background: #ffffff;
+        border: 1px solid #eee9f5;
+        border-radius: 16px;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 5px 20px rgba(60,40,90,.05);
+        transition: .2s ease;
+    }
+
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(60,40,90,.12);
+        }
+
+
+    /* =========================================================
+           PRODUCT IMAGE
+           ========================================================= */
+
+    .product-image {
+        height: 250px;
+        background: #f5f1fa;
+        position: relative;
+        overflow: hidden;
+    }
+
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+
+    /* =========================================================
+           NO IMAGE
+           ========================================================= */
+
+    .no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 13px;
+    }
+
+
+        .no-image span {
+            font-size: 40px;
+            margin-bottom: 8px;
+        }
+
+
+    /* =========================================================
+           STATUS
+           ========================================================= */
+
+    .status-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+    }
+
+
+        .status-badge.sold {
+            background: #dc3545;
+            color: white;
+        }
+
+
+        .status-badge.available {
+            background: #198754;
+            color: white;
+        }
+
+
+    /* =========================================================
+           PRODUCT BODY
+           ========================================================= */
+
+    .product-body {
+        padding: 17px;
+    }
+
+
+    .product-name {
+        color: #252238;
+        font-weight: 800;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+
+    .product-description {
+        color: #777386;
+        font-size: 13px;
+        line-height: 1.5;
+        height: 40px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+
+    /* =========================================================
+           PRICE
+           ========================================================= */
+
+    .product-price {
+        color: #6f3cc3;
+        font-size: 18px;
+        font-weight: 900;
+        margin-bottom: 10px;
+    }
+
+
+    /* =========================================================
+           SIZE
+           ========================================================= */
+
+    .size-section {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-bottom: 10px;
+        font-size: 11px;
+    }
+
+
+    .size-title {
+        color: #777386;
+        font-weight: 700;
+    }
+
+
+    .size-text {
+        color: #333;
+        font-weight: 700;
+    }
+
+
+    /* =========================================================
+           CATEGORY
+           ========================================================= */
+
+    .product-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-bottom: 15px;
+    }
+
+
+    .category-badge,
+    .subcategory-badge {
+        display: inline-block;
+        background: #f1e9ff;
+        color: #6f3cc3;
+        padding: 5px 9px;
+        border-radius: 15px;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+
+    .subcategory-badge {
+        background: #f5f5f5;
+        color: #666;
+    }
+
+
+    /* =========================================================
+           ACTION BUTTONS
+           ========================================================= */
+
+    .action-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        min-height: 40px;
+        box-sizing: border-box;
+        border-radius: 9px;
+        padding: 10px;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+
+        .action-button:hover {
+            text-decoration: none;
+        }
+
+
+    .view-button {
+        background: white;
+        color: #6f3cc3;
+        border: 1px solid #6f3cc3;
+    }
+
+
+        .view-button:hover {
+            background: #f5efff;
+            color: #54249c;
+        }
+
+
+    /* =========================================================
+           MARK AS SOLD
+           ========================================================= */
+
+    .sold-button {
+        background: #dc3545;
+        color: white;
+        border: 1px solid #dc3545;
+    }
+
+
+        .sold-button:hover {
+            background: #b52a37;
+            color: white;
+        }
+
+
+    /* =========================================================
+           EDIT & MAKE AVAILABLE
+           ========================================================= */
+
+    .available-button {
+        background: #198754;
+        color: white;
+        border: 1px solid #198754;
+    }
+
+
+        .available-button:hover {
+            background: #146c43;
+            color: white;
+        }
+
+
+    /* =========================================================
+           DELETE
+           ========================================================= */
+
+    .delete-button {
+        background: white;
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+
+        .delete-button:hover {
+            background: #fff1f1;
+            color: #b52a37;
+        }
+
+
+    /* =========================================================
+           FORMS
+           ========================================================= */
+
+    .product-form {
+        margin: 0;
+    }
+
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 768px) {
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+
+        .post-button {
+            width: 100%;
+        }
+    }
+
+
+    @@media (max-width: 576px) {
+
+        .container {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+
+        .page-header h1 {
+            font-size: 27px;
+        }
+
+
+        .product-image {
+            height: 230px;
+        }
+
+
+        .product-body {
+            padding: 14px;
+        }
+
+
+        .product-name {
+            font-size: 15px;
+        }
+
+
+        .product-price {
+            font-size: 16px;
+        }
+    }
+
+</style>

@@ -1,0 +1,778 @@
+﻿@model IEnumerable<ThriftHub.Models.Report>
+
+@{
+    ViewData["Title"] = "My Reports";
+
+    var reports =
+        Model ?? Enumerable.Empty<ThriftHub.Models.Report>();
+}
+
+<div class="safety-page">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
+    <div class="page-header">
+
+        <div class="header-icon">
+            🛡️
+        </div>
+
+        <div>
+
+            <div class="small-heading">
+                THRIFTHUB SAFETY
+            </div>
+
+            <h1>
+                My Reports
+            </h1>
+
+            <p>
+                View the reports you have submitted and their
+                current status.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUCCESS MESSAGE
+         ============================================================ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success-message">
+
+            ✓ @TempData["SuccessMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error-message">
+
+            @TempData["ErrorMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         REPORT INFORMATION
+         ============================================================ -->
+
+    <div class="info-box">
+
+        <div class="info-icon">
+            ℹ️
+        </div>
+
+        <div>
+
+            <strong>
+                About reports
+            </strong>
+
+            <p>
+                Reports help ThriftHub keep the marketplace safe.
+                An administrator will review your report and take
+                appropriate action when necessary.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- ============================================================
+         REPORT LIST
+         ============================================================ -->
+    @if (!reports.Any())
+    {
+        <div class="empty-state">
+
+            <div class="empty-icon">
+                📋
+            </div>
+
+            <h2>
+                No Reports Yet
+            </h2>
+
+            <p>
+                You have not submitted any reports.
+            </p>
+
+            <a asp-controller="Safety"
+               asp-action="ReportUser"
+               class="primary-button">
+
+                Report a User
+
+            </a>
+
+        </div>
+    }
+    else
+    {
+        <div class="reports-container">
+
+            @foreach (var report in reports)
+            {
+                <div class="report-card">
+
+                    <!-- ====================================================
+                         REPORT HEADER
+                         ==================================================== -->
+
+                    <div class="report-top">
+
+                        <div>
+
+                            <span class="report-label">
+                                REPORT
+                            </span>
+
+                            <h2>
+                                Report #@report.Id
+                            </h2>
+
+                        </div>
+
+
+                        <!-- ==================================================
+                             STATUS
+                             ================================================== -->
+                        @if (string.Equals(
+                                                    report.Status,
+                                                    "Resolved",
+                                                    StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status resolved">
+
+                                ✓ Resolved
+
+                            </span>
+                        }
+                        else if (string.Equals(
+                            report.Status,
+                            "Reviewed",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status reviewed">
+
+                                👁 Reviewed
+
+                            </span>
+                        }
+                        else if (string.Equals(
+                            report.Status,
+                            "Rejected",
+                            StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span class="status rejected">
+
+                                ✕ Rejected
+
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status pending">
+
+                                ⏳ Pending
+
+                            </span>
+                        }
+
+                    </div>
+
+
+                    <!-- ====================================================
+                         REPORT DETAILS
+                         ==================================================== -->
+
+                    <div class="report-details">
+
+                        <!-- REASON -->
+
+                        <div class="detail">
+
+                            <span class="detail-title">
+                                Reason
+                            </span>
+
+                            <span class="detail-value">
+                                @report.Reason
+                            </span>
+
+                        </div>
+
+
+                        <!-- DESCRIPTION -->
+                        @if (!string.IsNullOrWhiteSpace(
+                                                    report.Description))
+                        {
+                            <div class="detail">
+
+                                <span class="detail-title">
+                                    Description
+                                </span>
+
+                                <span class="detail-value description">
+                                    @report.Description
+                                </span>
+
+                            </div>
+                        }
+
+
+                        <!-- REPORTED USER -->
+                        @if (!string.IsNullOrWhiteSpace(
+                                                    report.ReportedUserId))
+                        {
+                            <div class="detail">
+
+                                <span class="detail-title">
+                                    Reported User
+                                </span>
+
+                                <span class="detail-value">
+                                    User account
+                                </span>
+
+                            </div>
+                        }
+
+
+                        <!-- REPORTED PRODUCT -->
+                        @if (report.ReportedProductId.HasValue)
+                        {
+                            <div class="detail">
+
+                                <span class="detail-title">
+                                    Product
+                                </span>
+
+                                <span class="detail-value">
+                                    Product #@report.ReportedProductId
+                                </span>
+
+                            </div>
+                        }
+
+
+                        <!-- SUBMITTED -->
+
+                        <div class="detail">
+
+                            <span class="detail-title">
+                                Submitted
+                            </span>
+
+                            <span class="detail-value">
+
+                                @report.CreatedAt
+                                .ToLocalTime()
+                                .ToString(
+                                "dd MMM yyyy, hh:mm tt")
+
+                            </span>
+
+                        </div>
+
+
+                        <!-- REVIEWED -->
+                        @if (report.ReviewedAt.HasValue)
+                        {
+                            <div class="detail">
+
+                                <span class="detail-title">
+                                    Reviewed
+                                </span>
+
+                                <span class="detail-value">
+
+                                    @report.ReviewedAt.Value
+                                    .ToLocalTime()
+                                    .ToString(
+                                    "dd MMM yyyy, hh:mm tt")
+
+                                </span>
+
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <!-- ====================================================
+                         ADMIN RESPONSE
+                         ==================================================== -->
+                    @if (!string.IsNullOrWhiteSpace(
+                                            report.AdminResponse))
+                    {
+                        <div class="admin-response">
+
+                            <div class="response-icon">
+                                👨‍💼
+                            </div>
+
+                            <div>
+
+                                <strong>
+                                    Administrator Response
+                                </strong>
+
+                                <p>
+                                    @report.AdminResponse
+                                </p>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ACTIONS
+         ============================================================ -->
+
+    <div class="bottom-actions">
+
+        <a asp-controller="Safety"
+           asp-action="BlockedUsers"
+           class="secondary-button">
+
+            🚫 Blocked Users
+
+        </a>
+
+        <a asp-controller="Safety"
+           asp-action="ReportUser"
+           class="primary-button">
+
+            ⚠️ Submit New Report
+
+        </a>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     STYLING
+     ================================================================ -->
+
+<style>
+
+    .safety-page {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 45px 25px 70px;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+
+    /* ============================================================
+           MESSAGES
+           ============================================================ */
+
+    .message {
+        padding: 14px 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 13px;
+    }
+
+    .success-message {
+        background: #e9f9ef;
+        color: #16803c;
+        border: 1px solid #bde8ca;
+    }
+
+    .error-message {
+        background: #fff0f0;
+        color: #b42318;
+        border: 1px solid #f3c2c2;
+    }
+
+
+    /* ============================================================
+           HEADER
+           ============================================================ */
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 30px;
+    }
+
+    .header-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        background: #f1ecff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        flex-shrink: 0;
+    }
+
+    .small-heading {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        color: #777;
+        margin-bottom: 6px;
+    }
+
+    .page-header h1 {
+        margin: 0;
+        font-size: 30px;
+        color: #252525;
+    }
+
+    .page-header p {
+        margin: 7px 0 0;
+        color: #888;
+        font-size: 14px;
+    }
+
+
+    /* ============================================================
+           INFORMATION BOX
+           ============================================================ */
+
+    .info-box {
+        display: flex;
+        gap: 14px;
+        padding: 18px;
+        margin-bottom: 28px;
+        border: 1px solid #ddd5ff;
+        background: #faf9ff;
+        border-radius: 12px;
+    }
+
+    .info-icon {
+        font-size: 22px;
+    }
+
+    .info-box strong {
+        color: #4f35a8;
+        font-size: 14px;
+    }
+
+    .info-box p {
+        margin: 6px 0 0;
+        color: #777;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+
+    /* ============================================================
+           EMPTY STATE
+           ============================================================ */
+
+    .empty-state {
+        text-align: center;
+        padding: 65px 25px;
+        border: 1px solid #eee;
+        border-radius: 14px;
+        background: #fff;
+    }
+
+    .empty-icon {
+        font-size: 45px;
+        margin-bottom: 15px;
+    }
+
+    .empty-state h2 {
+        margin: 0 0 8px;
+        font-size: 21px;
+        color: #333;
+    }
+
+    .empty-state p {
+        margin: 0 0 22px;
+        color: #888;
+        font-size: 13px;
+    }
+
+
+    /* ============================================================
+           REPORTS
+           ============================================================ */
+
+    .reports-container {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+
+    /* ============================================================
+           REPORT CARD
+           ============================================================ */
+
+    .report-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 22px;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.03);
+    }
+
+
+    /* ============================================================
+           REPORT TOP
+           ============================================================ */
+
+    .report-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 15px;
+        padding-bottom: 17px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .report-label {
+        display: block;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        color: #999;
+        margin-bottom: 5px;
+    }
+
+    .report-top h2 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+    }
+
+
+    /* ============================================================
+           STATUS
+           ============================================================ */
+
+    .status {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+        .status.pending {
+            background: #fff5dc;
+            color: #9a6a00;
+        }
+
+        .status.reviewed {
+            background: #eef5ff;
+            color: #2765a8;
+        }
+
+        .status.resolved {
+            background: #e9f9ef;
+            color: #16803c;
+        }
+
+        .status.rejected {
+            background: #fff0f0;
+            color: #b42318;
+        }
+
+
+    /* ============================================================
+           REPORT DETAILS
+           ============================================================ */
+
+    .report-details {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 18px;
+        padding-top: 20px;
+    }
+
+    .detail {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .detail-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #999;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .detail-value {
+        font-size: 13px;
+        color: #444;
+    }
+
+    .description {
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+           ADMIN RESPONSE
+           ============================================================ */
+
+    .admin-response {
+        display: flex;
+        gap: 12px;
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 10px;
+        background: #f7f7f7;
+        border: 1px solid #eee;
+    }
+
+    .response-icon {
+        font-size: 22px;
+    }
+
+    .admin-response strong {
+        display: block;
+        font-size: 13px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .admin-response p {
+        margin: 0;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+           BUTTONS
+           ============================================================ */
+
+    .primary-button,
+    .secondary-button {
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+        transition: .2s ease;
+    }
+
+    .primary-button {
+        background: #6c3df4;
+        color: #fff;
+    }
+
+        .primary-button:hover {
+            background: #5830d4;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .secondary-button {
+        background: #fff;
+        color: #555;
+        border: 1px solid #ddd;
+    }
+
+        .secondary-button:hover {
+            background: #f6f6f6;
+            color: #333;
+            text-decoration: none;
+        }
+
+
+    /* ============================================================
+           BOTTOM ACTIONS
+           ============================================================ */
+
+    .bottom-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+
+    /* ============================================================
+           TABLET
+           ============================================================ */
+
+    @@media (max-width: 700px) {
+
+        .report-details {
+            grid-template-columns: 1fr;
+        }
+    }
+
+
+    /* ============================================================
+           MOBILE
+           ============================================================ */
+
+    @@media (max-width: 550px) {
+
+        .safety-page {
+            padding: 25px 15px 50px;
+        }
+
+        .page-header {
+            align-items: flex-start;
+        }
+
+        .header-icon {
+            width: 48px;
+            height: 48px;
+            font-size: 22px;
+        }
+
+        .page-header h1 {
+            font-size: 25px;
+        }
+
+        .report-top {
+            flex-direction: column;
+        }
+
+        .bottom-actions {
+            flex-direction: column;
+        }
+
+        .primary-button,
+        .secondary-button {
+            text-align: center;
+        }
+    }
+
+</style>

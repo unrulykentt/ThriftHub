@@ -1,0 +1,950 @@
+﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+
+@{
+    ViewData["Title"] = "Manage Users";
+}
+
+<div class="admin-page">
+
+    <!-- ============================================================
+         HEADER
+         ============================================================ -->
+
+    <div class="admin-header">
+
+        <div>
+
+            <h1>
+                👥 Manage Users
+            </h1>
+
+            <p>
+                View and manage all ThriftHub accounts.
+            </p>
+
+        </div>
+
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="back-button">
+
+            ← Admin Dashboard
+
+        </a>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUCCESS MESSAGE
+         ============================================================ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="success-message">
+
+            ✓ @TempData["SuccessMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="error-message">
+
+            ⚠ @TempData["ErrorMessage"]
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         USERS CARD
+         ============================================================ -->
+
+    <div class="users-card">
+
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Name
+                            </th>
+
+                            <th>
+                                Email
+                            </th>
+
+                            <th>
+                                Account Type
+                            </th>
+
+                            <th>
+                                Verification
+                            </th>
+
+                            <th>
+                                Account Status
+                            </th>
+
+                            <th>
+                                Created
+                            </th>
+
+                            <th>
+                                Actions
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        @foreach (var user in Model)
+                        {
+                            var isAdministrator =
+                                string.Equals(
+                                    user.UserType,
+                                    "Admin",
+                                    StringComparison.OrdinalIgnoreCase
+                                );
+
+
+                            <tr>
+
+                                <!-- ==================================================
+                                     NAME
+                                     ================================================== -->
+
+                                <td>
+
+                                    <strong>
+
+                                        @(string.IsNullOrWhiteSpace(user.FullName)
+                                            ? "No name"
+                                            : user.FullName)
+
+                                    </strong>
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     EMAIL
+                                     ================================================== -->
+
+                                <td>
+
+                                    @user.Email
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     ACCOUNT TYPE
+                                     ================================================== -->
+
+                                <td>
+
+                                    @if (isAdministrator)
+                                    {
+                                        <span class="badge admin">
+                                            Administrator
+                                        </span>
+                                    }
+                                    else if (string.Equals(
+                                        user.UserType,
+                                        "Seller",
+                                        StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="badge seller">
+                                            Seller
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge customer">
+                                            Customer
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     VERIFICATION
+                                     ================================================== -->
+
+                                <td>
+
+                                    @if (user.IsVerified)
+                                    {
+                                        <span class="badge verified">
+                                            ✓ Verified
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge pending">
+                                            Pending
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     ACCOUNT STATUS
+                                     ================================================== -->
+
+                                <td>
+
+                                    @if (user.IsSuspended)
+                                    {
+                                        <span class="badge suspended">
+                                            🔴 Suspended
+                                        </span>
+
+                                        @if (!string.IsNullOrWhiteSpace(
+                                            user.SuspensionReason))
+                                        {
+                                            <div class="suspension-info">
+
+                                                <strong>
+                                                    Reason:
+                                                </strong>
+
+                                                <span>
+                                                    @user.SuspensionReason
+                                                </span>
+
+                                            </div>
+                                        }
+
+                                        @if (user.SuspendedAt.HasValue)
+                                        {
+                                            <div class="suspension-date">
+
+                                                @user.SuspendedAt
+                                                .Value
+                                                .ToLocalTime()
+                                                .ToString(
+                                                "dd MMM yyyy, hh:mm tt"
+                                                )
+
+                                            </div>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge active">
+                                            🟢 Active
+                                        </span>
+                                    }
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     CREATED
+                                     ================================================== -->
+
+                                <td>
+
+                                    @user.CreatedAt
+                                    .ToLocalTime()
+                                    .ToString("dd MMM yyyy")
+
+                                </td>
+
+
+                                <!-- ==================================================
+                                     ACTIONS
+                                     ================================================== -->
+
+                                <td>
+
+                                    @if (!isAdministrator)
+                                    {
+                                        <div class="actions">
+
+
+                                            <!-- ======================================
+                                                 ACCOUNT TYPE ACTIONS
+                                                 ====================================== -->
+                                            @if (string.Equals(
+                                                                                            user.UserType,
+                                                                                            "Customer",
+                                                                                            StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <span class="small-note">
+                                                    Customer
+                                                </span>
+                                            }
+
+
+                                            @if (string.Equals(
+                                                user.UserType,
+                                                "Seller",
+                                                StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <form asp-controller="Admin"
+                                                      asp-action="MakeCustomer"
+                                                      method="post">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@user.Id" />
+
+                                                    <button type="submit"
+                                                            class="action-button customer-button"
+                                                            onclick="return confirm('Are you sure you want to make this user a Customer?');">
+
+                                                        Make Customer
+
+                                                    </button>
+
+                                                </form>
+                                            }
+
+
+                                            <!-- ======================================
+                                                 SUSPEND USER
+                                                 ====================================== -->
+                                            @if (!user.IsSuspended)
+                                            {
+                                                <form asp-controller="Admin"
+                                                      asp-action="SuspendUser"
+                                                      method="post"
+                                                      class="suspend-form"
+                                                      onsubmit="return confirmSuspend(this);">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@user.Id" />
+
+
+                                                    <input type="text"
+                                                           name="reason"
+                                                           class="reason-input"
+                                                           maxlength="1000"
+                                                           placeholder="Suspension reason" />
+
+
+                                                    <button type="submit"
+                                                            class="action-button suspend-button">
+
+                                                        🔒 Suspend
+
+                                                    </button>
+
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <!-- ==================================
+                                                     UNSUSPEND USER
+                                                     ================================== -->
+
+                                                <form asp-controller="Admin"
+                                                      asp-action="UnsuspendUser"
+                                                      method="post"
+                                                      onsubmit="return confirm('Are you sure you want to unsuspend this account?');">
+
+                                                    @Html.AntiForgeryToken()
+
+                                                    <input type="hidden"
+                                                           name="id"
+                                                           value="@user.Id" />
+
+                                                    <button type="submit"
+                                                            class="action-button unsuspend-button">
+
+                                                        🔓 Unsuspend
+
+                                                    </button>
+
+                                                </form>
+                                            }
+
+
+                                            <!-- ======================================
+                                                 DELETE USER
+                                                 ====================================== -->
+
+                                            <form asp-controller="Admin"
+                                                  asp-action="DeleteUser"
+                                                  method="post"
+                                                  onsubmit="return confirm('Are you sure you want to permanently delete this user? This action cannot be undone.');">
+
+                                                @Html.AntiForgeryToken()
+
+                                                <input type="hidden"
+                                                       name="id"
+                                                       value="@user.Id" />
+
+                                                <button type="submit"
+                                                        class="action-button delete-button">
+
+                                                    Delete
+
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span class="you-badge">
+
+                                            🛡️ Administrator
+
+                                        </span>
+                                    }
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+        else
+        {
+            <!-- ====================================================
+                 EMPTY STATE
+                 ==================================================== -->
+
+            <div class="empty-users">
+
+                <div class="empty-icon">
+                    👥
+                </div>
+
+                <h2>
+                    No users found
+                </h2>
+
+                <p>
+                    There are currently no registered users.
+                </p>
+
+            </div>
+        }
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     JAVASCRIPT
+     ================================================================ -->
+
+<script>
+
+    function confirmSuspend(form) {
+
+        const reasonInput =
+            form.querySelector(
+                'input[name="reason"]'
+            );
+
+        const reason =
+            reasonInput.value.trim();
+
+
+        if (reason.length === 0) {
+
+            alert(
+                "Please enter a reason for suspending this user."
+            );
+
+            reasonInput.focus();
+
+            return false;
+        }
+
+
+        return confirm(
+            "Are you sure you want to suspend this user?\n\n" +
+            "Reason: " + reason
+        );
+    }
+
+</script>
+
+
+<style>
+
+    /* ============================================================
+           PAGE
+           ============================================================ */
+
+    .admin-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+    }
+
+
+    /* ============================================================
+           HEADER
+           ============================================================ */
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+
+        .admin-header h1 {
+            margin: 0;
+            color: #252238;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+
+        .admin-header p {
+            margin-top: 8px;
+            color: #777386;
+            font-size: 14px;
+        }
+
+
+    .back-button {
+        display: inline-block;
+        text-decoration: none;
+        background: #6f3cc3;
+        color: white;
+        padding: 11px 18px;
+        border-radius: 9px;
+        font-weight: 700;
+        font-size: 13px;
+    }
+
+
+        .back-button:hover {
+            background: #54249c;
+            color: white;
+        }
+
+
+    /* ============================================================
+           USERS CARD
+           ============================================================ */
+
+    .users-card {
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 14px;
+        box-shadow: 0 5px 20px rgba(70, 40, 110, .06);
+        overflow: hidden;
+    }
+
+
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1150px;
+    }
+
+
+    /* ============================================================
+           TABLE HEADER
+           ============================================================ */
+
+    th {
+        text-align: left;
+        padding: 16px;
+        background: #f8f6fb;
+        color: #555064;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+    /* ============================================================
+           TABLE CELLS
+           ============================================================ */
+
+    td {
+        padding: 16px;
+        border-top: 1px solid #eee9f5;
+        color: #555064;
+        font-size: 13px;
+        vertical-align: middle;
+    }
+
+
+        td strong {
+            color: #252238;
+        }
+
+
+    tbody tr:hover {
+        background: #fcfbfe;
+    }
+
+
+    /* ============================================================
+           GENERAL BADGES
+           ============================================================ */
+
+    .badge {
+        display: inline-block;
+        padding: 6px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+        /* ============================================================
+           ACCOUNT TYPE
+           ============================================================ */
+
+        .badge.admin {
+            background: #eee5ff;
+            color: #6f3cc3;
+        }
+
+
+        .badge.seller {
+            background: #e7f0ff;
+            color: #3568b8;
+        }
+
+
+        .badge.customer {
+            background: #f1f1f1;
+            color: #666;
+        }
+
+
+        /* ============================================================
+           VERIFICATION
+           ============================================================ */
+
+        .badge.verified {
+            background: #e5f8ed;
+            color: #27834d;
+        }
+
+
+        .badge.pending {
+            background: #fff4d8;
+            color: #9b7200;
+        }
+
+
+        /* ============================================================
+           ACCOUNT STATUS
+           ============================================================ */
+
+        .badge.active {
+            background: #e5f8ed;
+            color: #27834d;
+        }
+
+
+        .badge.suspended {
+            background: #ffe7eb;
+            color: #c23d55;
+        }
+
+
+    /* ============================================================
+           SUSPENSION INFORMATION
+           ============================================================ */
+
+    .suspension-info {
+        margin-top: 7px;
+        max-width: 220px;
+        color: #777386;
+        font-size: 10px;
+        line-height: 1.4;
+        word-break: break-word;
+    }
+
+
+        .suspension-info strong {
+            color: #c23d55;
+        }
+
+
+        .suspension-info span {
+            color: #777386;
+        }
+
+
+    .suspension-date {
+        margin-top: 5px;
+        color: #9993a5;
+        font-size: 9px;
+    }
+
+
+    /* ============================================================
+           ACTIONS
+           ============================================================ */
+
+    .actions {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        min-width: 180px;
+    }
+
+
+        .actions form {
+            margin: 0;
+        }
+
+
+    /* ============================================================
+           ACTION BUTTON
+           ============================================================ */
+
+    .action-button {
+        width: 100%;
+        border: none;
+        border-radius: 7px;
+        padding: 8px 11px;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+
+        .action-button:hover {
+            opacity: .85;
+            transform: translateY(-1px);
+        }
+
+
+    /* ============================================================
+           CUSTOMER BUTTON
+           ============================================================ */
+
+    .customer-button {
+        background: #e8f0ff;
+        color: #3568b8;
+    }
+
+
+    /* ============================================================
+           SUSPEND BUTTON
+           ============================================================ */
+
+    .suspend-button {
+        background: #ffe7eb;
+        color: #c23d55;
+    }
+
+
+    /* ============================================================
+           UNSUSPEND BUTTON
+           ============================================================ */
+
+    .unsuspend-button {
+        background: #e5f8ed;
+        color: #27834d;
+    }
+
+
+    /* ============================================================
+           DELETE BUTTON
+           ============================================================ */
+
+    .delete-button {
+        background: #f3e9ed;
+        color: #a8324b;
+    }
+
+
+    /* ============================================================
+           REASON INPUT
+           ============================================================ */
+
+    .reason-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #ddd6e8;
+        border-radius: 7px;
+        padding: 8px 10px;
+        background: #fff;
+        color: #252238;
+        font-size: 11px;
+        outline: none;
+    }
+
+
+        .reason-input:focus {
+            border-color: #6f3cc3;
+            box-shadow: 0 0 0 2px rgba(111, 60, 195, .08);
+        }
+
+
+        .reason-input::placeholder {
+            color: #aaa3b3;
+        }
+
+
+    /* ============================================================
+           CURRENT ADMIN
+           ============================================================ */
+
+    .you-badge {
+        display: inline-block;
+        padding: 7px 10px;
+        border-radius: 20px;
+        background: #eee5ff;
+        color: #6f3cc3;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+
+    /* ============================================================
+           SMALL NOTE
+           ============================================================ */
+
+    .small-note {
+        display: inline-block;
+        padding: 7px 10px;
+        border-radius: 7px;
+        background: #f6f4f8;
+        color: #777386;
+        font-size: 10px;
+        font-weight: 700;
+    }
+
+
+    /* ============================================================
+           SUCCESS MESSAGE
+           ============================================================ */
+
+    .success-message {
+        margin-bottom: 20px;
+        padding: 14px 18px;
+        border-radius: 9px;
+        background: #e5f8ed;
+        border: 1px solid #c9ecd8;
+        color: #27834d;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+    /* ============================================================
+           ERROR MESSAGE
+           ============================================================ */
+
+    .error-message {
+        margin-bottom: 20px;
+        padding: 14px 18px;
+        border-radius: 9px;
+        background: #ffe7eb;
+        border: 1px solid #f3c9d0;
+        color: #c23d55;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+    /* ============================================================
+           EMPTY USERS
+           ============================================================ */
+
+    .empty-users {
+        text-align: center;
+        padding: 70px 20px;
+    }
+
+
+    .empty-icon {
+        font-size: 50px;
+        margin-bottom: 15px;
+    }
+
+
+    .empty-users h2 {
+        color: #252238;
+        margin-bottom: 8px;
+    }
+
+
+    .empty-users p {
+        color: #777386;
+        font-size: 13px;
+    }
+
+
+    /* ============================================================
+           MOBILE
+           ============================================================ */
+
+    @@media (max-width: 700px) {
+
+        .admin-page {
+            padding: 30px 15px 60px;
+        }
+
+
+        .admin-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+
+            .admin-header h1 {
+                font-size: 26px;
+            }
+
+
+        .back-button {
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+    }
+
+</style>

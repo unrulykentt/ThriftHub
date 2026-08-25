@@ -1,0 +1,1695 @@
+﻿@model ThriftHub.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+
+    var seller =
+        ViewBag.Seller as ThriftHub.Models.ApplicationUser;
+
+    var sellerName =
+        seller?.UserName ?? "Seller";
+
+    var sellerEmail =
+        seller?.Email ?? "";
+
+    var currentUserId =
+        User.FindFirst(
+            System.Security.Claims.ClaimTypes.NameIdentifier
+        )?.Value;
+
+    var isProductOwner =
+        User.Identity?.IsAuthenticated == true &&
+        seller != null &&
+        seller.Id == currentUserId;
+
+    var isUniversityProduct =
+        !string.IsNullOrWhiteSpace(Model.Category) &&
+        (
+            Model.Category == "Books & Textbooks" ||
+            Model.Category == "Laptops & Computers" ||
+            Model.Category == "Phones & Tablets" ||
+            Model.Category == "Electronics" ||
+            Model.Category == "Computer Accessories" ||
+            Model.Category == "Chargers & Cables" ||
+            Model.Category == "Power Banks" ||
+            Model.Category == "Stationery & School Supplies" ||
+            Model.Category == "Calculators" ||
+            Model.Category == "Backpacks & School Bags" ||
+            Model.Category == "Hostel Essentials"
+        );
+}
+
+
+<div class="th-details-page">
+
+    <!-- ============================================================
+         BACK TO MARKETPLACE
+         ============================================================ -->
+
+    <div class="th-back-row">
+
+        <a asp-controller="MarketPlace"
+           asp-action="Index"
+           class="th-back-link">
+
+            ← Back to Marketplace
+
+        </a>
+
+    </div>
+
+
+    <!-- ============================================================
+         SUCCESS MESSAGE
+         ============================================================ -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="th-alert th-alert-success">
+
+            <span class="th-alert-icon">✓</span>
+
+            <span>
+                @TempData["SuccessMessage"]
+            </span>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         ERROR MESSAGE
+         ============================================================ -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="th-alert th-alert-danger">
+
+            <span class="th-alert-icon">!</span>
+
+            <span>
+                @TempData["ErrorMessage"]
+            </span>
+
+        </div>
+    }
+
+
+    <!-- ============================================================
+         PRODUCT
+         ============================================================ -->
+
+    <div class="th-product-details-grid">
+
+
+        <!-- ========================================================
+             PRODUCT IMAGE
+             ======================================================== -->
+
+        <div class="th-product-image-section">
+
+            <div class="th-main-image-card">
+
+                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                {
+                    <img src="@Model.ImageUrl"
+                         alt="@Model.Name"
+                         class="th-main-product-image" />
+                }
+                else
+                {
+                    <div class="th-no-product-image">
+
+                        <div class="th-no-product-image-icon">
+                            🛍️
+                        </div>
+
+                        <span>
+                            No image available
+                        </span>
+
+                    </div>
+                }
+
+
+                <!-- PRODUCT STATUS -->
+
+                <div class="th-image-status">
+
+                    @if (Model.IsSold)
+                    {
+                        <span class="th-status-sold">
+                            SOLD
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="th-status-available">
+                            AVAILABLE
+                        </span>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- ========================================================
+             PRODUCT INFORMATION
+             ======================================================== -->
+
+        <div class="th-product-information">
+
+
+            <!-- PRODUCT NAME -->
+
+            <h1 class="th-product-title">
+
+                @Model.Name
+
+            </h1>
+
+
+            <!-- PRICE -->
+
+            <div class="th-product-price">
+
+                GH₵ @Model.Price.ToString("N2")
+
+            </div>
+
+
+            <!-- ====================================================
+                 BASIC INFORMATION
+                 ==================================================== -->
+
+            <div class="th-information-card">
+
+                <div class="th-information-title">
+
+                    Product Information
+
+                </div>
+
+
+                <!-- CATEGORY -->
+
+                <div class="th-information-row">
+
+                    <span class="th-information-label">
+                        Category
+                    </span>
+
+                    <span class="th-information-value">
+                        @Model.Category
+                    </span>
+
+                </div>
+
+
+                <!-- SUBCATEGORY -->
+                @if (!string.IsNullOrWhiteSpace(Model.Subcategory))
+                {
+                    <div class="th-information-row">
+
+                        <span class="th-information-label">
+                            Subcategory
+                        </span>
+
+                        <span class="th-information-value">
+                            @Model.Subcategory
+                        </span>
+
+                    </div>
+                }
+
+
+                <!-- CONDITION -->
+
+                <div class="th-information-row">
+
+                    <span class="th-information-label">
+                        Condition
+                    </span>
+
+                    <span class="th-information-value">
+
+                        @(string.IsNullOrWhiteSpace(Model.Condition)
+                            ? "Not specified"
+                            : Model.Condition)
+
+                    </span>
+
+                </div>
+
+
+                <!-- POSTED DATE -->
+
+                <div class="th-information-row">
+
+                    <span class="th-information-label">
+                        Posted
+                    </span>
+
+                    <span class="th-information-value">
+
+                        @(Model.CreatedAt.ToLocalTime()
+                            .ToString("dd MMM yyyy"))
+
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <!-- ====================================================
+                 UNIVERSITY / STUDENT PRODUCT
+                 ==================================================== -->
+            @if (isUniversityProduct)
+            {
+                <div class="th-student-product-box">
+
+                    <div class="th-student-product-icon">
+                        🎓
+                    </div>
+
+                    <div>
+
+                        <h5>
+                            University & Student Product
+                        </h5>
+
+                        <p>
+                            This item is part of ThriftHub's
+                            university and student marketplace.
+                        </p>
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- ====================================================
+                 DESCRIPTION
+                 ==================================================== -->
+
+            <div class="th-description-section">
+
+                <h5>
+                    Description
+                </h5>
+
+
+                @if (!string.IsNullOrWhiteSpace(Model.Description))
+                {
+                    <p>
+                        @Model.Description
+                    </p>
+                }
+                else
+                {
+                    <p class="th-muted-text">
+                        No description provided by the seller.
+                    </p>
+                }
+
+            </div>
+
+
+            <!-- ====================================================
+                 AVAILABLE SIZES
+                 ==================================================== -->
+            @if (!string.IsNullOrWhiteSpace(Model.Sizes))
+            {
+                <div class="th-size-section">
+
+                    <h5>
+                        Available Sizes
+                    </h5>
+
+
+                    <div class="th-size-list">
+
+                        @foreach (var size in Model.Sizes
+                            .Split(
+                                ',',
+                                StringSplitOptions.RemoveEmptyEntries))
+                        {
+                            <span class="th-size-badge">
+
+                                @size.Trim()
+
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+            }
+
+
+            <!-- ====================================================
+                 STATUS
+                 ==================================================== -->
+
+            <div class="th-status-section">
+
+                <strong>
+                    Status:
+                </strong>
+
+
+                @if (Model.IsSold)
+                {
+                    <span class="th-status-label th-sold-label">
+
+                        Sold
+
+                    </span>
+                }
+                else
+                {
+                    <span class="th-status-label th-available-label">
+
+                        Available
+
+                    </span>
+                }
+
+            </div>
+
+
+            <!-- ====================================================
+                 SELLER INFORMATION
+                 ==================================================== -->
+
+            <div class="th-seller-card">
+
+                <div class="th-seller-heading">
+
+                    <h5>
+                        Seller
+                    </h5>
+
+                </div>
+
+
+                <div class="th-seller-content">
+
+
+                    <!-- SELLER INFORMATION -->
+
+                    <div class="th-seller-information">
+
+                        <div class="th-seller-avatar">
+
+                            👤
+
+                        </div>
+
+
+                        <div>
+
+                            @if (seller != null)
+                            {
+                                <a asp-controller="Seller"
+                                   asp-action="Profile"
+                                   asp-route-id="@seller.Id"
+                                   class="th-seller-name">
+
+                                    @sellerName
+
+                                </a>
+                            }
+                            else
+                            {
+                                <div class="th-seller-name">
+
+                                    @sellerName
+
+                                </div>
+                            }
+
+
+                            @if (!string.IsNullOrWhiteSpace(sellerEmail))
+                            {
+                                <div class="th-seller-email">
+
+                                    @sellerEmail
+
+                                </div>
+                            }
+
+
+                            <div class="th-seller-badges">
+
+                                <span class="th-seller-badge">
+
+                                    🛍️ Seller
+
+                                </span>
+
+
+                                @if (seller != null &&
+                                     seller.IsVerified)
+                                {
+                                    <span class="th-verified-badge">
+
+                                        ✓ Verified
+
+                                    </span>
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- =================================================
+                         SELLER ACTIONS
+                         ================================================= -->
+                    @if (seller != null && !isProductOwner)
+                    {
+                        <div class="th-seller-actions">
+
+
+                            <!-- MESSAGE -->
+                            @if (!Model.IsSold)
+                            {
+                                <a asp-controller="Messages"
+                                   asp-action="Chat"
+                                   asp-route-sellerId="@seller.Id"
+                                   class="th-message-button">
+
+                                    💬 Message Seller
+
+                                </a>
+                            }
+
+
+                            <!-- BLOCK -->
+
+                            <form asp-controller="Safety"
+                                  asp-action="BlockUser"
+                                  method="post">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="userId"
+                                       value="@seller.Id" />
+
+                                <button type="submit"
+                                        class="th-block-button"
+                                        onclick="return confirm('Are you sure you want to block this seller? You will no longer be able to interact with this user.');">
+
+                                    🚫 Block Seller
+
+                                </button>
+
+                            </form>
+
+
+                            <!-- REPORT -->
+
+                            <a asp-controller="Safety"
+                               asp-action="ReportUser"
+                               asp-route-userId="@seller.Id"
+                               class="th-report-button">
+
+                                🚩 Report Seller
+
+                            </a>
+
+                        </div>
+                    }
+
+                </div>
+
+            </div>
+
+
+            <!-- ====================================================
+                 SELLER PRODUCT MANAGEMENT
+                 ==================================================== -->
+            @if (isProductOwner)
+            {
+                <div class="th-management-card">
+
+                    <div class="th-management-header">
+
+                        <h5>
+                            Manage Your Product
+                        </h5>
+
+                        <p>
+                            You are the owner of this product.
+                            Manage its availability below.
+                        </p>
+
+                    </div>
+
+
+                    @if (!Model.IsSold)
+                    {
+                        <!-- ==========================================
+                             MARK AS SOLD
+                             ========================================== -->
+
+                        <form asp-controller="MarketPlace"
+                              asp-action="MarkAsSold"
+                              method="post">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@Model.Id" />
+
+                            <button type="submit"
+                                    class="th-mark-sold-button"
+                                    onclick="return confirm('Are you sure you want to mark this product as sold?');">
+
+                                ✓ Mark as Sold
+
+                            </button>
+
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- ==========================================
+                             SOLD PRODUCT
+                             ========================================== -->
+
+                        <div class="th-sold-management-info">
+
+                            <div class="th-sold-management-icon">
+                                🔄
+                            </div>
+
+                            <div>
+
+                                <h6>
+                                    Product is currently sold
+                                </h6>
+
+                                <p>
+                                    Want to sell this item again?
+                                    You can update the price and
+                                    available size before making
+                                    it available.
+                                </p>
+
+                            </div>
+
+                        </div>
+
+
+                        <!-- ==========================================
+                             EDIT PRICE AND SIZE BEFORE AVAILABLE
+                             ========================================== -->
+
+                        <a asp-controller="Seller"
+                           asp-action="EditAvailable"
+                           asp-route-id="@Model.Id"
+                           class="th-edit-available-button">
+
+                            ✏️ Edit Price & Size
+
+                        </a>
+
+
+                        <!-- ==========================================
+                             DIRECT MARK AS AVAILABLE
+                             ========================================== -->
+
+                        <form asp-controller="MarketPlace"
+                              asp-action="MarkAsAvailable"
+                              method="post"
+                              class="th-direct-available-form">
+
+                            @Html.AntiForgeryToken()
+
+                            <input type="hidden"
+                                   name="id"
+                                   value="@Model.Id" />
+
+                            <button type="submit"
+                                    class="th-mark-available-button"
+                                    onclick="return confirm('Do you want to make this product available again without changing the price or size?');">
+
+                                ↻ Mark as Available
+
+                            </button>
+
+                        </form>
+
+                    }
+
+                </div>
+            }
+
+
+            <!-- ====================================================
+                 CUSTOMER ACTION
+                 ==================================================== -->
+            @if (!Model.IsSold)
+            {
+
+                @if (seller != null && !isProductOwner)
+                {
+                    <div class="th-contact-box">
+
+                        <div class="th-contact-icon">
+
+                            💬
+
+                        </div>
+
+
+                        <div class="th-contact-content">
+
+                            <h5>
+                                Interested in this item?
+                            </h5>
+
+                            <p>
+                                Message the seller to ask about
+                                the item, price, delivery and
+                                other details.
+                            </p>
+
+
+                            <a asp-controller="Messages"
+                               asp-action="Chat"
+                               asp-route-sellerId="@seller.Id"
+                               class="th-message-button">
+
+                                💬 Message Seller
+
+                            </a>
+
+                        </div>
+
+                    </div>
+                }
+
+
+                <!-- CONTINUE SHOPPING -->
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   class="th-continue-button">
+
+                    ← Continue Shopping
+
+                </a>
+
+            }
+            else
+            {
+
+                <!-- =================================================
+                     SOLD PRODUCT
+                     ================================================= -->
+
+                <div class="th-sold-box">
+
+                    <div class="th-sold-icon">
+
+                        ✓
+
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            This item has been sold
+                        </strong>
+
+                        <p>
+                            This product is no longer available
+                            for purchase.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CONTINUE SHOPPING -->
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   class="th-continue-button">
+
+                    ← Continue Shopping
+
+                </a>
+
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- ================================================================
+     STYLING
+     ================================================================ -->
+
+<style>
+
+    :root {
+        --th-purple: #6f3cc3;
+        --th-purple-dark: #54249c;
+        --th-purple-light: #f1e9ff;
+        --th-background: #fcfbfe;
+        --th-text: #252238;
+        --th-muted: #777386;
+        --th-border: #eee9f5;
+        --th-white: #ffffff;
+    }
+
+
+    /* ============================================================
+               PAGE
+               ============================================================ */
+
+    .th-details-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 40px 24px 70px;
+        color: var(--th-text);
+    }
+
+
+    /* ============================================================
+               BACK
+               ============================================================ */
+
+    .th-back-row {
+        margin-bottom: 25px;
+    }
+
+
+    .th-back-link {
+        color: var(--th-purple);
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+
+        .th-back-link:hover {
+            color: var(--th-purple-dark);
+        }
+
+
+    /* ============================================================
+               ALERTS
+               ============================================================ */
+
+    .th-alert {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 13px 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+
+    .th-alert-success {
+        background: #eaf8ef;
+        border: 1px solid #bce3c8;
+        color: #176b35;
+    }
+
+
+    .th-alert-danger {
+        background: #fff1f1;
+        border: 1px solid #f0c4c4;
+        color: #9b1c1c;
+    }
+
+
+    .th-alert-icon {
+        font-weight: 900;
+    }
+
+
+    /* ============================================================
+               PRODUCT GRID
+               ============================================================ */
+
+    .th-product-details-grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 50px;
+        align-items: start;
+    }
+
+
+    /* ============================================================
+               IMAGE
+               ============================================================ */
+
+    .th-main-image-card {
+        position: relative;
+        min-height: 500px;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #f5f1fa;
+        border: 1px solid var(--th-border);
+    }
+
+
+    .th-main-product-image {
+        width: 100%;
+        height: 550px;
+        display: block;
+        object-fit: cover;
+    }
+
+
+    .th-no-product-image {
+        min-height: 500px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #aaa3b4;
+        font-size: 14px;
+    }
+
+
+    .th-no-product-image-icon {
+        font-size: 65px;
+        margin-bottom: 10px;
+    }
+
+
+    /* ============================================================
+               IMAGE STATUS
+               ============================================================ */
+
+    .th-image-status {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+    }
+
+
+    .th-status-sold,
+    .th-status-available {
+        display: inline-block;
+        padding: 8px 13px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 900;
+        letter-spacing: .05em;
+        background: white;
+    }
+
+
+    .th-status-sold {
+        color: #dc3545;
+    }
+
+
+    .th-status-available {
+        color: #198754;
+    }
+
+
+    /* ============================================================
+               PRODUCT INFORMATION
+               ============================================================ */
+
+    .th-product-title {
+        margin: 0 0 10px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(30px, 4vw, 42px);
+        line-height: 1.15;
+        color: var(--th-text);
+    }
+
+
+    .th-product-price {
+        margin-bottom: 25px;
+        font-size: 27px;
+        font-weight: 900;
+        color: var(--th-purple);
+    }
+
+
+    /* ============================================================
+               INFORMATION CARD
+               ============================================================ */
+
+    .th-information-card {
+        margin-bottom: 25px;
+        background: white;
+        border: 1px solid var(--th-border);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+
+    .th-information-title {
+        padding: 15px 17px;
+        background: #faf9fc;
+        border-bottom: 1px solid var(--th-border);
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+
+    .th-information-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 13px 17px;
+        border-bottom: 1px solid #f2eff6;
+        font-size: 13px;
+    }
+
+
+        .th-information-row:last-child {
+            border-bottom: none;
+        }
+
+
+    .th-information-label {
+        color: var(--th-muted);
+    }
+
+
+    .th-information-value {
+        text-align: right;
+        font-weight: 700;
+        color: var(--th-text);
+    }
+
+
+    /* ============================================================
+               STUDENT PRODUCT
+               ============================================================ */
+
+    .th-student-product-box {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 15px;
+        margin-bottom: 25px;
+        background: var(--th-purple-light);
+        border: 1px solid #ddd0ff;
+        border-radius: 12px;
+    }
+
+
+    .th-student-product-icon {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border-radius: 12px;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+
+    .th-student-product-box h5 {
+        margin: 0 0 4px;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+
+    .th-student-product-box p {
+        margin: 0;
+        color: var(--th-muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+               DESCRIPTION
+               ============================================================ */
+
+    .th-description-section {
+        margin-bottom: 25px;
+    }
+
+
+        .th-description-section h5,
+        .th-size-section h5 {
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+
+        .th-description-section p {
+            margin: 0;
+            color: #555161;
+            font-size: 14px;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+
+
+    .th-muted-text {
+        color: var(--th-muted) !important;
+    }
+
+
+    /* ============================================================
+               SIZES
+               ============================================================ */
+
+    .th-size-section {
+        margin-bottom: 25px;
+    }
+
+
+    .th-size-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+
+    .th-size-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 45px;
+        padding: 8px 13px;
+        background: #f8f7fa;
+        color: #333;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+    /* ============================================================
+               STATUS
+               ============================================================ */
+
+    .th-status-section {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 25px;
+        font-size: 14px;
+    }
+
+
+    .th-status-label {
+        padding: 6px 11px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+
+    .th-available-label {
+        background: #eaf8ef;
+        color: #198754;
+    }
+
+
+    .th-sold-label {
+        background: #fff1f1;
+        color: #dc3545;
+    }
+
+
+    /* ============================================================
+               SELLER CARD
+               ============================================================ */
+
+    .th-seller-card {
+        background: white;
+        border: 1px solid var(--th-border);
+        border-radius: 15px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+
+    .th-seller-heading {
+        padding: 15px 17px;
+        background: #faf9fc;
+        border-bottom: 1px solid var(--th-border);
+    }
+
+
+        .th-seller-heading h5 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+
+    .th-seller-content {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        padding: 18px;
+    }
+
+
+    .th-seller-information {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        min-width: 0;
+    }
+
+
+    .th-seller-avatar {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--th-purple-light);
+        border-radius: 50%;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+
+
+    .th-seller-name {
+        display: inline-block;
+        margin-bottom: 4px;
+        color: var(--th-purple);
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+
+        .th-seller-name:hover {
+            color: var(--th-purple-dark);
+            text-decoration: underline;
+        }
+
+
+    .th-seller-email {
+        color: var(--th-muted);
+        font-size: 11px;
+        margin-bottom: 7px;
+    }
+
+
+    .th-seller-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+
+    .th-seller-badge,
+    .th-verified-badge {
+        display: inline-flex;
+        padding: 5px 8px;
+        border-radius: 20px;
+        font-size: 9px;
+        font-weight: 800;
+    }
+
+
+    .th-seller-badge {
+        background: var(--th-purple-light);
+        color: var(--th-purple);
+    }
+
+
+    .th-verified-badge {
+        background: #eaf8ef;
+        color: #198754;
+    }
+
+
+    /* ============================================================
+               SELLER ACTIONS
+               ============================================================ */
+
+    .th-seller-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 175px;
+    }
+
+
+    .th-message-button,
+    .th-block-button,
+    .th-report-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+
+    .th-message-button {
+        background: var(--th-purple);
+        color: white;
+        border: 1px solid var(--th-purple);
+    }
+
+
+        .th-message-button:hover {
+            background: var(--th-purple-dark);
+            color: white;
+        }
+
+
+    .th-block-button {
+        background: white;
+        color: #dc3545;
+        border: 1px solid #f0c4c8;
+    }
+
+
+        .th-block-button:hover {
+            background: #fff1f1;
+        }
+
+
+    .th-report-button {
+        background: white;
+        color: #9a6700;
+        border: 1px solid #ead9a6;
+    }
+
+
+        .th-report-button:hover {
+            background: #fffaf0;
+        }
+
+
+    /* ============================================================
+               MANAGEMENT
+               ============================================================ */
+
+    .th-management-card {
+        padding: 18px;
+        margin-bottom: 20px;
+        background: #fafafa;
+        border: 1px solid #e5e5e5;
+        border-radius: 13px;
+    }
+
+
+    .th-management-header h5 {
+        margin: 0 0 5px;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+
+    .th-management-header p {
+        margin: 0 0 15px;
+        color: var(--th-muted);
+        font-size: 12px;
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+               SOLD PRODUCT EDIT INFORMATION
+               ============================================================ */
+
+    .th-sold-management-info {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 13px;
+        margin-bottom: 13px;
+        background: #fff8e8;
+        border: 1px solid #f1dfac;
+        border-radius: 10px;
+    }
+
+
+    .th-sold-management-icon {
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff0c7;
+        border-radius: 9px;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+
+    .th-sold-management-info h6 {
+        margin: 0 0 4px;
+        color: #725400;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+
+    .th-sold-management-info p {
+        margin: 0;
+        color: #806b35;
+        font-size: 11px;
+        line-height: 1.5;
+    }
+
+
+    /* ============================================================
+               EDIT PRICE & SIZE BUTTON
+               ============================================================ */
+
+    .th-edit-available-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        padding: 11px;
+        margin-bottom: 9px;
+        border-radius: 9px;
+        background: var(--th-purple);
+        border: 1px solid var(--th-purple);
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        cursor: pointer;
+        transition: .2s ease;
+    }
+
+
+        .th-edit-available-button:hover {
+            background: var(--th-purple-dark);
+            border-color: var(--th-purple-dark);
+            color: white;
+            text-decoration: none;
+        }
+
+
+    /* ============================================================
+               DIRECT AVAILABLE FORM
+               ============================================================ */
+
+    .th-direct-available-form {
+        margin: 0;
+    }
+
+
+    /* ============================================================
+               MARK SOLD / AVAILABLE
+               ============================================================ */
+
+    .th-mark-sold-button,
+    .th-mark-available-button {
+        width: 100%;
+        padding: 11px;
+        border: none;
+        border-radius: 9px;
+        color: white;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+
+    .th-mark-sold-button {
+        background: #dc3545;
+    }
+
+
+        .th-mark-sold-button:hover {
+            background: #b52a37;
+        }
+
+
+    .th-mark-available-button {
+        background: #198754;
+    }
+
+
+        .th-mark-available-button:hover {
+            background: #146c43;
+        }
+
+
+    /* ============================================================
+               CONTACT
+               ============================================================ */
+
+    .th-contact-box {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 18px;
+        margin-bottom: 12px;
+        background: #f8f7fc;
+        border: 1px solid #e5def1;
+        border-radius: 13px;
+    }
+
+
+    .th-contact-icon {
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--th-purple-light);
+        border-radius: 50%;
+        font-size: 21px;
+        flex-shrink: 0;
+    }
+
+
+    .th-contact-content {
+        flex: 1;
+    }
+
+
+        .th-contact-content h5 {
+            margin: 0 0 5px;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+
+        .th-contact-content p {
+            margin: 0 0 11px;
+            color: var(--th-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+
+        .th-contact-content .th-message-button {
+            width: auto;
+            display: inline-flex;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+
+
+    /* ============================================================
+               CONTINUE SHOPPING
+               ============================================================ */
+
+    .th-continue-button {
+        display: block;
+        width: 100%;
+        padding: 11px;
+        border: 1px solid #ddd;
+        border-radius: 9px;
+        background: white;
+        color: #555;
+        text-align: center;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+
+        .th-continue-button:hover {
+            border-color: var(--th-purple);
+            color: var(--th-purple);
+        }
+
+
+    /* ============================================================
+               SOLD BOX
+               ============================================================ */
+
+    .th-sold-box {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 18px;
+        background: #fff1f1;
+        border: 1px solid #f1c4c4;
+        border-radius: 12px;
+        color: #9b1c1c;
+        margin-bottom: 12px;
+    }
+
+
+    .th-sold-icon {
+        width: 45px;
+        height: 45px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #dc3545;
+        color: white;
+        border-radius: 50%;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+
+
+    .th-sold-box strong {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 14px;
+    }
+
+
+    .th-sold-box p {
+        margin: 0;
+        font-size: 11px;
+    }
+
+
+    /* ============================================================
+               TABLET
+               ============================================================ */
+
+    @@media (max-width: 900px) {
+
+        .th-product-details-grid {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+
+        .th-main-product-image {
+            height: 500px;
+        }
+
+
+        .th-no-product-image {
+            min-height: 500px;
+        }
+    }
+
+
+    /* ============================================================
+               MOBILE
+               ============================================================ */
+
+    @@media (max-width: 600px) {
+
+        .th-details-page {
+            padding: 25px 14px 50px;
+        }
+
+
+        .th-main-image-card {
+            min-height: 380px;
+        }
+
+
+        .th-main-product-image {
+            height: 380px;
+        }
+
+
+        .th-no-product-image {
+            min-height: 380px;
+        }
+
+
+        .th-product-title {
+            font-size: 30px;
+        }
+
+
+        .th-product-price {
+            font-size: 24px;
+        }
+
+
+        .th-information-row {
+            flex-direction: column;
+            gap: 4px;
+        }
+
+
+        .th-information-value {
+            text-align: left;
+        }
+
+
+        .th-seller-content {
+            flex-direction: column;
+        }
+
+
+        .th-seller-actions {
+            width: 100%;
+            min-width: 0;
+        }
+
+
+        .th-contact-box {
+            align-items: flex-start;
+        }
+
+
+        .th-contact-content {
+            min-width: 0;
+        }
+
+
+            .th-contact-content .th-message-button {
+                width: 100%;
+            }
+
+
+        .th-sold-management-info {
+            align-items: flex-start;
+        }
+    }
+
+</style>

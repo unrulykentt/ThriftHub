@@ -1,0 +1,1771 @@
+﻿@model IEnumerable<ThriftHub.Models.Product>
+
+@{
+    ViewData["Title"] = "Marketplace";
+
+    var products = Model?.ToList()
+        ?? new List<ThriftHub.Models.Product>();
+
+    var search = ViewBag.Search as string ?? "";
+    var selectedCategory = ViewBag.Category as string ?? "";
+    var selectedSubcategory = ViewBag.Subcategory as string ?? "";
+
+    decimal? minPrice = ViewBag.MinPrice as decimal?;
+    decimal? maxPrice = ViewBag.MaxPrice as decimal?;
+
+    var subcategories =
+        ViewBag.Subcategories as List<string>
+        ?? new List<string>();
+
+    // Products already saved by the current user.
+    var favoriteProductIds =
+        ViewBag.FavoriteProductIds as List<int>
+        ?? new List<int>();
+
+
+    // =========================================================
+    // MARKETPLACE CATEGORIES
+    // =========================================================
+
+    var categories = new[]
+    {
+        new
+        {
+            Name = "Women's Fashion",
+            Icon = "👗",
+            Description = "Dresses, tops, skirts, jeans and more",
+            Aliases = new[] { "Women", "Women's Fashion" }
+        },
+
+        new
+        {
+            Name = "Men's Fashion",
+            Icon = "👔",
+            Description = "Shirts, trousers, jeans, jackets and more",
+            Aliases = new[] { "Men", "Men's Fashion" }
+        },
+
+        new
+        {
+            Name = "Kids",
+            Icon = "🧸",
+            Description = "Fashion for babies and children",
+            Aliases = new[] { "Kids" }
+        },
+
+        new
+        {
+            Name = "Shoes",
+            Icon = "👟",
+            Description = "Sneakers, heels, sandals, boots and more",
+            Aliases = new[] { "Shoes" }
+        },
+
+        new
+        {
+            Name = "Bags",
+            Icon = "👜",
+            Description = "Handbags, backpacks, school bags and more",
+            Aliases = new[] { "Bags" }
+        },
+
+        new
+        {
+            Name = "Accessories",
+            Icon = "💍",
+            Description = "Watches, belts, caps, jewellery and more",
+            Aliases = new[] { "Accessories" }
+        },
+
+        new
+        {
+            Name = "Books & Textbooks",
+            Icon = "📚",
+            Description = "Textbooks, novels, notes and study materials",
+            Aliases = new[] { "Books & Textbooks" }
+        },
+
+        new
+        {
+            Name = "Laptops & Computers",
+            Icon = "💻",
+            Description = "Laptops, desktops, monitors and computers",
+            Aliases = new[] { "Laptops & Computers" }
+        },
+
+        new
+        {
+            Name = "Phones & Tablets",
+            Icon = "📱",
+            Description = "Smartphones, iPhones, Androids and tablets",
+            Aliases = new[] { "Phones & Tablets" }
+        },
+
+        new
+        {
+            Name = "Electronics",
+            Icon = "🔌",
+            Description = "Speakers, headphones, TVs, cameras and more",
+            Aliases = new[] { "Electronics" }
+        },
+
+        new
+        {
+            Name = "Computer Accessories",
+            Icon = "🖱️",
+            Description = "Keyboards, mice, drives, webcams and more",
+            Aliases = new[] { "Computer Accessories" }
+        },
+
+        new
+        {
+            Name = "Chargers & Cables",
+            Icon = "🔋",
+            Description = "Phone chargers, laptop chargers and cables",
+            Aliases = new[] { "Chargers & Cables" }
+        },
+
+        new
+        {
+            Name = "Power Banks",
+            Icon = "⚡",
+            Description = "Portable power banks and charging devices",
+            Aliases = new[] { "Power Banks" }
+        },
+
+        new
+        {
+            Name = "Stationery & School Supplies",
+            Icon = "✏️",
+            Description = "Notebooks, pens, files and school supplies",
+            Aliases = new[] { "Stationery & School Supplies" }
+        },
+
+        new
+        {
+            Name = "Calculators",
+            Icon = "🧮",
+            Description = "Scientific, financial and engineering calculators",
+            Aliases = new[] { "Calculators" }
+        },
+
+        new
+        {
+            Name = "Backpacks & School Bags",
+            Icon = "🎒",
+            Description = "Backpacks, laptop bags and school bags",
+            Aliases = new[] { "Backpacks & School Bags" }
+        },
+
+        new
+        {
+            Name = "Hostel Essentials",
+            Icon = "🏠",
+            Description = "Beds, tables, chairs, kitchen items and more",
+            Aliases = new[] { "Hostel Essentials" }
+        }
+    };
+
+
+    // =========================================================
+    // FILTER STATUS
+    // =========================================================
+
+    var filtersActive =
+        !string.IsNullOrWhiteSpace(search) ||
+        !string.IsNullOrWhiteSpace(selectedCategory) ||
+        !string.IsNullOrWhiteSpace(selectedSubcategory) ||
+        minPrice.HasValue ||
+        maxPrice.HasValue;
+
+
+    // =========================================================
+    // SELECTED CATEGORY
+    // =========================================================
+
+    var selectedCategoryInfo =
+        categories.FirstOrDefault(c =>
+            c.Aliases.Any(a =>
+                string.Equals(
+                    a,
+                    selectedCategory,
+                    StringComparison.OrdinalIgnoreCase)));
+}
+
+
+<style>
+
+    :root {
+        --th-purple: #6f3cc3;
+        --th-purple-dark: #54249c;
+        --th-purple-light: #f1e9ff;
+        --th-background: #fcfbfe;
+        --th-text: #252238;
+        --th-muted: #777386;
+        --th-border: #eee9f5;
+        --th-white: #ffffff;
+        --th-danger: #dc3545;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    html {
+        scroll-behavior: smooth;
+    }
+
+    body {
+        margin: 0;
+        background: var(--th-background);
+        color: var(--th-text);
+        padding-bottom: 0;
+    }
+
+    a,
+    button {
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+        font-family: inherit;
+    }
+
+
+    /* =========================================================
+           MARKETPLACE
+           ========================================================= */
+
+    .th-marketplace {
+        width: 100%;
+        max-width: 1250px;
+        margin: 0 auto;
+        padding: 35px 24px 80px;
+    }
+
+
+    /* =========================================================
+           SEARCH AREA
+           ========================================================= */
+
+    .th-search-area {
+        background: white;
+        border: 1px solid var(--th-border);
+        border-radius: 20px;
+        padding: 18px;
+        margin-bottom: 42px;
+        box-shadow: 0 8px 28px rgba(70,40,110,.08);
+    }
+
+    .th-search-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .th-search-box {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .th-search-icon {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .th-search-input {
+        width: 100%;
+        height: 48px;
+        border: 1px solid var(--th-border);
+        border-radius: 12px;
+        padding: 0 15px 0 45px;
+        font-size: 14px;
+        outline: none;
+        background: #faf9fc;
+    }
+
+        .th-search-input:focus {
+            border-color: var(--th-purple);
+            background: white;
+        }
+
+    .th-search-button {
+        height: 48px;
+        border: none;
+        border-radius: 12px;
+        padding: 0 25px;
+        background: var(--th-purple);
+        color: white;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+        .th-search-button:hover {
+            background: var(--th-purple-dark);
+        }
+
+
+    /* =========================================================
+           FILTERS
+           ========================================================= */
+
+    .th-filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr auto;
+        gap: 10px;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid var(--th-border);
+    }
+
+    .th-filter-input,
+    .th-filter-select {
+        width: 100%;
+        height: 43px;
+        border: 1px solid var(--th-border);
+        border-radius: 10px;
+        padding: 0 12px;
+        background: #faf9fc;
+        outline: none;
+    }
+
+        .th-filter-input:focus,
+        .th-filter-select:focus {
+            border-color: var(--th-purple);
+            background: white;
+        }
+
+    .th-filter-button {
+        height: 43px;
+        border: none;
+        border-radius: 10px;
+        padding: 0 20px;
+        background: var(--th-text);
+        color: white;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+        .th-filter-button:hover {
+            background: #171521;
+        }
+
+
+    /* =========================================================
+           CATEGORY NAVIGATION
+           ========================================================= */
+
+    .th-category-nav {
+        display: flex;
+        gap: 8px;
+        margin-top: 18px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: none;
+    }
+
+        .th-category-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+    .th-category-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+        padding: 9px 14px;
+        border: 1px solid var(--th-border);
+        border-radius: 22px;
+        background: white;
+        color: var(--th-muted);
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+        .th-category-link:hover,
+        .th-category-link.active {
+            background: var(--th-purple);
+            border-color: var(--th-purple);
+            color: white;
+        }
+
+
+    /* =========================================================
+           FILTER STATUS
+           ========================================================= */
+
+    .th-filter-status {
+        margin-top: 15px;
+        padding: 12px 14px;
+        background: var(--th-purple-light);
+        border-radius: 10px;
+        color: var(--th-purple-dark);
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+        .th-filter-status a {
+            color: var(--th-purple-dark);
+            text-decoration: underline;
+        }
+
+
+    /* =========================================================
+           CATEGORY SECTION
+           ========================================================= */
+
+    .th-category-section {
+        margin-bottom: 55px;
+    }
+
+    .th-category-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+    .th-category-title {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        min-width: 0;
+    }
+
+    .th-category-icon {
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 15px;
+        background: var(--th-purple-light);
+        font-size: 23px;
+        flex-shrink: 0;
+    }
+
+    .th-category-title h2 {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 29px;
+    }
+
+    .th-category-title p {
+        margin: 4px 0 0;
+        color: var(--th-muted);
+        font-size: 12px;
+    }
+
+    .th-view-all {
+        color: var(--th-purple);
+        font-size: 12px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+        .th-view-all:hover {
+            color: var(--th-purple-dark);
+        }
+
+
+    /* =========================================================
+           PRODUCT GRID
+           ========================================================= */
+
+    .th-product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 18px;
+    }
+
+
+    /* =========================================================
+           PRODUCT CARD
+           ========================================================= */
+
+    .th-product-card {
+        position: relative;
+        background: white;
+        border: 1px solid var(--th-border);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(60,40,90,.06);
+        transition: .2s ease;
+    }
+
+        .th-product-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(60,40,90,.11);
+        }
+
+
+    /* =========================================================
+           PRODUCT IMAGE
+           ========================================================= */
+
+    .th-product-image {
+        height: 250px;
+        background: #f5f1fa;
+        position: relative;
+    }
+
+        .th-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+    .th-no-image {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: var(--th-muted);
+        font-size: 12px;
+        gap: 8px;
+    }
+
+    .th-no-image-icon {
+        font-size: 42px;
+    }
+
+
+    /* =========================================================
+           CONDITION
+           ========================================================= */
+
+    .th-condition {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: rgba(255,255,255,.95);
+        color: var(--th-text);
+        border-radius: 10px;
+        padding: 7px 9px;
+        font-size: 10px;
+        font-weight: 800;
+        box-shadow: 0 3px 12px rgba(0,0,0,.08);
+    }
+
+
+    /* =========================================================
+           WISHLIST HEART
+           ========================================================= */
+
+    .th-wishlist-form {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 5;
+        margin: 0;
+    }
+
+    .th-wishlist {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255,255,255,.96);
+        color: #777386;
+        font-size: 21px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 3px 12px rgba(0,0,0,.10);
+        transition: .2s ease;
+    }
+
+        .th-wishlist:hover {
+            transform: scale(1.08);
+        }
+
+        .th-wishlist.favorited {
+            color: var(--th-danger);
+        }
+
+        .th-wishlist:active {
+            transform: scale(.94);
+        }
+
+
+    /* =========================================================
+           PRODUCT BODY
+           ========================================================= */
+
+    .th-product-body {
+        padding: 15px;
+    }
+
+    .th-product-name {
+        margin: 0 0 6px;
+        font-size: 16px;
+        font-weight: 900;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .th-product-description {
+        color: var(--th-muted);
+        font-size: 12px;
+        line-height: 1.5;
+        height: 36px;
+        overflow: hidden;
+        margin-bottom: 10px;
+    }
+
+    .th-product-price {
+        font-size: 18px;
+        font-weight: 900;
+        margin-bottom: 12px;
+    }
+
+    .th-view-button {
+        display: block;
+        text-align: center;
+        background: var(--th-purple);
+        color: white;
+        text-decoration: none;
+        padding: 11px;
+        border-radius: 10px;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+        .th-view-button:hover {
+            background: var(--th-purple-dark);
+            color: white;
+        }
+
+
+    /* =========================================================
+           EMPTY CATEGORY
+           ========================================================= */
+
+    .th-empty-category {
+        background: white;
+        border: 1px dashed var(--th-border);
+        border-radius: 16px;
+        padding: 35px 20px;
+        text-align: center;
+        color: var(--th-muted);
+        font-size: 13px;
+    }
+
+
+    /* =========================================================
+           MOBILE BOTTOM NAVIGATION
+           ========================================================= */
+
+    .th-mobile-bottom-nav {
+        display: none;
+    }
+
+
+    /* =========================================================
+           TABLET
+           ========================================================= */
+
+    @@media (max-width: 1000px) {
+
+        .th-product-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .th-filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+
+    /* =========================================================
+           MOBILE
+           ========================================================= */
+
+    @@media (max-width: 700px) {
+
+        body {
+            padding-bottom: 76px;
+        }
+
+        .th-marketplace {
+            padding: 20px 14px 40px;
+        }
+
+        .th-search-area {
+            border-radius: 16px;
+            padding: 12px;
+            margin-bottom: 28px;
+            box-shadow: none;
+        }
+
+        .th-search-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .th-search-input {
+            height: 45px;
+            font-size: 13px;
+        }
+
+        .th-search-button {
+            width: auto;
+            height: 45px;
+            padding: 0 15px;
+        }
+
+        .th-filter-row {
+            display: none;
+        }
+
+        .th-category-nav {
+            margin-top: 12px;
+            gap: 7px;
+        }
+
+        .th-category-link {
+            font-size: 11px;
+            padding: 8px 12px;
+        }
+
+        .th-filter-status {
+            font-size: 11px;
+        }
+
+        .th-category-heading {
+            display: block;
+            margin-bottom: 14px;
+        }
+
+        .th-category-title {
+            gap: 12px;
+        }
+
+        .th-category-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 17px;
+            font-size: 24px;
+        }
+
+        .th-category-title h2 {
+            font-size: 27px;
+        }
+
+        .th-category-title p {
+            font-size: 12px;
+        }
+
+        .th-view-all {
+            display: block;
+            margin-top: 12px;
+            margin-left: 66px;
+        }
+
+        .th-product-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .th-product-card {
+            border-radius: 16px;
+            box-shadow: 0 3px 14px rgba(60,40,90,.06);
+        }
+
+            .th-product-card:hover {
+                transform: none;
+            }
+
+        .th-product-image {
+            height: 210px;
+        }
+
+        .th-product-body {
+            padding: 12px;
+        }
+
+        .th-product-name {
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .th-product-description {
+            font-size: 11px;
+            height: 32px;
+            margin-bottom: 8px;
+        }
+
+        .th-product-price {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .th-view-button {
+            padding: 10px 5px;
+            font-size: 11px;
+        }
+
+        .th-condition {
+            top: 8px;
+            left: 8px;
+            font-size: 9px;
+            padding: 6px 8px;
+        }
+
+        .th-wishlist-form {
+            top: 8px;
+            right: 8px;
+        }
+
+        .th-wishlist {
+            width: 34px;
+            height: 34px;
+            font-size: 19px;
+        }
+        /* =====================================================
+               MOBILE BOTTOM BAR
+               ===================================================== */
+
+        .th-mobile-bottom-nav {
+            position: fixed;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 68px;
+            background: rgba(255,255,255,.98);
+            border-top: 1px solid var(--th-border);
+            box-shadow: 0 -5px 20px rgba(50,30,80,.08);
+            z-index: 9999;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+
+        .th-mobile-nav-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            text-decoration: none;
+            color: #aaa7b2;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .th-mobile-nav-icon {
+            font-size: 21px;
+            line-height: 1;
+        }
+
+        .th-mobile-nav-item.active {
+            color: var(--th-text);
+        }
+
+            .th-mobile-nav-item.active .th-mobile-nav-icon {
+                color: var(--th-purple);
+            }
+        /* =====================================================
+               WISHLIST COUNT
+               ===================================================== */
+
+        .th-wishlist-count {
+            position: absolute;
+            top: 5px;
+            right: calc(50% - 25px);
+            min-width: 17px;
+            height: 17px;
+            padding: 0 4px;
+            border-radius: 20px;
+            background: var(--th-danger);
+            color: white;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 900;
+            line-height: 1;
+        }
+
+        .th-category-section {
+            margin-bottom: 42px;
+        }
+    }
+
+
+    /* =========================================================
+           SMALL PHONES
+           ========================================================= */
+
+    @@media (max-width: 390px) {
+
+        .th-product-grid {
+            gap: 8px;
+        }
+
+        .th-product-image {
+            height: 175px;
+        }
+
+        .th-product-body {
+            padding: 10px;
+        }
+
+        .th-product-name {
+            font-size: 13px;
+        }
+
+        .th-product-price {
+            font-size: 15px;
+        }
+
+        .th-category-title h2 {
+            font-size: 24px;
+        }
+    }
+
+</style>
+
+
+<!-- =========================================================
+     MARKETPLACE
+     ========================================================= -->
+
+<div class="th-marketplace">
+
+
+    <!-- =========================================================
+         SEARCH
+         ========================================================= -->
+
+    <div class="th-search-area">
+
+        <form asp-controller="MarketPlace"
+              asp-action="Index"
+              method="get">
+
+            <div class="th-search-row">
+
+                <div class="th-search-box">
+
+                    <span class="th-search-icon">
+                        🔎
+                    </span>
+
+                    <input type="text"
+                           name="search"
+                           value="@search"
+                           class="th-search-input"
+                           placeholder="Search clothes, shoes, phones, books..." />
+
+                </div>
+
+                <button type="submit"
+                        class="th-search-button">
+
+                    Search
+
+                </button>
+
+            </div>
+
+
+            <!-- =================================================
+                 FILTER ROW
+                 ================================================= -->
+
+            <div class="th-filter-row">
+
+                <select name="category"
+                        class="th-filter-select">
+
+                    <option value="">
+                        All Categories
+                    </option>
+
+                    @foreach (var category in categories)
+                    {
+                        var selected =
+                            category.Aliases.Any(a =>
+                                string.Equals(
+                                    a,
+                                    selectedCategory,
+                                    StringComparison.OrdinalIgnoreCase));
+
+                        if (selected)
+                        {
+                            <option value="@category.Name"
+                                    selected>
+                                @category.Name
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@category.Name">
+                                @category.Name
+                            </option>
+                        }
+                    }
+
+                </select>
+
+
+                <input type="number"
+                       name="minPrice"
+                       value="@(minPrice?.ToString("0.##"))"
+                       class="th-filter-input"
+                       placeholder="Minimum price" />
+
+
+                <input type="number"
+                       name="maxPrice"
+                       value="@(maxPrice?.ToString("0.##"))"
+                       class="th-filter-input"
+                       placeholder="Maximum price" />
+
+
+                <button type="submit"
+                        class="th-filter-button">
+
+                    Filter
+
+                </button>
+
+            </div>
+
+        </form>
+
+
+        <!-- =====================================================
+             CATEGORY NAVIGATION
+             ===================================================== -->
+
+        <div class="th-category-nav">
+
+            <a asp-controller="MarketPlace"
+               asp-action="Index"
+               asp-route-search="@search"
+               asp-route-minPrice="@minPrice"
+               asp-route-maxPrice="@maxPrice"
+               class="th-category-link @(string.IsNullOrWhiteSpace(selectedCategory) ? "active" : "")">
+
+                ✨ All
+
+            </a>
+
+
+            @foreach (var category in categories)
+            {
+                var isActive =
+                    category.Aliases.Any(a =>
+                        string.Equals(
+                            a,
+                            selectedCategory,
+                            StringComparison.OrdinalIgnoreCase));
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index"
+                   asp-route-category="@category.Name"
+                   asp-route-search="@search"
+                   asp-route-minPrice="@minPrice"
+                   asp-route-maxPrice="@maxPrice"
+                   class="th-category-link @(isActive ? "active" : "")">
+
+                    @category.Icon @category.Name
+
+                </a>
+            }
+
+        </div>
+
+
+        <!-- =====================================================
+             FILTER STATUS
+             ===================================================== -->
+        @if (filtersActive)
+        {
+            <div class="th-filter-status">
+
+                Showing
+
+                <strong>
+                    @products.Count
+                </strong>
+
+                available item@(products.Count == 1 ? "" : "s")
+                matching your filters.
+
+                &nbsp;
+
+                <a asp-controller="MarketPlace"
+                   asp-action="Index">
+
+                    Clear filters
+
+                </a>
+
+            </div>
+        }
+
+    </div>
+
+
+    <!-- =========================================================
+         SELECTED CATEGORY
+         ========================================================= -->
+    @if (!string.IsNullOrWhiteSpace(selectedCategory))
+    {
+        if (selectedCategoryInfo != null)
+        {
+            var selectedProducts =
+                products
+                    .Where(p =>
+                        selectedCategoryInfo.Aliases.Any(a =>
+                            string.Equals(
+                                p.Category,
+                                a,
+                                StringComparison.OrdinalIgnoreCase)))
+                    .ToList();
+
+
+            <section class="th-category-section">
+
+                <div class="th-category-heading">
+
+                    <div class="th-category-title">
+
+                        <div class="th-category-icon">
+                            @selectedCategoryInfo.Icon
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                @selectedCategoryInfo.Name
+                            </h2>
+
+                            <p>
+                                @selectedCategoryInfo.Description
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <a asp-controller="MarketPlace"
+                       asp-action="Index"
+                       class="th-view-all">
+
+                        ← All Categories
+
+                    </a>
+
+                </div>
+
+
+                @if (selectedProducts.Any())
+                {
+                    <div class="th-product-grid">
+
+                        @foreach (var product in selectedProducts)
+                        {
+                            var isFavorite =
+                                favoriteProductIds.Contains(product.Id);
+
+
+                            <div class="th-product-card">
+
+
+                                <!-- PRODUCT IMAGE -->
+
+                                <div class="th-product-image">
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl"
+                                             alt="@product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="th-no-image">
+
+                                            <div class="th-no-image-icon">
+                                                @selectedCategoryInfo.Icon
+                                            </div>
+
+                                            No image available
+
+                                        </div>
+                                    }
+
+
+                                    <!-- CONDITION -->
+                                    @if (!string.IsNullOrWhiteSpace(
+                                                                            product.Condition))
+                                    {
+                                        <div class="th-condition">
+
+                                            @product.Condition
+
+                                        </div>
+                                    }
+
+
+                                    <!-- =================================================
+                                         FIXED HEART
+                                         ================================================= -->
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+                                        <form asp-controller="Favorites"
+                                              asp-action="@(isFavorite ? "Remove" : "Toggle")"
+                                              method="post"
+                                              class="th-wishlist-form">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="productId"
+                                                   value="@product.Id" />
+
+                                            <button type="submit"
+                                                    class="th-wishlist @(isFavorite ? "favorited" : "")"
+                                                    title="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")"
+                                                    aria-label="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")">
+
+                                                @(isFavorite ? "♥" : "♡")
+
+                                            </button>
+
+                                        </form>
+                                    }
+
+                                </div>
+
+
+                                <!-- PRODUCT BODY -->
+
+                                <div class="th-product-body">
+
+                                    <h3 class="th-product-name">
+                                        @product.Name
+                                    </h3>
+
+                                    <div class="th-product-description">
+                                        @product.Description
+                                    </div>
+
+                                    <div class="th-product-price">
+                                        GH₵ @product.Price.ToString("N2")
+                                    </div>
+
+                                    <a asp-controller="MarketPlace"
+                                       asp-action="Details"
+                                       asp-route-id="@product.Id"
+                                       class="th-view-button">
+
+                                        View Item →
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="th-empty-category">
+
+                        <div style="font-size:40px;">
+                            @selectedCategoryInfo.Icon
+                        </div>
+
+                        <p>
+                            No items are available in this category yet.
+                        </p>
+
+                        <p>
+                            Be the first seller to post an item here.
+                        </p>
+
+                    </div>
+                }
+
+            </section>
+        }
+    }
+
+
+    <!-- =========================================================
+         ALL CATEGORIES
+         ========================================================= -->
+    @if (string.IsNullOrWhiteSpace(selectedCategory))
+    {
+
+        @foreach (var category in categories)
+        {
+
+            var categoryProducts =
+                products
+                    .Where(p =>
+                        category.Aliases.Any(a =>
+                            string.Equals(
+                                p.Category,
+                                a,
+                                StringComparison.OrdinalIgnoreCase)))
+                    .Take(4)
+                    .ToList();
+
+
+            <section class="th-category-section">
+
+                <div class="th-category-heading">
+
+                    <div class="th-category-title">
+
+                        <div class="th-category-icon">
+                            @category.Icon
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                @category.Name
+                            </h2>
+
+                            <p>
+                                @category.Description
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <a asp-controller="MarketPlace"
+                       asp-action="Index"
+                       asp-route-category="@category.Name"
+                       class="th-view-all">
+
+                        View All →
+
+                    </a>
+
+                </div>
+
+
+                @if (categoryProducts.Any())
+                {
+
+                    <div class="th-product-grid">
+
+                        @foreach (var product in categoryProducts)
+                        {
+
+                            var isFavorite =
+                                favoriteProductIds.Contains(product.Id);
+
+
+                            <div class="th-product-card">
+
+
+                                <!-- PRODUCT IMAGE -->
+
+                                <div class="th-product-image">
+
+                                    @if (!string.IsNullOrWhiteSpace(
+                                        product.ImageUrl))
+                                    {
+                                        <img src="@product.ImageUrl"
+                                             alt="@product.Name" />
+                                    }
+                                    else
+                                    {
+                                        <div class="th-no-image">
+
+                                            <div class="th-no-image-icon">
+                                                @category.Icon
+                                            </div>
+
+                                            No image available
+
+                                        </div>
+                                    }
+
+
+                                    <!-- CONDITION -->
+                                    @if (!string.IsNullOrWhiteSpace(
+                                                                            product.Condition))
+                                    {
+                                        <div class="th-condition">
+
+                                            @product.Condition
+
+                                        </div>
+                                    }
+
+
+                                    <!-- =================================================
+                                         FIXED HEART
+                                         ================================================= -->
+                                    @if (User.Identity?.IsAuthenticated == true)
+                                    {
+
+                                        <form asp-controller="Favorites"
+                                              asp-action="@(isFavorite ? "Remove" : "Toggle")"
+                                              method="post"
+                                              class="th-wishlist-form">
+
+                                            @Html.AntiForgeryToken()
+
+                                            <input type="hidden"
+                                                   name="productId"
+                                                   value="@product.Id" />
+
+                                            <button type="submit"
+                                                    class="th-wishlist @(isFavorite ? "favorited" : "")"
+                                                    title="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")"
+                                                    aria-label="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")">
+
+                                                @(isFavorite ? "♥" : "♡")
+
+                                            </button>
+
+                                        </form>
+
+                                    }
+
+                                </div>
+
+
+                                <!-- PRODUCT INFORMATION -->
+
+                                <div class="th-product-body">
+
+                                    <h3 class="th-product-name">
+
+                                        @product.Name
+
+                                    </h3>
+
+
+                                    <div class="th-product-description">
+
+                                        @product.Description
+
+                                    </div>
+
+
+                                    <div class="th-product-price">
+
+                                        GH₵ @product.Price.ToString("N2")
+
+                                    </div>
+
+
+                                    <a asp-controller="MarketPlace"
+                                       asp-action="Details"
+                                       asp-route-id="@product.Id"
+                                       class="th-view-button">
+
+                                        View Item →
+
+                                    </a>
+
+                                </div>
+
+                            </div>
+
+                        }
+
+                    </div>
+
+                }
+                else
+                {
+
+                    <div class="th-empty-category">
+
+                        <div style="font-size:36px;">
+
+                            @category.Icon
+
+                        </div>
+
+                        No items available yet.
+
+                    </div>
+
+                }
+
+            </section>
+
+        }
+
+    }
+
+</div>
+
+
+<!-- =========================================================
+     MOBILE BOTTOM NAVIGATION
+     ========================================================= -->
+
+<nav class="th-mobile-bottom-nav">
+
+
+    <!-- HOME -->
+
+    <a asp-controller="Home"
+       asp-action="Index"
+       class="th-mobile-nav-item">
+
+        <span class="th-mobile-nav-icon">
+            ⌂
+        </span>
+
+        <span>
+            Home
+        </span>
+
+    </a>
+
+
+    <!-- SEARCH -->
+
+    <a asp-controller="MarketPlace"
+       asp-action="Index"
+       class="th-mobile-nav-item active">
+
+        <span class="th-mobile-nav-icon">
+            ⌕
+        </span>
+
+        <span>
+            Search
+        </span>
+
+    </a>
+
+
+    <!-- CATEGORIES -->
+
+    <a asp-controller="MarketPlace"
+       asp-action="Index"
+       class="th-mobile-nav-item">
+
+        <span class="th-mobile-nav-icon">
+            🏷️
+        </span>
+
+        <span>
+            Categories
+        </span>
+
+    </a>
+
+
+    <!-- =====================================================
+         WISHLIST
+         FIXED: Index instead of Wishlist
+         ===================================================== -->
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+
+        <a asp-controller="Favorites"
+           asp-action="Index"
+           class="th-mobile-nav-item">
+
+            <span class="th-mobile-nav-icon">
+
+                ♡
+
+            </span>
+
+            <span>
+
+                Wishlist
+
+            </span>
+
+            <span id="thWishlistCount"
+                  class="th-wishlist-count"
+                  style="display:none;">
+
+                0
+
+            </span>
+
+        </a>
+
+    }
+    else
+    {
+
+        <a asp-controller="Account"
+           asp-action="Login"
+           class="th-mobile-nav-item">
+
+            <span class="th-mobile-nav-icon">
+
+                ♡
+
+            </span>
+
+            <span>
+
+                Wishlist
+
+            </span>
+
+        </a>
+
+    }
+
+
+    <!-- ACCOUNT -->
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+
+        <a asp-controller="Dashboard"
+           asp-action="Index"
+           class="th-mobile-nav-item">
+
+            <span class="th-mobile-nav-icon">
+
+                ♙
+
+            </span>
+
+            <span>
+
+                Me
+
+            </span>
+
+        </a>
+
+    }
+    else
+    {
+
+        <a asp-controller="Account"
+           asp-action="Login"
+           class="th-mobile-nav-item">
+
+            <span class="th-mobile-nav-icon">
+
+                ♙
+
+            </span>
+
+            <span>
+
+                Me
+
+            </span>
+
+        </a>
+
+    }
+
+</nav>
+
+
+<!-- =========================================================
+     WISHLIST COUNT
+     ========================================================= -->
+@if (User.Identity?.IsAuthenticated == true)
+{
+    <script>
+
+        async function updateWishlistCount() {
+
+            try {
+
+                const response =
+                    await fetch(
+                        '/Favorites/Count',
+                        {
+                            method: 'GET',
+                            credentials: 'same-origin'
+                        }
+                    );
+
+
+                if (!response.ok) {
+                    return;
+                }
+
+
+                const data =
+                    await response.json();
+
+
+                const badge =
+                    document.getElementById(
+                        'thWishlistCount'
+                    );
+
+
+                if (!badge) {
+                    return;
+                }
+
+
+                const count =
+                    Number(data.count || 0);
+
+
+                if (count > 0) {
+
+                    badge.textContent =
+                        count > 99
+                            ? '99+'
+                            : count;
+
+                    badge.style.display =
+                        'flex';
+
+                }
+                else {
+
+                    badge.textContent =
+                        '0';
+
+                    badge.style.display =
+                        'none';
+
+                }
+
+            }
+            catch (error) {
+
+                console.log(
+                    'Unable to load wishlist count.'
+                );
+
+            }
+
+        }
+
+
+        updateWishlistCount();
+
+    </script>
+}

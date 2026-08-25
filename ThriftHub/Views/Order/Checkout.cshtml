@@ -1,0 +1,216 @@
+﻿@model ThriftHub.Models.Order
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container" style="max-width: 900px; margin: 50px auto;">
+
+    <h1 style="margin-bottom: 10px;">Checkout</h1>
+
+    <p style="color: #666;">
+        Review your order and enter your delivery information.
+    </p>
+
+    <div style="
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 30px;
+        ">
+
+        <!-- ===================================================== -->
+        <!-- ORDER SUMMARY -->
+        <!-- ===================================================== -->
+
+        <div style="
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            background: white;
+            ">
+
+            <h2>Order Summary</h2>
+
+            <div style="margin-top: 25px;">
+
+                <p>
+                    <strong>Order Number:</strong>
+                    #@Model.Id
+                </p>
+
+                <p>
+                    <strong>Product:</strong>
+                    @ViewBag.ProductName
+                </p>
+
+                <p>
+                    <strong>Product Price:</strong>
+                    GH₵ @Model.ProductPrice.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>ThriftHub Commission:</strong>
+                    @Model.CommissionPercentage.ToString("N2")%
+                </p>
+
+                <p>
+                    <strong>Commission Amount:</strong>
+                    GH₵ @Model.CommissionAmount.ToString("N2")
+                </p>
+
+                <p>
+                    <strong>Seller Receives:</strong>
+                    GH₵ @Model.SellerAmount.ToString("N2")
+                </p>
+
+                <hr style="margin: 25px 0;" />
+
+                <h3>
+                    Total:
+                    <span style="color: #6c4cff;">
+                        GH₵ @Model.TotalAmount.ToString("N2")
+                    </span>
+                </h3>
+
+            </div>
+
+        </div>
+
+
+        <!-- ===================================================== -->
+        <!-- DELIVERY INFORMATION -->
+        <!-- ===================================================== -->
+
+        <div style="
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            padding: 25px;
+            background: white;
+            ">
+
+            <h2>Delivery Information</h2>
+
+            <form asp-action="PlaceOrder"
+                  asp-controller="Order"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="orderId"
+                       value="@Model.Id" />
+
+
+                <!-- FULL NAME -->
+
+                <div style="margin-bottom: 15px;">
+
+                    <label style="display:block; margin-bottom:6px;">
+                        Full Name
+                    </label>
+
+                    <input type="text"
+                           name="FullName"
+                           required
+                           class="form-control"
+                           placeholder="Enter your full name" />
+
+                </div>
+
+
+                <!-- PHONE NUMBER -->
+
+                <div style="margin-bottom: 15px;">
+
+                    <label style="display:block; margin-bottom:6px;">
+                        Phone Number
+                    </label>
+
+                    <input type="tel"
+                           name="PhoneNumber"
+                           required
+                           class="form-control"
+                           placeholder="Enter your phone number" />
+
+                </div>
+
+
+                <!-- COUNTRY -->
+
+                <div style="margin-bottom: 15px;">
+
+                    <label style="display:block; margin-bottom:6px;">
+                        Country
+                    </label>
+
+                    <input type="text"
+                           name="Country"
+                           required
+                           class="form-control"
+                           placeholder="Enter your country" />
+
+                </div>
+
+
+                <!-- CITY -->
+
+                <div style="margin-bottom: 15px;">
+
+                    <label style="display:block; margin-bottom:6px;">
+                        City
+                    </label>
+
+                    <input type="text"
+                           name="City"
+                           required
+                           class="form-control"
+                           placeholder="Enter your city" />
+
+                </div>
+
+
+                <!-- DELIVERY ADDRESS -->
+
+                <div style="margin-bottom: 15px;">
+
+                    <label style="display:block; margin-bottom:6px;">
+                        Delivery Address
+                    </label>
+
+                    <textarea name="DeliveryAddress"
+                              required
+                              class="form-control"
+                              rows="4"
+                              placeholder="Enter your delivery address"></textarea>
+
+                </div>
+
+
+                <!-- CONTINUE TO PAYMENT -->
+
+                <div style="margin-top: 25px;">
+
+                    <button type="submit"
+                            class="btn btn-primary"
+                            style="
+                        width: 100%;
+                        padding: 13px;
+                        border-radius: 8px;
+                        border: none;
+                        cursor: pointer;
+                        ">
+
+                        Continue to Payment
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
