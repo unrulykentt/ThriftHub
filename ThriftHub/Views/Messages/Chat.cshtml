@@ -2868,7 +2868,18 @@
                         }
 
 
-                        const actualMimeType = mediaRecorder.mimeType || mimeType || "audio/webm";
+                        let actualMimeType = mediaRecorder.mimeType || mimeType;
+
+                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+                        if (!actualMimeType) {
+                            if (isIOS || isSafari) {
+                                actualMimeType = "audio/mp4";
+                            } else {
+                                actualMimeType = "audio/webm";
+                            }
+                        }
 
                         const blob =
                             new Blob(
@@ -2907,9 +2918,7 @@
                     };
 
 
-                mediaRecorder.start(
-                    250
-                );
+                mediaRecorder.start();
 
 
                 recordingStart =
