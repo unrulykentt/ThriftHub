@@ -16,8 +16,10 @@ RUN dotnet publish "ThriftHub.csproj" -c Release -o /app/publish /p:UseAppHost=f
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+COPY ThriftHub/thriftHub.db thrifthub.db
 ENV ASPNETCORE_HTTP_PORTS=8080
 ENV ASPNETCORE_hostBuilder__reloadConfigOnChange=false
 ENV DOTNET_USE_POLLING_FILE_WATCHER=true
 ENTRYPOINT ["dotnet", "ThriftHub.dll"]
+
 
