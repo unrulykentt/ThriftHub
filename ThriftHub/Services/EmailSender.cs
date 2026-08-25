@@ -1,5 +1,7 @@
-﻿using System.Net;
-using System.Net.Mail;
+using MailKit.Net.Smtp;
+using MailKit.Security;
+using MimeKit;
+using Microsoft.Extensions.Configuration;
 
 namespace ThriftHub.Services
 {
@@ -18,7 +20,7 @@ namespace ThriftHub.Services
             string message)
         {
             var smtpServer =
-                _configuration["EmailSettings:SmtpServer"];
+                _configuration["EmailSettings:SmtpServer"] ?? "smtp.gmail.com";
 
             var smtpPort =
                 int.Parse(
@@ -36,39 +38,33 @@ namespace ThriftHub.Services
                 _configuration["EmailSettings:SenderName"]
                 ?? "ThriftHub";
 
-            using var mailMessage = new MailMessage();
+            if (string.IsNullOrWhiteSpace(senderEmail) || string.IsNullOrWhiteSpace(senderPassword))
+            {
+                throw new Exception("EmailSettings:SenderEmail or SenderPassword is missing in configuration.");
+            }
 
-            mailMessage.From =
-                new MailAddress(
-                    senderEmail!,
-                    senderName
-                );
+            var mimeMessage = new MimeMessage();
+            mimeMessage.From.Add(new MailboxAddress(senderName, senderEmail));
+            mimeMessage.To.Add(new MailboxAddress("", email));
+            mimeMessage.Subject = subject;
 
-            mailMessage.To.Add(email);
+            mimeMessage.Body = new TextPart("html")
+            {
+                Text = message
+            };
 
-            mailMessage.Subject = subject;
+            using var client = new SmtpClient();
 
-            mailMessage.Body = message;
+            var secureSocketOption = SecureSocketOptions.StartTls;
+            if (smtpPort == 465)
+            {
+                secureSocketOption = SecureSocketOptions.SslOnConnect;
+            }
 
-            mailMessage.IsBodyHtml = true;
-
-            using var smtpClient =
-                new SmtpClient(
-                    smtpServer,
-                    smtpPort
-                );
-
-            smtpClient.EnableSsl = true;
-
-            smtpClient.Credentials =
-                new NetworkCredential(
-                    senderEmail,
-                    senderPassword
-                );
-
-            await smtpClient.SendMailAsync(
-                mailMessage
-            );
+            await client.ConnectAsync(smtpServer, smtpPort, secureSocketOption);
+            await client.AuthenticateAsync(senderEmail, senderPassword);
+            await client.SendAsync(mimeMessage);
+            await client.DisconnectAsync(true);
         }
     }
 }
