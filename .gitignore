@@ -13,6 +13,8 @@
 *.db
 *.db-shm
 *.db-wal
+!ThriftHub/thriftHub.db
+
 
 # User-specific files
 *.rsuser
