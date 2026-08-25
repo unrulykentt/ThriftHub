@@ -29,10 +29,10 @@ namespace ThriftHub.Services
                 );
 
             var senderEmail =
-                _configuration["EmailSettings:SenderEmail"];
+                _configuration["EmailSettings:SenderEmail"] ?? "thrifthub372@gmail.com";
 
             var senderPassword =
-                _configuration["EmailSettings:SenderPassword"];
+                _configuration["EmailSettings:SenderPassword"] ?? "fnrqgmuyyvayccdm";
 
             var senderName =
                 _configuration["EmailSettings:SenderName"]
