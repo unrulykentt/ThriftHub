@@ -1023,16 +1023,26 @@
                                         <audio controls
                                                preload="metadata"
                                                class="voice-player">
-
-                                            <source src="@message.FileUrl"
-                                                    type="audio/webm" />
-
-                                            <source src="@message.FileUrl"
-                                                    type="audio/ogg" />
-
-                                            <source src="@message.FileUrl"
-                                                    type="audio/mpeg" />
-
+                                            @if (message.FileUrl.EndsWith(".m4a", StringComparison.OrdinalIgnoreCase) || message.FileUrl.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <source src="@message.FileUrl" type="audio/mp4" />
+                                            }
+                                            else if (message.FileUrl.EndsWith(".ogg", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <source src="@message.FileUrl" type="audio/ogg" />
+                                            }
+                                            else if (message.FileUrl.EndsWith(".mp3", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <source src="@message.FileUrl" type="audio/mpeg" />
+                                            }
+                                            else if (message.FileUrl.EndsWith(".wav", StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <source src="@message.FileUrl" type="audio/wav" />
+                                            }
+                                            else
+                                            {
+                                                <source src="@message.FileUrl" type="audio/webm" />
+                                            }
                                         </audio>
 
                                     </div>
@@ -1899,10 +1909,20 @@
                     document.createElement(
                         "source");
 
-
                 source.src =
                     message.fileUrl;
 
+                if (message.fileUrl && (message.fileUrl.toLowerCase().endsWith(".m4a") || message.fileUrl.toLowerCase().endsWith(".mp4"))) {
+                    source.type = "audio/mp4";
+                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".ogg")) {
+                    source.type = "audio/ogg";
+                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".mp3")) {
+                    source.type = "audio/mpeg";
+                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".wav")) {
+                    source.type = "audio/wav";
+                } else {
+                    source.type = "audio/webm";
+                }
 
                 audio.appendChild(
                     source
@@ -2760,6 +2780,26 @@
                         "audio/webm";
 
                 }
+                else if (
+                    MediaRecorder.isTypeSupported(
+                        "audio/mp4"
+                    )
+                ) {
+
+                    mimeType =
+                        "audio/mp4";
+
+                }
+                else if (
+                    MediaRecorder.isTypeSupported(
+                        "audio/aac"
+                    )
+                ) {
+
+                    mimeType =
+                        "audio/aac";
+
+                }
 
 
                 mediaRecorder =
@@ -2828,19 +2868,25 @@
                         }
 
 
+                        const actualMimeType = mediaRecorder.mimeType || mimeType || "audio/webm";
+
                         const blob =
                             new Blob(
                                 recordedChunks,
                                 {
-                                    type:
-                                        mimeType ||
-                                        "audio/webm"
+                                    type: actualMimeType
                                 }
                             );
 
 
-                        const extension =
-                            "webm";
+                        let extension = "webm";
+                        if (actualMimeType.includes("mp4") || actualMimeType.includes("m4a") || actualMimeType.includes("aac")) {
+                            extension = "m4a";
+                        } else if (actualMimeType.includes("ogg")) {
+                            extension = "ogg";
+                        } else if (actualMimeType.includes("wav")) {
+                            extension = "wav";
+                        }
 
 
                         const audioFile =
