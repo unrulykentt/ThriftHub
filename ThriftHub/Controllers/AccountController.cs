@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -89,11 +89,20 @@ namespace ThriftHub.Controllers
 
             if (existingUser != null)
             {
-                ModelState.AddModelError(
-                    "Email",
-                    "An account with this email already exists.");
+                if (!existingUser.EmailConfirmed)
+                {
+                    // The user registered but never confirmed their email.
+                    // Let's delete this stale unconfirmed account so they can register fresh.
+                    await _userManager.DeleteAsync(existingUser);
+                }
+                else
+                {
+                    ModelState.AddModelError(
+                        "Email",
+                        "An account with this email already exists.");
 
-                return View(model);
+                    return View(model);
+                }
             }
 
 
