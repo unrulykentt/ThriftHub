@@ -10,16 +10,24 @@
          HEADER
          ============================================================ -->
 
-    <div class="mb-4">
+    <div class="mb-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
 
-        <h1 class="fw-bold">
-            Identity Verification
-        </h1>
+        <div>
+            <h1 class="fw-bold">
+                Identity Verification
+            </h1>
 
-        <p class="text-muted">
-            Review government-issued identification documents
-            submitted by ThriftHub users.
-        </p>
+            <p class="text-muted mb-0">
+                Review government-issued identification documents
+                submitted by ThriftHub users.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="btn btn-dark">
+            ← Admin Dashboard
+        </a>
 
     </div>
 

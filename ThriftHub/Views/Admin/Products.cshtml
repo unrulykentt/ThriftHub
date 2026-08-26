@@ -6,69 +6,156 @@
 
 <div class="container py-5">
 
-    <h1 class="fw-bold">
-        All Products
-    </h1>
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
 
-    <p class="text-muted mb-4">
-        All products currently stored on ThriftHub.
-    </p>
+        <div>
+            <h1 class="fw-bold mb-1">
+                All Products
+            </h1>
+
+            <p class="text-muted mb-0">
+                Review and manage marketplace products.
+            </p>
+        </div>
+
+        <a asp-controller="Admin"
+           asp-action="Index"
+           class="btn btn-dark">
+            ← Admin Dashboard
+        </a>
+
+    </div>
 
 
-    <div class="row g-4">
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-        @foreach (var product in Model)
-        {
-            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
 
-                <div class="card h-100 shadow-sm">
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-                    @if (!string.IsNullOrWhiteSpace(
-                        product.ImageUrl))
-                    {
-                        <img src="@product.ImageUrl"
-                             class="card-img-top"
-                             style="height:220px; object-fit:cover;"
-                             alt="@product.Name" />
-                    }
-                    else
-                    {
-                        <div class="bg-light d-flex align-items-center justify-content-center"
-                             style="height:220px;">
 
-                            No image
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+
+            @foreach (var product in Model)
+            {
+                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+
+                    <div class="card h-100 shadow-sm">
+
+                        @if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+                        {
+                            <img src="@product.ImageUrl"
+                                 class="card-img-top"
+                                 style="height:220px; object-fit:cover;"
+                                 alt="@product.Name" />
+                        }
+                        else
+                        {
+                            <div class="bg-light d-flex align-items-center justify-content-center"
+                                 style="height:220px;">
+                                No image
+                            </div>
+                        }
+
+                        <div class="card-body d-flex flex-column">
+
+                            <h5 class="fw-bold">
+                                @product.Name
+                            </h5>
+
+                            <p class="text-muted small flex-grow-1">
+                                @(string.IsNullOrWhiteSpace(product.Description)
+                                    ? "No description"
+                                    : product.Description)
+                            </p>
+
+                            <strong>
+                                GH₵ @product.Price.ToString("N2")
+                            </strong>
+
+                            <div class="mt-2">
+                                <span class="badge bg-light text-dark">
+                                    @product.Category
+                                </span>
+
+                                @if (product.IsSold)
+                                {
+                                    <span class="badge bg-secondary">
+                                        Sold
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success">
+                                        Available
+                                    </span>
+                                }
+                            </div>
+
+                            <form asp-controller="Admin"
+                                  asp-action="DeleteProduct"
+                                  method="post"
+                                  class="mt-3"
+                                  onsubmit="return confirm('Delete this product permanently?');">
+
+                                @Html.AntiForgeryToken()
+
+                                <input type="hidden"
+                                       name="id"
+                                       value="@product.Id" />
+
+                                <button type="submit"
+                                        class="btn btn-outline-danger btn-sm w-100">
+                                    Delete Product
+                                </button>
+
+                            </form>
 
                         </div>
-                    }
-
-
-                    <div class="card-body">
-
-                        <h5 class="fw-bold">
-                            @product.Name
-                        </h5>
-
-                        <p class="text-muted">
-                            @product.Description
-                        </p>
-
-                        <strong>
-                            GH₵ @product.Price.ToString("N2")
-                        </strong>
-
-                        <br />
-
-                        <span class="badge bg-light text-dark mt-2">
-                            @product.Category
-                        </span>
 
                     </div>
 
                 </div>
+            }
 
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+
+            <div style="font-size:60px;">
+                📦
             </div>
-        }
 
-    </div>
+            <h3 class="fw-bold mt-3">
+                No Products Found
+            </h3>
+
+            <p class="text-muted">
+                There are currently no products listed on ThriftHub.
+            </p>
+
+            <a asp-controller="Admin"
+               asp-action="Index"
+               class="btn btn-dark mt-2">
+                Back to Dashboard
+            </a>
+
+        </div>
+    }
 
 </div>

@@ -269,6 +269,37 @@
 
 
             <!-- ====================================================
+                 ADMIN DASHBOARD
+                 ONLY ADMINISTRATORS
+                 ==================================================== -->
+            @if (isAdministrator)
+            {
+                <a asp-controller="Admin"
+                   asp-action="Index"
+                   class="dashboard-card admin-safety-card">
+
+                    <div class="card-icon safety-purple">
+                        🛡️
+                    </div>
+
+                    <h3>
+                        Admin Dashboard
+                    </h3>
+
+                    <p>
+                        Manage users, sellers, products, verification,
+                        and platform safety.
+                    </p>
+
+                    <span class="safety-link">
+                        Open Admin Panel →
+                    </span>
+
+                </a>
+            }
+
+
+            <!-- ====================================================
                  MY PROFILE
                  ==================================================== -->
 
