@@ -600,7 +600,8 @@ namespace ThriftHub.Controllers
 
             var extension =
                 Path.GetExtension(
-                    file.FileName);
+                    file.FileName)
+                    .ToLowerInvariant();
 
             var uniqueFileName =
                 $"{Guid.NewGuid()}{extension}";
@@ -630,7 +631,10 @@ namespace ThriftHub.Controllers
             string messageType =
                 "file";
 
-            if (file.ContentType
+            var contentType =
+                file.ContentType ?? string.Empty;
+
+            if (contentType
                 .StartsWith(
                     "image/",
                     StringComparison.OrdinalIgnoreCase))
@@ -639,7 +643,7 @@ namespace ThriftHub.Controllers
                     "image";
             }
             else if (
-                file.ContentType
+                contentType
                     .StartsWith(
                         "video/",
                         StringComparison.OrdinalIgnoreCase))
@@ -648,10 +652,12 @@ namespace ThriftHub.Controllers
                     "video";
             }
             else if (
-                file.ContentType
+                contentType
                     .StartsWith(
                         "audio/",
-                        StringComparison.OrdinalIgnoreCase))
+                        StringComparison.OrdinalIgnoreCase)
+                ||
+                IsAudioExtension(extension))
             {
                 messageType =
                     "audio";
@@ -802,8 +808,44 @@ namespace ThriftHub.Controllers
                 {
                     success = true,
 
-                    id = message.Id
+                    id = message.Id,
+
+                    senderId =
+                        currentUser.Id,
+
+                    recipientId =
+                        recipient.Id,
+
+                    content = "",
+
+                    messageType =
+                        message.MessageType,
+
+                    fileUrl =
+                        message.FileUrl,
+
+                    fileName =
+                        message.FileName,
+
+                    sentAt =
+                        message.SentAt,
+
+                    isRead =
+                        false
                 });
+        }
+
+
+        private static bool IsAudioExtension(
+            string extension)
+        {
+            return extension is ".webm"
+                or ".m4a"
+                or ".mp4"
+                or ".mp3"
+                or ".wav"
+                or ".ogg"
+                or ".aac";
         }
 
         // ============================================================

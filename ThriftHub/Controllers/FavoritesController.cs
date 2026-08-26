@@ -86,17 +86,24 @@ namespace ThriftHub.Controllers
 
             if (favorite != null)
             {
-                // Remove from wishlist
                 _context.Favorites.Remove(favorite);
-
                 await _context.SaveChangesAsync();
+
+                if (IsAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        isFavorite = false,
+                        message =
+                            "Item removed from your wishlist."
+                    });
+                }
 
                 TempData["WishlistMessage"] =
                     "Item removed from your wishlist.";
             }
             else
             {
-                // Add to wishlist
                 var newFavorite = new Favorite
                 {
                     UserId = userId,
@@ -105,17 +112,41 @@ namespace ThriftHub.Controllers
                 };
 
                 _context.Favorites.Add(newFavorite);
-
                 await _context.SaveChangesAsync();
+
+                if (IsAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        isFavorite = true,
+                        message =
+                            "Item added to your wishlist."
+                    });
+                }
 
                 TempData["WishlistMessage"] =
                     "Item added to your wishlist.";
             }
 
-            // Return to marketplace
             return RedirectToAction(
                 "Index",
                 "MarketPlace");
+        }
+
+
+        private bool IsAjaxRequest()
+        {
+            return Request.Headers["X-Requested-With"]
+                       .ToString()
+                       .Equals(
+                           "XMLHttpRequest",
+                           StringComparison.OrdinalIgnoreCase)
+                   ||
+                   Request.Headers.Accept
+                       .ToString()
+                       .Contains(
+                           "application/json",
+                           StringComparison.OrdinalIgnoreCase);
         }
 
 

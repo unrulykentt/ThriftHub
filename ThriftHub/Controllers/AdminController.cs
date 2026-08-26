@@ -247,7 +247,8 @@ namespace ThriftHub.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> MakeCustomer(
-            string id)
+            string id,
+            string? returnTo = null)
         {
             if (!await IsAdmin())
             {
@@ -395,6 +396,15 @@ namespace ThriftHub.Controllers
 
             TempData["SuccessMessage"] =
                 $"{user.FullName} has been converted to a Customer successfully.";
+
+            if (string.Equals(
+                    returnTo,
+                    "Users",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(
+                    nameof(Users));
+            }
 
             return RedirectToAction(
                 nameof(MakeCustomer));

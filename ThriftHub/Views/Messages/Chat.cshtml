@@ -351,35 +351,35 @@
            ========================================================= */
 
     .message-meta {
-        margin-top: -19px;
-        margin-right: 7px;
-        margin-left: 7px;
-        margin-bottom: 3px;
-        padding: 0;
+        margin-top: 4px;
+        padding: 0 6px;
         min-height: 14px;
-        position: relative;
-        z-index: 2;
         display: flex;
         align-items: center;
         justify-content: flex-end;
         gap: 4px;
-        font-size: 9px;
-        line-height: 12px;
-        pointer-events: none;
+        font-size: 10px;
+        line-height: 1.2;
     }
 
     .message-row.sent .message-meta {
-        color: rgba(255,255,255,.78);
+        color: #8f8994;
+        justify-content: flex-end;
     }
 
     .message-row.received .message-meta {
         color: #8f8994;
+        justify-content: flex-start;
     }
 
-    /* Keep room at the bottom of normal bubbles for the timestamp. */
     .message-row.sent .message-bubble,
     .message-row.received .message-bubble {
-        padding-bottom: 23px;
+        padding-bottom: 8px;
+    }
+
+    .message-row.sent .message-bubble:not(.image-message):not(.voice-bubble),
+    .message-row.received .message-bubble:not(.image-message):not(.voice-bubble) {
+        padding-bottom: 8px;
     }
 
     /* Images and audio keep their natural layout. */
@@ -408,6 +408,52 @@
         max-height: 320px;
         border-radius: 14px;
         object-fit: cover;
+        cursor: zoom-in;
+    }
+
+    .image-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 10, 25, 0.88);
+    }
+
+        .image-lightbox.show {
+            display: flex;
+        }
+
+    .image-lightbox-content {
+        max-width: min(960px, 100%);
+        max-height: calc(100vh - 40px);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .image-lightbox-content img {
+        display: block;
+        width: 100%;
+        height: auto;
+        max-height: calc(100vh - 40px);
+        object-fit: contain;
+        background: #111;
+    }
+
+    .image-lightbox-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16);
+        color: white;
+        font-size: 24px;
         cursor: pointer;
     }
 
@@ -861,6 +907,8 @@
 
 <div class="th-chat-page">
 
+    @Html.AntiForgeryToken()
+
     <div class="chat-card">
 
         <!-- =====================================================
@@ -987,9 +1035,7 @@
 
                                 <span>
 
-                                    @(message.SentAt
-                                        .ToLocalTime()
-                                        .ToString("hh:mm tt"))
+                                    @(messageDate.ToString("ddd, dd MMM yyyy"))
 
                                 </span>
 
@@ -1064,7 +1110,7 @@
                                              class="chat-image"
                                              alt="Image"
                                              loading="lazy"
-                                             onclick="window.open(this.src, '_blank')" />
+                                             onclick="openImageLightbox(this.src)" />
 
                                     </div>
                                 }
@@ -1375,6 +1421,29 @@
 </div>
 
 
+<div id="imageLightbox"
+     class="image-lightbox"
+     onclick="closeImageLightbox(event)">
+
+    <button type="button"
+            class="image-lightbox-close"
+            onclick="closeImageLightbox(event)"
+            aria-label="Close image preview">
+        ×
+    </button>
+
+    <div class="image-lightbox-content"
+         onclick="event.stopPropagation()">
+
+        <img id="imageLightboxPreview"
+             src=""
+             alt="Chat image preview" />
+
+    </div>
+
+</div>
+
+
 <!-- =========================================================
      VOICE CALL WINDOW
      ========================================================= -->
@@ -1572,6 +1641,146 @@
             document.querySelector(
                 'input[name="__RequestVerificationToken"]'
             )?.value || "";
+
+
+        function openImageLightbox(src) {
+
+            const overlay =
+                document.getElementById(
+                    "imageLightbox"
+                );
+
+            const preview =
+                document.getElementById(
+                    "imageLightboxPreview"
+                );
+
+
+            if (!overlay || !preview || !src) {
+                return;
+            }
+
+
+            preview.src = src;
+
+            overlay.classList.add(
+                "show"
+            );
+
+        }
+
+
+        function closeImageLightbox(event) {
+
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+
+            const overlay =
+                document.getElementById(
+                    "imageLightbox"
+                );
+
+            const preview =
+                document.getElementById(
+                    "imageLightboxPreview"
+                );
+
+
+            if (!overlay) {
+                return;
+            }
+
+
+            overlay.classList.remove(
+                "show"
+            );
+
+
+            if (preview) {
+                preview.src = "";
+            }
+
+        }
+
+
+        function getAudioMimeType(fileUrl) {
+
+            const url =
+                String(fileUrl || "")
+                    .toLowerCase();
+
+
+            if (
+                url.endsWith(".m4a") ||
+                url.endsWith(".mp4")
+            ) {
+                return "audio/mp4";
+            }
+
+
+            if (url.endsWith(".ogg")) {
+                return "audio/ogg";
+            }
+
+
+            if (url.endsWith(".mp3")) {
+                return "audio/mpeg";
+            }
+
+
+            if (url.endsWith(".wav")) {
+                return "audio/wav";
+            }
+
+
+            return "audio/webm";
+
+        }
+
+
+        function createAudioPlayer(fileUrl) {
+
+            const audio =
+                document.createElement(
+                    "audio"
+                );
+
+
+            audio.controls = true;
+
+            audio.preload = "metadata";
+
+            audio.className =
+                "voice-player";
+
+
+            const source =
+                document.createElement(
+                    "source"
+                );
+
+
+            source.src = fileUrl;
+
+            source.type =
+                getAudioMimeType(
+                    fileUrl
+                );
+
+
+            audio.appendChild(
+                source
+            );
+
+
+            audio.load();
+
+            return audio;
+
+        }
 
 
         /* =========================================================
@@ -1842,6 +2051,35 @@
             isSent
         ) {
 
+            if (
+                message &&
+                message.id
+            ) {
+
+                const existing =
+                    messagesList.querySelector(
+                        `[data-message-id="${message.id}"]`
+                    );
+
+
+                if (existing) {
+                    return;
+                }
+
+            }
+
+
+            const emptyChat =
+                messagesList.querySelector(
+                    ".empty-chat"
+                );
+
+
+            if (emptyChat) {
+                emptyChat.remove();
+            }
+
+
             const row =
                 document.createElement(
                     "div");
@@ -1853,6 +2091,12 @@
                         ? "sent"
                         : "received"
                 );
+
+
+            if (message.id) {
+                row.dataset.messageId =
+                    message.id;
+            }
 
 
             const content =
@@ -1890,46 +2134,10 @@
                 );
 
 
-                const audio =
-                    document.createElement(
-                        "audio");
-
-
-                audio.controls =
-                    true;
-
-                audio.preload =
-                    "metadata";
-
-                audio.className =
-                    "voice-player";
-
-
-                const source =
-                    document.createElement(
-                        "source");
-
-                source.src =
-                    message.fileUrl;
-
-                if (message.fileUrl && (message.fileUrl.toLowerCase().endsWith(".m4a") || message.fileUrl.toLowerCase().endsWith(".mp4"))) {
-                    source.type = "audio/mp4";
-                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".ogg")) {
-                    source.type = "audio/ogg";
-                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".mp3")) {
-                    source.type = "audio/mpeg";
-                } else if (message.fileUrl && message.fileUrl.toLowerCase().endsWith(".wav")) {
-                    source.type = "audio/wav";
-                } else {
-                    source.type = "audio/webm";
-                }
-
-                audio.appendChild(
-                    source
-                );
-
                 bubble.appendChild(
-                    audio
+                    createAudioPlayer(
+                        message.fileUrl
+                    )
                 );
 
             }
@@ -1968,9 +2176,8 @@
                 image.onclick =
                     function() {
 
-                        window.open(
-                            this.src,
-                            "_blank"
+                        openImageLightbox(
+                            this.src
                         );
 
                     };
@@ -2623,6 +2830,16 @@
             );
 
 
+            if (antiForgeryToken) {
+
+                formData.append(
+                    "__RequestVerificationToken",
+                    antiForgeryToken
+                );
+
+            }
+
+
             try {
 
                 const response =
@@ -2658,6 +2875,23 @@
 
                     throw new Error(
                         "Upload failed."
+                    );
+
+                }
+
+
+                const payload =
+                    await response.json();
+
+
+                if (
+                    payload &&
+                    payload.fileUrl
+                ) {
+
+                    appendMessage(
+                        payload,
+                        true
                     );
 
                 }
@@ -4173,6 +4407,31 @@
                 scrollToBottom();
 
                 resizeMessageBox();
+
+
+                document
+                    .querySelectorAll(
+                        ".voice-player"
+                    )
+                    .forEach(
+                        audio => audio.load()
+                    );
+
+            }
+        );
+
+
+        document.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Escape"
+                ) {
+
+                    closeImageLightbox();
+
+                }
 
             }
         );

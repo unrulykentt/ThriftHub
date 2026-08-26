@@ -70,6 +70,13 @@
 
         @if (Model != null && Model.Any())
         {
+            <div class="users-toolbar">
+                <input type="search"
+                       id="userSearchInput"
+                       class="user-search-input"
+                       placeholder="Search by name or email..." />
+            </div>
+
             <div class="table-container">
 
                 <table>
@@ -123,7 +130,7 @@
                                 );
 
 
-                            <tr>
+                            <tr class="user-row">
 
                                 <!-- ==================================================
                                      NAME
@@ -238,12 +245,7 @@
                                         {
                                             <div class="suspension-date">
 
-                                                @user.SuspendedAt
-                                                .Value
-                                                .ToLocalTime()
-                                                .ToString(
-                                                "dd MMM yyyy, hh:mm tt"
-                                                )
+                                                @(user.SuspendedAt.Value.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt"))
 
                                             </div>
                                         }
@@ -264,9 +266,7 @@
 
                                 <td>
 
-                                    @user.CreatedAt
-                                    .ToLocalTime()
-                                    .ToString("dd MMM yyyy")
+                                    @(user.CreatedAt.ToLocalTime().ToString("dd MMM yyyy"))
 
                                 </td>
 
@@ -310,6 +310,10 @@
                                                     <input type="hidden"
                                                            name="id"
                                                            value="@user.Id" />
+
+                                                    <input type="hidden"
+                                                           name="returnTo"
+                                                           value="Users" />
 
                                                     <button type="submit"
                                                             class="action-button customer-button"
@@ -451,6 +455,13 @@
                     There are currently no registered users.
                 </p>
 
+                <a asp-controller="Admin"
+                   asp-action="Index"
+                   class="back-button"
+                   style="margin-top:16px;display:inline-block;">
+                    ← Admin Dashboard
+                </a>
+
             </div>
         }
 
@@ -492,6 +503,50 @@
             "Are you sure you want to suspend this user?\n\n" +
             "Reason: " + reason
         );
+    }
+
+
+    const userSearchInput =
+        document.getElementById(
+            "userSearchInput"
+        );
+
+
+    if (userSearchInput) {
+
+        userSearchInput.addEventListener(
+            "input",
+            function () {
+
+                const query =
+                    this.value
+                        .trim()
+                        .toLowerCase();
+
+
+                document
+                    .querySelectorAll(
+                        ".user-row"
+                    )
+                    .forEach(
+                        function (row) {
+
+                            const text =
+                                row.textContent
+                                    .toLowerCase();
+
+
+                            row.style.display =
+                                text.includes(query)
+                                    ? ""
+                                    : "none";
+
+                        }
+                    );
+
+            }
+        );
+
     }
 
 </script>
@@ -567,6 +622,29 @@
         box-shadow: 0 5px 20px rgba(70, 40, 110, .06);
         overflow: hidden;
     }
+
+
+    .users-toolbar {
+        padding: 16px 16px 0;
+    }
+
+
+    .user-search-input {
+        width: 100%;
+        max-width: 360px;
+        box-sizing: border-box;
+        border: 1px solid #ddd6e8;
+        border-radius: 9px;
+        padding: 10px 14px;
+        font-size: 13px;
+        outline: none;
+    }
+
+
+        .user-search-input:focus {
+            border-color: #6f3cc3;
+            box-shadow: 0 0 0 2px rgba(111, 60, 195, .08);
+        }
 
 
     .table-container {

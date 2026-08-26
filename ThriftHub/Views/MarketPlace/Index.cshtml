@@ -1230,7 +1230,7 @@
                                     @if (User.Identity?.IsAuthenticated == true)
                                     {
                                         <form asp-controller="Favorites"
-                                              asp-action="@(isFavorite ? "Remove" : "Toggle")"
+                                              asp-action="Toggle"
                                               method="post"
                                               class="th-wishlist-form">
 
@@ -1427,7 +1427,7 @@
                                     {
 
                                         <form asp-controller="Favorites"
-                                              asp-action="@(isFavorite ? "Remove" : "Toggle")"
+                                              asp-action="Toggle"
                                               method="post"
                                               class="th-wishlist-form">
 
@@ -1766,6 +1766,160 @@
 
 
         updateWishlistCount();
+
+
+        document
+            .querySelectorAll(
+                ".th-wishlist-form"
+            )
+            .forEach(
+                function (form) {
+
+                    form.addEventListener(
+                        "submit",
+                        async function (event) {
+
+                            event.preventDefault();
+
+                            const button =
+                                form.querySelector(
+                                    ".th-wishlist"
+                                );
+
+                            const productInput =
+                                form.querySelector(
+                                    'input[name="productId"]'
+                                );
+
+                            const tokenInput =
+                                form.querySelector(
+                                    'input[name="__RequestVerificationToken"]'
+                                );
+
+
+                            if (
+                                !button ||
+                                !productInput ||
+                                !tokenInput
+                            ) {
+                                return;
+                            }
+
+
+                            const productId =
+                                productInput.value;
+
+                            const token =
+                                tokenInput.value;
+
+
+                            button.disabled =
+                                true;
+
+
+                            try {
+
+                                const body =
+                                    new URLSearchParams();
+
+
+                                body.append(
+                                    "productId",
+                                    productId
+                                );
+
+
+                                body.append(
+                                    "__RequestVerificationToken",
+                                    token
+                                );
+
+
+                                const response =
+                                    await fetch(
+                                        "/Favorites/Toggle",
+                                        {
+                                            method: "POST",
+
+                                            headers: {
+                                                "Content-Type":
+                                                    "application/x-www-form-urlencoded",
+                                                "RequestVerificationToken":
+                                                    token,
+                                                "X-Requested-With":
+                                                    "XMLHttpRequest"
+                                            },
+
+                                            body:
+                                                body.toString(),
+
+                                            credentials:
+                                                "same-origin"
+                                        }
+                                    );
+
+
+                                if (!response.ok) {
+                                    throw new Error(
+                                        "Wishlist update failed."
+                                    );
+                                }
+
+
+                                const data =
+                                    await response.json();
+
+
+                                const isFavorite =
+                                    !!data.isFavorite;
+
+
+                                button.classList.toggle(
+                                    "favorited",
+                                    isFavorite
+                                );
+
+
+                                button.textContent =
+                                    isFavorite
+                                        ? "♥"
+                                        : "♡";
+
+
+                                button.title =
+                                    isFavorite
+                                        ? "Remove from wishlist"
+                                        : "Add to wishlist";
+
+
+                                button.setAttribute(
+                                    "aria-label",
+                                    button.title
+                                );
+
+
+                                updateWishlistCount();
+
+                            }
+                            catch (error) {
+
+                                console.log(
+                                    error
+                                );
+
+                            }
+                            finally {
+
+                                button.disabled =
+                                    false;
+
+                            }
+
+                        }
+                    );
+
+                }
+            );
 
     </script>
 }

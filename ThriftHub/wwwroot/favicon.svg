@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ThriftHub">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#6f3cc3"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <path d="M36 44h56c4.4 0 8 3.6 8 8v28c0 4.4-3.6 8-8 8H58l-18 14v-14H36c-4.4 0-8-3.6-8-8V52c0-4.4 3.6-8 8-8z" fill="#ffffff" opacity="0.95"/>
+  <circle cx="54" cy="66" r="5" fill="#6f3cc3"/>
+  <circle cx="72" cy="66" r="5" fill="#6f3cc3"/>
+  <circle cx="90" cy="66" r="5" fill="#6f3cc3"/>
+</svg>
