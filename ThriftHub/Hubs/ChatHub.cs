@@ -290,7 +290,7 @@ namespace ThriftHub.Hubs
 
 
             // --------------------------------------------------------
-            // INFORM CALLER
+            // INFORM CALLER — payload is the person who answered
             // --------------------------------------------------------
 
             foreach (var connectionId
@@ -306,12 +306,13 @@ namespace ThriftHub.Hubs
 
 
             // --------------------------------------------------------
-            // INFORM RECEIVER
+            // INFORM RECEIVER — send caller id so WebRTC targets
+            // the correct remote peer (not the receiver's own id)
             // --------------------------------------------------------
 
             await Clients.Caller.SendAsync(
                 "CallAccepted",
-                receiverId
+                callerId
             );
         }
 

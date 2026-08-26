@@ -2525,6 +2525,9 @@
         let callConnectedAt =
             null;
 
+        let connectingTimeout =
+            null;
+
 
         /* =========================================================
            ADDED AUDIO FIX
@@ -2722,6 +2725,12 @@
 
         function markCallConnected() {
 
+            if (callConnectedAt) {
+                return;
+            }
+
+            clearConnectingTimeout();
+
             setCallRinging(false);
 
             setCallStatus(
@@ -2734,6 +2743,121 @@
             );
 
             startCallTimer();
+
+        }
+
+
+        function startConnectingTimeout() {
+
+            clearConnectingTimeout();
+
+            connectingTimeout =
+                setTimeout(
+                    function () {
+
+                        if (
+                            callConnectedAt ||
+                            !isCallSessionActive
+                        ) {
+                            return;
+                        }
+
+                        setCallStatus(
+                            "Connection timed out",
+                            "failed"
+                        );
+
+                        setCallHint(
+                            "Could not connect. Try again."
+                        );
+
+                        setCallRinging(false);
+
+                        setTimeout(
+                            closeCall,
+                            1800
+                        );
+
+                    },
+                    35000
+                );
+
+        }
+
+
+        function clearConnectingTimeout() {
+
+            if (connectingTimeout) {
+                clearTimeout(
+                    connectingTimeout
+                );
+
+                connectingTimeout =
+                    null;
+            }
+
+        }
+
+
+        function serializeIceCandidate(
+            iceCandidate
+        ) {
+
+            if (!iceCandidate) {
+                return null;
+            }
+
+            if (
+                typeof iceCandidate.toJSON ===
+                "function"
+            ) {
+                return iceCandidate.toJSON();
+            }
+
+            return {
+                candidate:
+                    iceCandidate.candidate,
+
+                sdpMid:
+                    iceCandidate.sdpMid,
+
+                sdpMLineIndex:
+                    iceCandidate.sdpMLineIndex
+            };
+
+        }
+
+
+        function parseIceCandidate(
+            payload
+        ) {
+
+            if (!payload) {
+                return null;
+            }
+
+            if (typeof payload === "string") {
+                return {
+                    candidate: payload,
+                    sdpMid: null,
+                    sdpMLineIndex: null
+                };
+            }
+
+            if (payload.candidate) {
+                return {
+                    candidate:
+                        payload.candidate,
+
+                    sdpMid:
+                        payload.sdpMid ?? null,
+
+                    sdpMLineIndex:
+                        payload.sdpMLineIndex ?? null
+                };
+            }
+
+            return null;
 
         }
 
@@ -2788,6 +2912,8 @@
                     "Calling...",
                     "outgoing"
                 );
+
+                startConnectingTimeout();
 
 
                 await connection.invoke(
@@ -2995,6 +3121,8 @@
                     "active"
                 );
 
+                startConnectingTimeout();
+
 
                 localStream =
                     await navigator.mediaDevices
@@ -3045,18 +3173,25 @@
             "CallAccepted",
             async function(userId) {
 
-                currentCallUser =
-                    userId;
-
-
                 setCallControlsMode(
                     "active"
                 );
 
                 setCallRinging(false);
 
+                startConnectingTimeout();
+
 
                 if (!isOutgoingCall) {
+
+                    if (
+                        userId &&
+                        String(userId) !==
+                        String(currentCallUser)
+                    ) {
+                        currentCallUser =
+                            userId;
+                    }
 
                     setCallStatus(
                         "Connecting...",
@@ -3070,6 +3205,10 @@
                     return;
 
                 }
+
+
+                currentCallUser =
+                    userId;
 
 
                 setCallStatus(
@@ -3093,9 +3232,7 @@
 
                 const offer =
                     await peerConnection
-                        .createOffer({
-                            offerToReceiveAudio: true
-                        });
+                        .createOffer();
 
 
                 await peerConnection
@@ -3391,9 +3528,18 @@
                             signal.candidate
                         ) {
 
+                            const candidateInit =
+                                parseIceCandidate(
+                                    signal.candidate
+                                );
+
+                            if (!candidateInit) {
+                                return;
+                            }
+
                             const candidate =
                                 new RTCIceCandidate(
-                                    signal.candidate
+                                    candidateInit
                                 );
 
 
@@ -3686,7 +3832,9 @@
                                     "candidate",
 
                                 candidate:
-                                    event.candidate
+                                    serializeIceCandidate(
+                                        event.candidate
+                                    )
                             }
                         );
 
@@ -3938,6 +4086,8 @@
         function closeCall() {
 
             stopCallTimer();
+
+            clearConnectingTimeout();
 
             setCallRinging(false);
 
