@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<ThriftHub.Models.ConversationViewModel>
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Messages";
@@ -93,7 +94,7 @@
         margin-right: 14px;
     }
 
-    .avatar {
+    .avatar-img {
         width: 55px;
         height: 55px;
         border-radius: 50%;
@@ -101,6 +102,17 @@
         display: block;
         border: 1px solid #ddd;
         background: #f1f1f1;
+    }
+
+    .avatar-initials {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #fffc00 0%, #ff6b35 100%);
+        color: #111;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0.02em;
     }
 
     .online-dot {
@@ -144,11 +156,20 @@
         margin-left: 6px;
         padding: 2px 7px;
         border-radius: 20px;
-        background: #eaf3ff;
-        color: #0d6efd;
         font-size: 10px;
         font-weight: 600;
         vertical-align: middle;
+        text-transform: uppercase;
+    }
+
+    .user-role.seller {
+        background: rgba(255, 107, 53, 0.14);
+        color: #ff6b35;
+    }
+
+    .user-role.buyer {
+        background: rgba(0, 150, 255, 0.12);
+        color: #0096ff;
     }
 
     .message-time {
@@ -277,7 +298,7 @@
             border-radius: 10px;
         }
 
-        .avatar {
+        .avatar-img {
             width: 48px;
             height: 48px;
         }
@@ -383,28 +404,47 @@
 
                 var unreadCount = conversation.UnreadCount;
 
+                var displayName =
+                    string.IsNullOrWhiteSpace(conversation.UserName)
+                        ? "User"
+                        : conversation.UserName;
+
+                var initials =
+                    UserPresentationHelper.GetInitials(displayName);
+
+                var photoUrl =
+                    UserPresentationHelper.ResolveProfileImageUrl(
+                        conversation.ProfileImageUrl);
+
+                var roleClass =
+                    string.Equals(
+                        conversation.UserRole,
+                        "Seller",
+                        StringComparison.OrdinalIgnoreCase)
+                        ? "seller"
+                        : "buyer";
+
                 <a asp-controller="Messages"
                    asp-action="Chat"
                    asp-route-userId="@conversation.UserId"
                    class="conversation-card">
 
-                    <!-- PROFILE IMAGE -->
                     <div class="avatar-wrapper">
-
-                        <img src="@(
-                             string.IsNullOrWhiteSpace(conversation.ProfileImageUrl)
-                                 ? "/images/default-avatar.png"
-                                 : conversation.ProfileImageUrl
-                                            )"
-                             alt="Profile"
-                             class="avatar"
-                             onerror="this.onerror=null;this.src='/images/default-avatar.png';" />
+                        @if (!string.IsNullOrWhiteSpace(photoUrl))
+                        {
+                            <img src="@photoUrl"
+                                 alt="@displayName"
+                                 class="avatar-img" />
+                        }
+                        else
+                        {
+                            <div class="avatar-img avatar-initials">@initials</div>
+                        }
 
                         @if (conversation.IsOnline)
                         {
                             <span class="online-dot"></span>
                         }
-
                     </div>
 
 
@@ -415,20 +455,14 @@
                         <div class="conversation-top">
 
                             <div class="user-name">
-
-                                @(
-                                    string.IsNullOrWhiteSpace(conversation.UserName)
-                                        ? "User"
-                                        : conversation.UserName
-                                )
+                                @displayName
 
                                 @if (!string.IsNullOrWhiteSpace(conversation.UserRole))
                                 {
-                                    <span class="user-role">
+                                    <span class="user-role @roleClass">
                                         @conversation.UserRole
                                     </span>
                                 }
-
                             </div>
 
                             @if (hasMessages)

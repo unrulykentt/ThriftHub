@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ThriftHub Demo Flyer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #ececf1;
+            color: #111;
+            min-height: 100vh;
+            padding: 24px 16px 48px;
+        }
+
+        .toolbar {
+            max-width: 820px;
+            margin: 0 auto 20px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .toolbar h1 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .toolbar p {
+            font-size: 13px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .download-btn {
+            appearance: none;
+            border: none;
+            background: #0096ff;
+            color: #fff;
+            font: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            padding: 12px 22px;
+            border-radius: 999px;
+            cursor: pointer;
+        }
+
+        .download-btn:disabled {
+            opacity: 0.65;
+            cursor: wait;
+        }
+
+        .flyer-wrap {
+            max-width: 820px;
+            margin: 0 auto;
+        }
+
+        #flyer {
+            width: 820px;
+            max-width: 100%;
+            margin: 0 auto;
+            background: #fff;
+            overflow: hidden;
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #111 0%, #1a1a2e 55%, #16213e 100%);
+            color: #fff;
+            padding: 44px 40px 36px;
+            position: relative;
+        }
+
+        .hero::after {
+            content: "";
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: rgba(255, 252, 0, 0.12);
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .badge.accent {
+            background: #fffc00;
+            color: #111;
+        }
+
+        .hero h2 {
+            font-size: 52px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            margin-bottom: 12px;
+        }
+
+        .hero .tagline {
+            font-size: 18px;
+            line-height: 1.55;
+            color: rgba(255, 255, 255, 0.82);
+            max-width: 620px;
+        }
+
+        .hero .url {
+            margin-top: 18px;
+            font-size: 15px;
+            font-weight: 700;
+            color: #fffc00;
+        }
+
+        .section {
+            padding: 28px 40px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #0096ff;
+            margin-bottom: 16px;
+        }
+
+        .journey-line {
+            background: #f7f7fa;
+            border-left: 4px solid #ff6b35;
+            padding: 14px 16px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #333;
+            margin-bottom: 18px;
+        }
+
+        .steps {
+            display: grid;
+            gap: 14px;
+        }
+
+        .step {
+            display: grid;
+            grid-template-columns: 44px 1fr;
+            gap: 14px;
+            align-items: start;
+        }
+
+        .step-num {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #0096ff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .step h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .step p {
+            font-size: 13px;
+            line-height: 1.55;
+            color: #555;
+        }
+
+        .step .route {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #0096ff;
+            background: rgba(0, 150, 255, 0.1);
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .path-card {
+            background: #fafafa;
+            border: 1px solid #ececec;
+            border-radius: 14px;
+            padding: 18px;
+        }
+
+        .path-card h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .path-card .sub {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .path-card ul {
+            list-style: none;
+            display: grid;
+            gap: 8px;
+        }
+
+        .path-card li {
+            font-size: 12.5px;
+            line-height: 1.45;
+            color: #444;
+            padding-left: 14px;
+            position: relative;
+        }
+
+        .path-card li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 7px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ff6b35;
+        }
+
+        .plans {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .plan {
+            background: #111;
+            color: #fff;
+            border-radius: 14px;
+            padding: 16px;
+        }
+
+        .plan .name {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #fffc00;
+            margin-bottom: 8px;
+        }
+
+        .plan .price {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .plan .term {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.65);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .feature {
+            border-left: 3px solid #ff6b35;
+            padding: 10px 12px;
+            background: #fafafa;
+        }
+
+        .feature strong {
+            display: block;
+            font-size: 13px;
+            margin-bottom: 3px;
+        }
+
+        .feature span {
+            font-size: 11.5px;
+            color: #555;
+            line-height: 1.45;
+        }
+
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .cat {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #f0f0f5;
+            color: #333;
+        }
+
+        .footer {
+            background: #111;
+            color: #fff;
+            padding: 24px 40px 30px;
+        }
+
+        .footer h3 {
+            font-size: 15px;
+            margin-bottom: 10px;
+            color: #fffc00;
+        }
+
+        .footer p {
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: rgba(255, 255, 255, 0.78);
+            margin-bottom: 14px;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 8px;
+        }
+
+        .footer-grid div strong {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #fffc00;
+            margin-bottom: 4px;
+        }
+
+        .footer-grid div span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        @media (max-width: 860px) {
+            #flyer { width: 100%; }
+            .hero, .section, .footer { padding-left: 24px; padding-right: 24px; }
+            .hero h2 { font-size: 38px; }
+            .two-col, .plans, .features, .footer-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div>
+            <h1>ThriftHub Demo Flyer</h1>
+            <p>Download as PNG for WhatsApp, Instagram, or print.</p>
+        </div>
+        <button type="button" class="download-btn" id="downloadBtn">Download PNG</button>
+    </div>
+
+    <div class="flyer-wrap">
+        <div id="flyer">
+            <div class="hero">
+                <div class="badge-row">
+                    <span class="badge accent">Student Thrift Marketplace</span>
+                    <span class="badge">Ghana · GH₵</span>
+                    <span class="badge">Fashion · Tech · Books</span>
+                </div>
+                <h2>ThriftHub</h2>
+                <p class="tagline">
+                    Buy and sell pre-loved fashion, textbooks, electronics, and hostel essentials.
+                    Built for Ghanaian students — from sign-up to your first chat.
+                </p>
+                <div class="url">thrifthubgh.com</div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">The Journey</div>
+                <div class="journey-line">
+                    Register → Verify email → Set up profile → Browse marketplace →
+                    Message sellers or post items → Chat, call & stay safe.
+                </div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-num">01</div>
+                        <div>
+                            <h3>Create your account</h3>
+                            <p>Sign up as Customer (buy & browse) or Seller (list items). Provide name, email, phone, location, and password.</p>
+                            <span class="route">/Account/Register</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">02</div>
+                        <div>
+                            <h3>Verify your email</h3>
+                            <p>Enter the 6-digit code sent to your inbox. Login unlocks after verification.</p>
+                            <span class="route">/Account/VerifyEmail</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">03</div>
+                        <div>
+                            <h3>Set up your profile</h3>
+                            <p>Upload a profile photo from your Dashboard. Edit social links and track account status.</p>
+                            <span class="route">/Dashboard</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">04</div>
+                        <div>
+                            <h3>Explore the marketplace</h3>
+                            <p>Browse 17 categories. Filter by price, category, and keywords. Save favourites to your wishlist.</p>
+                            <span class="route">/MarketPlace</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">05</div>
+                        <div>
+                            <h3>Buy or sell</h3>
+                            <p>Customers message sellers to negotiate. Verified sellers subscribe via Paystack and post listings.</p>
+                            <span class="route">/Messages · /Seller/Create</span>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-num">06</div>
+                        <div>
+                            <h3>Chat, call & stay safe</h3>
+                            <p>Real-time messaging with text, photos, voice notes, and voice calls. Report or block users anytime.</p>
+                            <span class="route">/Messages · /Safety</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Buyer & Seller Paths</div>
+                <div class="two-col">
+                    <div class="path-card">
+                        <h3>Buyer path</h3>
+                        <div class="sub">Customer account</div>
+                        <ul>
+                            <li>Browse and search the marketplace</li>
+                            <li>Save favourites to your wishlist</li>
+                            <li>View product details and seller profile</li>
+                            <li>Message the seller to negotiate price</li>
+                            <li>Chat with text, images, voice notes, or call</li>
+                            <li>Get notified when sellers reply</li>
+                        </ul>
+                    </div>
+                    <div class="path-card">
+                        <h3>Seller path</h3>
+                        <div class="sub">Verified + subscribed</div>
+                        <ul>
+                            <li>Register as Seller or upgrade from Customer</li>
+                            <li>Submit ID documents for admin review</li>
+                            <li>Wait for seller verification approval</li>
+                            <li>Choose a subscription plan and pay via Paystack</li>
+                            <li>Post items with photos, price, sizes & condition</li>
+                            <li>Manage listings — edit, mark sold, or relist</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Seller Subscription Plans</div>
+                <div class="plans">
+                    <div class="plan">
+                        <div class="name">Basic</div>
+                        <div class="price">GH₵40/mo</div>
+                        <div class="term">4-month term · Paystack</div>
+                    </div>
+                    <div class="plan">
+                        <div class="name">Standard</div>
+                        <div class="price">GH₵80/mo</div>
+                        <div class="term">4-month term · Paystack</div>
+                    </div>
+                    <div class="plan">
+                        <div class="name">Premium</div>
+                        <div class="price">GH₵150/mo</div>
+                        <div class="term">4-month term · Paystack</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">What You Can Buy & Sell</div>
+                <div class="categories">
+                    <span class="cat">Women's & Men's Fashion</span>
+                    <span class="cat">Kids · Shoes · Bags</span>
+                    <span class="cat">Books & Textbooks</span>
+                    <span class="cat">Laptops & Phones</span>
+                    <span class="cat">Electronics</span>
+                    <span class="cat">Stationery & Calculators</span>
+                    <span class="cat">Backpacks</span>
+                    <span class="cat">Hostel Essentials</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-title">Platform Features</div>
+                <div class="features">
+                    <div class="feature"><strong>Smart marketplace</strong><span>Search, filter, categories, and seller storefronts.</span></div>
+                    <div class="feature"><strong>Snap-style chat</strong><span>One-to-one threads with read receipts and online status.</span></div>
+                    <div class="feature"><strong>Voice & media</strong><span>Images, files, voice notes, and live audio calls.</span></div>
+                    <div class="feature"><strong>Wishlist</strong><span>Heart items and revisit them anytime.</span></div>
+                    <div class="feature"><strong>ID verification</strong><span>Admin-reviewed checks keep the community trustworthy.</span></div>
+                    <div class="feature"><strong>Safety tools</strong><span>Report scams, harassment, or fake products. Block users.</span></div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <h3>Demo Walkthrough</h3>
+                <p>
+                    1. Register a Customer and verify email · 2. Browse Marketplace and save a favourite ·
+                    3. Message a seller from a product page · 4. Show chat (text + photo + voice note) ·
+                    5. Show Seller verification and subscription · 6. Post a listing · 7. Highlight safety & notifications.
+                </p>
+                <div class="footer-grid">
+                    <div><strong>Website</strong><span>thrifthubgh.com</span></div>
+                    <div><strong>Support</strong><span>thrifthub372@gmail.com</span></div>
+                    <div><strong>Key Routes</strong><span>Register · Marketplace · Messages · Dashboard</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        const downloadBtn = document.getElementById("downloadBtn");
+        const flyer = document.getElementById("flyer");
+
+        downloadBtn.addEventListener("click", async function () {
+            downloadBtn.disabled = true;
+            downloadBtn.textContent = "Generating…";
+
+            try {
+                const canvas = await html2canvas(flyer, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff",
+                    scrollX: 0,
+                    scrollY: -window.scrollY
+                });
+
+                const link = document.createElement("a");
+                link.download = "ThriftHub-Demo-Flyer.png";
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+            } catch (error) {
+                alert("Could not generate the flyer image. Please try again.");
+                console.error(error);
+            } finally {
+                downloadBtn.disabled = false;
+                downloadBtn.textContent = "Download PNG";
+            }
+        });
+    </script>
+</body>
+</html>

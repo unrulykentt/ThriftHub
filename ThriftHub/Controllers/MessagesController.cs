@@ -125,25 +125,17 @@ namespace ThriftHub.Controllers
                             string.Empty,
 
                         UserName =
-                            !string.IsNullOrWhiteSpace(
-                                otherUser.UserName)
-                                ? otherUser.UserName
-                                : otherUser.Email ??
-                                  "User",
+                            UserPresentationHelper.GetDisplayName(
+                                otherUser),
 
                         UserRole =
-                            string.Equals(
-                                otherUser.UserType,
-                                "Seller",
-                                StringComparison.OrdinalIgnoreCase)
-                                ? "Seller"
-                                : "Buyer",
+                            UserPresentationHelper.GetRoleLabel(
+                                otherUser.UserType),
 
                         ProfileImageUrl =
-                            !string.IsNullOrWhiteSpace(
+                            UserPresentationHelper.ResolveProfileImageUrl(
                                 otherUser.ProfileImageUrl)
-                                ? otherUser.ProfileImageUrl
-                                : "/images/default-avatar.png",
+                            ?? string.Empty,
 
                         IsOnline =
                             otherUser.IsOnline,
@@ -339,25 +331,17 @@ namespace ThriftHub.Controllers
                         string.Empty,
 
                     UserName =
-                        !string.IsNullOrWhiteSpace(
-                            otherUser.UserName)
-                            ? otherUser.UserName
-                            : otherUser.Email ??
-                              "User",
+                        UserPresentationHelper.GetDisplayName(
+                            otherUser),
 
                     UserRole =
-                        string.Equals(
-                            otherUser.UserType,
-                            "Seller",
-                            StringComparison.OrdinalIgnoreCase)
-                            ? "Seller"
-                            : "Buyer",
+                        UserPresentationHelper.GetRoleLabel(
+                            otherUser.UserType),
 
                     ProfileImageUrl =
-                        !string.IsNullOrWhiteSpace(
+                        UserPresentationHelper.ResolveProfileImageUrl(
                             otherUser.ProfileImageUrl)
-                            ? otherUser.ProfileImageUrl
-                            : "/images/default-avatar.png",
+                        ?? string.Empty,
 
                     IsOnline =
                         otherUser.IsOnline,
@@ -370,6 +354,15 @@ namespace ThriftHub.Controllers
 
             ViewBag.CurrentUserRole =
                 currentUser.UserType ?? "Customer";
+
+            ViewBag.CurrentUserDisplayName =
+                UserPresentationHelper.GetDisplayName(
+                    currentUser);
+
+            ViewBag.CurrentUserProfileImage =
+                UserPresentationHelper.ResolveProfileImageUrl(
+                    currentUser.ProfileImageUrl)
+                ?? string.Empty;
 
             return View(model);
         }
@@ -458,9 +451,8 @@ namespace ThriftHub.Controllers
             await _context.SaveChangesAsync();
 
             var senderName =
-                currentUser.UserName ??
-                currentUser.Email ??
-                "User";
+                UserPresentationHelper.GetDisplayName(
+                    currentUser);
 
             var payload =
                 new
@@ -713,9 +705,8 @@ namespace ThriftHub.Controllers
             await _context.SaveChangesAsync();
 
             var senderName =
-                currentUser.UserName ??
-                currentUser.Email ??
-                "User";
+                UserPresentationHelper.GetDisplayName(
+                    currentUser);
 
             var payload =
                 new

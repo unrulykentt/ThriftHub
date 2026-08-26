@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -17,6 +18,7 @@ namespace ThriftHub.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
+        private readonly AppStorageService _storage;
 
 
         // ============================================================
@@ -26,11 +28,13 @@ namespace ThriftHub.Controllers
         public DashboardController(
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            AppStorageService storage)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
+            _storage = storage;
         }
 
 
@@ -248,7 +252,13 @@ namespace ThriftHub.Controllers
 
 
             ViewBag.ProfileImageUrl =
-                user.ProfileImageUrl;
+                UserPresentationHelper.ResolveProfileImageUrl(
+                    user.ProfileImageUrl)
+                ?? string.Empty;
+
+            ViewBag.ProfileInitials =
+                UserPresentationHelper.GetInitials(
+                    UserPresentationHelper.GetDisplayName(user));
 
 
             // ========================================================
@@ -504,6 +514,135 @@ namespace ThriftHub.Controllers
 
             TempData["SuccessMessage"] =
                 "Your seller request has been submitted. Please wait for verification.";
+
+            return RedirectToAction(
+                nameof(Index));
+        }
+
+
+        // ============================================================
+        // UPLOAD PROFILE PHOTO
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadProfilePhoto(
+            IFormFile? photo)
+        {
+            var user =
+                await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account");
+            }
+
+            if (photo == null ||
+                photo.Length == 0)
+            {
+                TempData["ErrorMessage"] =
+                    "Please choose a profile photo.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            if (photo.Length > 5 * 1024 * 1024)
+            {
+                TempData["ErrorMessage"] =
+                    "Profile photo must not exceed 5 MB.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            var contentType =
+                photo.ContentType ?? string.Empty;
+
+            if (!contentType.StartsWith(
+                    "image/",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] =
+                    "Please upload an image file (JPG, PNG, or WebP).";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            var extension =
+                Path.GetExtension(photo.FileName)
+                    .ToLowerInvariant();
+
+            if (extension is not ".jpg"
+                and not ".jpeg"
+                and not ".png"
+                and not ".webp"
+                and not ".gif")
+            {
+                extension = ".jpg";
+            }
+
+            var uploadsFolder =
+                _storage.GetUploadsCategoryPath(
+                    "profiles");
+
+            var uniqueFileName =
+                $"{user.Id}-{Guid.NewGuid():N}{extension}";
+
+            var filePath =
+                Path.Combine(
+                    uploadsFolder,
+                    uniqueFileName);
+
+            await using (
+                var stream =
+                    new FileStream(
+                        filePath,
+                        FileMode.Create))
+            {
+                await photo.CopyToAsync(stream);
+            }
+
+            var previousPhotoPath =
+                _storage.MapWebPathToPhysicalPath(
+                    user.ProfileImageUrl);
+
+            user.ProfileImageUrl =
+                _storage.BuildUploadsWebPath(
+                    "profiles",
+                    uniqueFileName);
+
+            var updateResult =
+                await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+            {
+                System.IO.File.Delete(filePath);
+
+                TempData["ErrorMessage"] =
+                    "Profile photo could not be saved. Please try again.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            if (!string.IsNullOrWhiteSpace(previousPhotoPath) &&
+                System.IO.File.Exists(previousPhotoPath))
+            {
+                try
+                {
+                    System.IO.File.Delete(previousPhotoPath);
+                }
+                catch
+                {
+                }
+            }
+
+            TempData["SuccessMessage"] =
+                "Profile photo updated successfully.";
 
             return RedirectToAction(
                 nameof(Index));

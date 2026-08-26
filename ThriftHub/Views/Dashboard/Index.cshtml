@@ -1,10 +1,14 @@
-﻿@{
+﻿@using ThriftHub.Services
+
+@{
     ViewData["Title"] = "Dashboard";
 
     var fullName = ViewBag.FullName as string ?? "User";
     var email = ViewBag.Email as string ?? "";
     var userType = ViewBag.UserType as string ?? "Customer";
     var profileImageUrl = ViewBag.ProfileImageUrl as string;
+    var profileInitials = ViewBag.ProfileInitials as string
+        ?? UserPresentationHelper.GetInitials(fullName);
 
     var verificationStatus =
         ViewBag.VerificationStatus as string ?? "Pending";
@@ -132,15 +136,40 @@
                 @if (!string.IsNullOrWhiteSpace(profileImageUrl))
                 {
                     <img src="@profileImageUrl"
-                         alt="Profile Picture"
-                         class="profile-picture" />
+                         alt="Profile picture for @fullName"
+                         class="profile-picture"
+                         id="dashboardProfilePreview" />
                 }
                 else
                 {
-                    <div class="default-profile-picture">
-                        👤
+                    <div class="default-profile-picture"
+                         id="dashboardProfilePreview">
+                        @profileInitials
                     </div>
                 }
+
+                <form asp-controller="Dashboard"
+                      asp-action="UploadProfilePhoto"
+                      method="post"
+                      enctype="multipart/form-data"
+                      class="profile-photo-form">
+
+                    @Html.AntiForgeryToken()
+
+                    <input type="file"
+                           id="profilePhotoInput"
+                           name="photo"
+                           accept="image/*"
+                           hidden />
+
+                    <button type="button"
+                            class="profile-photo-button"
+                            onclick="document.getElementById('profilePhotoInput').click()"
+                            title="Change profile photo">
+                        📷
+                    </button>
+
+                </form>
 
             </div>
 
@@ -1096,10 +1125,39 @@
            ============================================================ */
 
     .profile-picture-container {
+        position: relative;
         width: 76px;
         height: 76px;
         flex-shrink: 0;
     }
+
+    .profile-photo-form {
+        position: absolute;
+        right: -4px;
+        bottom: -4px;
+        margin: 0;
+    }
+
+    .profile-photo-button {
+        width: 30px;
+        height: 30px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #7047e8;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 13px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+        .profile-photo-button:hover {
+            transform: scale(1.05);
+            background: #5b35c8;
+        }
 
     .profile-picture {
         width: 76px;
@@ -1114,12 +1172,13 @@
         width: 76px;
         height: 76px;
         border-radius: 50%;
-        background: #f0eaff;
-        color: #7047e8;
+        background: linear-gradient(135deg, #fffc00 0%, #ff6b35 100%);
+        color: #111;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 32px;
+        font-size: 24px;
+        font-weight: 800;
         border: 3px solid #eee;
     }
 
@@ -1560,3 +1619,11 @@
     }
 
 </style>
+
+<script>
+    document.getElementById("profilePhotoInput")?.addEventListener("change", function () {
+        if (this.files && this.files.length > 0) {
+            this.closest("form")?.submit();
+        }
+    });
+</script>

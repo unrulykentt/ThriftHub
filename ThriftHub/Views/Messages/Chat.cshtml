@@ -1,6 +1,7 @@
 @model ThriftHub.Models.ConversationViewModel
 
 @using System.Security.Claims
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Chat";
@@ -16,20 +17,26 @@
             ? "User"
             : Model.UserName;
 
-    var recipientInitial =
-        !string.IsNullOrWhiteSpace(recipientName)
-            ? recipientName.Substring(0, 1).ToUpper()
-            : "U";
+    var recipientInitials =
+        UserPresentationHelper.GetInitials(recipientName);
 
-    string FormatRoleLabel(string? userType)
-    {
-        return string.Equals(
-            userType,
-            "Seller",
-            StringComparison.OrdinalIgnoreCase)
-            ? "Seller"
-            : "Buyer";
-    }
+    var recipientPhoto =
+        UserPresentationHelper.ResolveProfileImageUrl(
+            Model.ProfileImageUrl);
+
+    var currentUserDisplayName =
+        ViewBag.CurrentUserDisplayName as string
+        ?? "You";
+
+    var currentUserInitials =
+        UserPresentationHelper.GetInitials(
+            currentUserDisplayName);
+
+    var currentUserPhoto =
+        ViewBag.CurrentUserProfileImage as string;
+
+    string FormatRoleLabel(string? userType) =>
+        UserPresentationHelper.GetRoleLabel(userType);
 
     var currentUserRole =
         ViewBag.CurrentUserRole as string
@@ -84,19 +91,17 @@
                 </a>
 
 
-                @if (!string.IsNullOrWhiteSpace(
-                    Model.ProfileImageUrl))
+                @if (!string.IsNullOrWhiteSpace(recipientPhoto))
                 {
-                    <img src="@Model.ProfileImageUrl"
+                    <img src="@recipientPhoto"
                          class="profile-picture"
-                         alt="Profile" />
+                         alt="@recipientName" />
                 }
                 else
                 {
-                    <div class="profile-placeholder">
-
-                        @recipientInitial
-
+                    <div class="profile-placeholder profile-avatar-initials"
+                         aria-label="@recipientName">
+                        @recipientInitials
                     </div>
                 }
 
@@ -104,40 +109,21 @@
                 <div class="user-info">
 
                     <div class="user-name">
-
                         @recipientName
-
                     </div>
 
+                    <div class="user-meta-row">
 
-                    @if (!string.IsNullOrWhiteSpace(
-                        Model.UserEmail))
-                    {
-                        <div class="user-email">
+                        <span class="role-badge @recipientRoleClass">
+                            @recipientRoleLabel
+                        </span>
 
-                            @Model.UserEmail
-
+                        <div class="online-status">
+                            <span id="onlineDot" class="online-dot"></span>
+                            <span id="onlineText">
+                                @(Model.IsOnline ? "Online" : "Offline")
+                            </span>
                         </div>
-                    }
-
-
-                    <span class="role-badge @recipientRoleClass">
-                        @recipientRoleLabel
-                    </span>
-
-                    <div class="online-status">
-
-                        <span id="onlineDot"
-                              class="online-dot">
-                        </span>
-
-                        <span id="onlineText">
-
-                            @(Model.IsOnline
-                                ? "Online"
-                                : "Offline")
-
-                        </span>
 
                     </div>
 
@@ -217,29 +203,18 @@
                             @if (!isSent)
                             {
                                 <div class="message-avatar">
-                                    @if (!string.IsNullOrWhiteSpace(Model.ProfileImageUrl))
+                                    @if (!string.IsNullOrWhiteSpace(recipientPhoto))
                                     {
-                                        <img src="@Model.ProfileImageUrl" alt="@recipientName" />
+                                        <img src="@recipientPhoto" alt="@recipientName" />
                                     }
                                     else
                                     {
-                                        <div class="message-avatar-fallback">@recipientInitial</div>
+                                        <div class="message-avatar-fallback">@recipientInitials</div>
                                     }
                                 </div>
                             }
 
                             <div class="message-stack">
-
-                                <div class="message-sender-label">
-                                    @if (isSent)
-                                    {
-                                        <span>You · <span class="role-tag @currentUserRoleClass">@currentUserRoleLabel</span></span>
-                                    }
-                                    else
-                                    {
-                                        <span>@recipientName · <span class="role-tag @recipientRoleClass">@recipientRoleLabel</span></span>
-                                    }
-                                </div>
 
                                 @if (
                                     message.MessageType.Equals("audio", StringComparison.OrdinalIgnoreCase)
@@ -512,9 +487,14 @@
     <div class="call-card">
 
         <div class="call-avatar">
-
-            @recipientInitial
-
+            @if (!string.IsNullOrWhiteSpace(recipientPhoto))
+            {
+                <img src="@recipientPhoto" alt="@recipientName" />
+            }
+            else
+            {
+                @recipientInitials
+            }
         </div>
 
         <div class="call-name">
@@ -606,10 +586,10 @@
             "@recipientRoleClass";
 
         const recipientProfileImage =
-            "@Model.ProfileImageUrl";
+            "@(recipientPhoto ?? "")";
 
-        const recipientInitialChar =
-            "@recipientInitial";
+        const recipientInitials =
+            "@recipientInitials";
 
 
         /* =========================================================
@@ -1354,9 +1334,7 @@
 
                 if (
                     recipientProfileImage &&
-                    recipientProfileImage.indexOf(
-                        "default-avatar"
-                    ) === -1
+                    recipientProfileImage.length > 0
                 ) {
 
                     const avatarImage =
@@ -1382,7 +1360,7 @@
                         "message-avatar-fallback";
 
                     avatarFallback.textContent =
-                        recipientInitialChar;
+                        recipientInitials;
 
                     avatar.appendChild(
                         avatarFallback
@@ -1399,30 +1377,6 @@
                 document.createElement("div");
 
             stack.className = "message-stack";
-
-
-            const label =
-                document.createElement("div");
-
-            label.className =
-                "message-sender-label";
-
-
-            if (isSent) {
-
-                label.innerHTML =
-                    `You · <span class="role-tag ${currentUserRoleClass}">${escapeHtml(currentUserRoleLabel)}</span>`;
-
-            }
-            else {
-
-                label.innerHTML =
-                    `${escapeHtml(recipientName)} · <span class="role-tag ${recipientRoleClass}">${escapeHtml(recipientRoleLabel)}</span>`;
-
-            }
-
-
-            stack.appendChild(label);
 
 
             let bubble =
