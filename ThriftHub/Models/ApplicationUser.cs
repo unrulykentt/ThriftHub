@@ -79,6 +79,16 @@ namespace ThriftHub.Models
         //
         public bool IdCardVerified { get; set; } = false;
 
+        // Pending, Approved, or Rejected after admin review.
+        public string IdCardVerificationStatus { get; set; } = "NotSubmitted";
+
+        public DateTime? IdCardReviewedAt { get; set; }
+
+        // Saved copy of the ID files after admin review.
+        public string? IdCardArchiveFrontUrl { get; set; }
+
+        public string? IdCardArchiveBackUrl { get; set; }
+
 
         // ============================================================
         // SELLER SUBSCRIPTION ACCESS

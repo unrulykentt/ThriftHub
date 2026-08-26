@@ -18,6 +18,7 @@ namespace ThriftHub.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<AccountController> _logger;
+        private readonly AppStorageService _storage;
 
         // ============================================================
         // ADMIN EMAIL
@@ -37,7 +38,8 @@ namespace ThriftHub.Controllers
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
             IEmailSender emailSender,
-            ILogger<AccountController> logger)
+            ILogger<AccountController> logger,
+            AppStorageService storage)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -45,6 +47,7 @@ namespace ThriftHub.Controllers
             _context = context;
             _emailSender = emailSender;
             _logger = logger;
+            _storage = storage;
         }
 
 
@@ -329,6 +332,13 @@ namespace ThriftHub.Controllers
                     IdCardVerified =
                         false,
 
+                    IdCardVerificationStatus =
+                        userType.Equals(
+                            "Seller",
+                            StringComparison.OrdinalIgnoreCase)
+                            ? "Pending"
+                            : "NotSubmitted",
+
                     SubscriptionWaived =
                         false,
 
@@ -387,17 +397,8 @@ namespace ThriftHub.Controllers
                 try
                 {
                     var idDirectory =
-                        Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot",
-                            "uploads",
+                        _storage.GetUploadsCategoryPath(
                             "id-cards");
-
-
-                    if (!Directory.Exists(idDirectory))
-                    {
-                        Directory.CreateDirectory(idDirectory);
-                    }
 
 
                     // ----------------------------------------------------

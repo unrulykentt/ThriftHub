@@ -78,6 +78,15 @@ git push origin main
 
 ---
 
+## 💾 8. Persistent Data on Render (Accounts & Logins)
+
+*   **Problem**: Render containers use ephemeral disk. Each redeploy replaced the live SQLite database with the git-baked seed file, so new accounts disappeared. Auth cookies also broke because Data Protection keys were not persisted.
+*   **Fix**: Set `ThriftHub__DataPath=/data` on Render and attach a **Persistent Disk** mounted at `/data`.
+*   **What persists**: SQLite database (`/data/thrifthub.db`), login cookies (`/data/dp-keys`), uploads (`/data/uploads`), and reviewed ID archives.
+*   **Admin reviewed IDs**: After approve/reject on Identity Verification, documents are copied to `/uploads/id-cards/reviewed/` and browsable under **Admin → View Saved IDs**.
+
+---
+
 ## 👤 7. Registration Validation Splitting
 
 *   **Validation Bypass for Customers**: Removed the `[Required]` attributes from identity verification properties (`IdCardType`, `IdCardNumber`, `IdCardFront`) in [RegisterViewModel.cs](ThriftHub/Models/RegisterViewModel.cs).

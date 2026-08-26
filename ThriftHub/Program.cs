@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using ThriftHub.Data;
 using ThriftHub.Hubs;
 using ThriftHub.Models;
@@ -10,22 +12,77 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 // ============================================================
-// DATABASE
+// PERSISTENT STORAGE (RENDER DISK)
 // ============================================================
-// ThriftHub is currently using SQLite.
-// appsettings.json:
-// "DefaultConnection": "Data Source=thrifthub.db"
-// ============================================================
+
+var dataPath =
+    builder.Configuration["ThriftHub:DataPath"]?
+        .Trim()
+        .TrimEnd('/', '\\');
 
 var connectionString =
-    builder.Configuration.GetConnectionString("DefaultConnection");
+    ResolveConnectionString(
+        builder.Configuration,
+        builder.Environment.ContentRootPath,
+        dataPath);
 
-if (string.IsNullOrWhiteSpace(connectionString))
+var dataProtectionPath =
+    !string.IsNullOrWhiteSpace(dataPath)
+        ? Path.Combine(dataPath, "dp-keys")
+        : Path.Combine(
+            builder.Environment.ContentRootPath,
+            "dp-keys");
+
+Directory.CreateDirectory(dataProtectionPath);
+
+
+static string ResolveConnectionString(
+    IConfiguration configuration,
+    string contentRootPath,
+    string? dataPath)
 {
-    throw new InvalidOperationException(
-        "DefaultConnection was not found in appsettings.json."
-    );
+    if (!string.IsNullOrWhiteSpace(dataPath))
+    {
+        Directory.CreateDirectory(dataPath);
+
+        var databasePath =
+            Path.Combine(
+                dataPath,
+                "thrifthub.db");
+
+        var seedDatabasePath =
+            Path.Combine(
+                contentRootPath,
+                "thrifthub.db");
+
+        if (!File.Exists(databasePath) &&
+            File.Exists(seedDatabasePath))
+        {
+            File.Copy(
+                seedDatabasePath,
+                databasePath);
+        }
+
+        return $"Data Source={databasePath}";
+    }
+
+    var configuredConnection =
+        configuration.GetConnectionString("DefaultConnection");
+
+    if (string.IsNullOrWhiteSpace(configuredConnection))
+    {
+        throw new InvalidOperationException(
+            "DefaultConnection was not found in appsettings.json."
+        );
+    }
+
+    return configuredConnection;
 }
+
+
+// ============================================================
+// DATABASE
+// ============================================================
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -86,6 +143,13 @@ builder.Services
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+
+builder.Services
+    .AddDataProtection()
+    .PersistKeysToFileSystem(
+        new DirectoryInfo(dataProtectionPath))
+    .SetApplicationName("ThriftHub");
 
 
 // ============================================================
@@ -174,6 +238,11 @@ builder.Services.AddHttpClient("Resend");
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 
+builder.Services.AddSingleton<AppStorageService>();
+
+builder.Services.AddScoped<IdentityDocumentArchiveService>();
+
+
 // ------------------------------------------------------------
 // Notifications
 // ------------------------------------------------------------
@@ -254,6 +323,27 @@ var app = builder.Build();
             resendFromEmail
         );
     }
+
+    var storage =
+        app.Services.GetRequiredService<AppStorageService>();
+
+    if (storage.UsesPersistentStorage)
+    {
+        storage.SeedPersistentDatabaseIfNeeded();
+
+        startupLogger.LogInformation(
+            "Persistent storage enabled at {DataPath}.",
+            storage.DataRoot
+        );
+    }
+    else
+    {
+        startupLogger.LogWarning(
+            "Persistent storage is not configured. " +
+            "Set ThriftHub__DataPath=/data on Render with a mounted disk " +
+            "so accounts survive redeploys."
+        );
+    }
 }
 
 
@@ -317,6 +407,23 @@ if (!app.Environment.IsDevelopment())
 // ============================================================
 // STATIC FILES
 // ============================================================
+
+{
+    var storage =
+        app.Services.GetRequiredService<AppStorageService>();
+
+    if (storage.UsesPersistentStorage)
+    {
+        app.UseStaticFiles(
+            new StaticFileOptions
+            {
+                FileProvider =
+                    new PhysicalFileProvider(
+                        storage.GetUploadsRoot()),
+                RequestPath = "/uploads"
+            });
+    }
+}
 
 app.UseStaticFiles();
 

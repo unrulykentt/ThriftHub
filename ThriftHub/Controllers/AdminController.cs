@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -13,6 +14,7 @@ namespace ThriftHub.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
+        private readonly IdentityDocumentArchiveService _identityArchive;
 
         private const string AdminEmail =
             "antwiagyeibright9@gmail.com";
@@ -25,11 +27,13 @@ namespace ThriftHub.Controllers
         public AdminController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            IdentityDocumentArchiveService identityArchive)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
+            _identityArchive = identityArchive;
         }
 
 
@@ -160,10 +164,17 @@ namespace ThriftHub.Controllers
             var pendingIdentityVerification =
                 await _userManager.Users
                     .CountAsync(u =>
-                        !u.IdCardVerified &&
                         !string.IsNullOrWhiteSpace(u.IdCardType) &&
                         !string.IsNullOrWhiteSpace(u.IdCardNumber) &&
-                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl));
+                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl) &&
+                        u.IdCardVerificationStatus != "Approved" &&
+                        u.IdCardVerificationStatus != "Rejected");
+
+            var reviewedIdentityDocuments =
+                await _userManager.Users
+                    .CountAsync(u =>
+                        u.IdCardVerificationStatus == "Approved" ||
+                        u.IdCardVerificationStatus == "Rejected");
 
             var verifiedSellers =
                 await _userManager.Users
@@ -193,6 +204,9 @@ namespace ThriftHub.Controllers
 
             ViewBag.PendingIdentityVerification =
                 pendingIdentityVerification;
+
+            ViewBag.ReviewedIdentityDocuments =
+                reviewedIdentityDocuments;
 
             ViewBag.VerifiedSellers =
                 verifiedSellers;
@@ -733,10 +747,11 @@ namespace ThriftHub.Controllers
             var users =
                 await _userManager.Users
                     .Where(u =>
-                        !u.IdCardVerified &&
                         !string.IsNullOrWhiteSpace(u.IdCardType) &&
                         !string.IsNullOrWhiteSpace(u.IdCardNumber) &&
-                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl))
+                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl) &&
+                        u.IdCardVerificationStatus != "Approved" &&
+                        u.IdCardVerificationStatus != "Rejected")
                     .OrderBy(u => u.FullName)
                     .ToListAsync();
 
@@ -793,6 +808,23 @@ namespace ThriftHub.Controllers
 
             user.IdCardVerified =
                 true;
+
+            user.IdCardVerificationStatus =
+                "Approved";
+
+            user.IdCardReviewedAt =
+                DateTime.UtcNow;
+
+            var archivedDocuments =
+                await _identityArchive.ArchiveReviewedDocumentsAsync(
+                    user,
+                    "Approved");
+
+            user.IdCardArchiveFrontUrl =
+                archivedDocuments.FrontUrl;
+
+            user.IdCardArchiveBackUrl =
+                archivedDocuments.BackUrl;
 
             var result =
                 await _userManager.UpdateAsync(user);
@@ -859,6 +891,23 @@ namespace ThriftHub.Controllers
             user.IdCardVerified =
                 false;
 
+            user.IdCardVerificationStatus =
+                "Rejected";
+
+            user.IdCardReviewedAt =
+                DateTime.UtcNow;
+
+            var archivedDocuments =
+                await _identityArchive.ArchiveReviewedDocumentsAsync(
+                    user,
+                    "Rejected");
+
+            user.IdCardArchiveFrontUrl =
+                archivedDocuments.FrontUrl;
+
+            user.IdCardArchiveBackUrl =
+                archivedDocuments.BackUrl;
+
             var result =
                 await _userManager.UpdateAsync(user);
 
@@ -881,6 +930,33 @@ namespace ThriftHub.Controllers
 
             return RedirectToAction(
                 nameof(IdentityVerification));
+        }
+
+
+        // ============================================================
+        // REVIEWED IDENTITY DOCUMENTS
+        // ============================================================
+
+        [HttpGet]
+        public async Task<IActionResult> ReviewedIdentities()
+        {
+            if (!await IsAdmin())
+            {
+                return RedirectToAction(
+                    "Index",
+                    "Dashboard");
+            }
+
+            var users =
+                await _userManager.Users
+                    .Where(u =>
+                        u.IdCardVerificationStatus == "Approved" ||
+                        u.IdCardVerificationStatus == "Rejected")
+                    .OrderByDescending(u => u.IdCardReviewedAt)
+                    .ThenBy(u => u.FullName)
+                    .ToListAsync();
+
+            return View(users);
         }
 
 

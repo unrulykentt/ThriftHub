@@ -81,6 +81,16 @@ namespace ThriftHub.Data
                 entity.Property(u => u.IdCardVerified)
                     .IsRequired();
 
+                entity.Property(u => u.IdCardVerificationStatus)
+                    .HasMaxLength(30)
+                    .IsRequired();
+
+                entity.Property(u => u.IdCardArchiveFrontUrl)
+                    .HasMaxLength(500);
+
+                entity.Property(u => u.IdCardArchiveBackUrl)
+                    .HasMaxLength(500);
+
                 entity.Property(u => u.UserType)
                     .HasMaxLength(30)
                     .IsRequired();

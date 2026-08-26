@@ -331,22 +331,19 @@
                                             @if (!string.IsNullOrWhiteSpace(
                                                 seller.IdCardFrontUrl))
                                             {
-                                                <a href="@seller.IdCardFrontUrl"
-                                                   target="_blank">
+                                                <button type="button"
+                                                        class="btn p-0 border-0 bg-transparent w-100 id-preview-trigger"
+                                                        onclick="openSellerIdLightbox('@seller.IdCardFrontUrl')">
 
                                                     <img src="@seller.IdCardFrontUrl"
                                                          alt="ID card front"
                                                          class="img-fluid rounded border"
-                                                         style="
-                                                    width:100%;
-                                                    height:220px;
-                                                    object-fit:cover;
-                                                    " />
+                                                         style="width:100%; height:220px; object-fit:cover; cursor:zoom-in;" />
 
-                                                </a>
+                                                </button>
 
                                                 <small class="text-muted d-block mt-2">
-                                                    Click image to view full size.
+                                                    Tap image to preview full size.
                                                 </small>
                                             }
                                             else
@@ -376,22 +373,19 @@
                                             @if (!string.IsNullOrWhiteSpace(
                                                 seller.IdCardBackUrl))
                                             {
-                                                <a href="@seller.IdCardBackUrl"
-                                                   target="_blank">
+                                                <button type="button"
+                                                        class="btn p-0 border-0 bg-transparent w-100 id-preview-trigger"
+                                                        onclick="openSellerIdLightbox('@seller.IdCardBackUrl')">
 
                                                     <img src="@seller.IdCardBackUrl"
                                                          alt="ID card back"
                                                          class="img-fluid rounded border"
-                                                         style="
-                                                    width:100%;
-                                                    height:220px;
-                                                    object-fit:cover;
-                                                    " />
+                                                         style="width:100%; height:220px; object-fit:cover; cursor:zoom-in;" />
 
-                                                </a>
+                                                </button>
 
                                                 <small class="text-muted d-block mt-2">
-                                                    Click image to view full size.
+                                                    Tap image to preview full size.
                                                 </small>
                                             }
                                             else
@@ -608,3 +602,55 @@
     }
 
 </style>
+
+
+<div id="sellerIdLightbox"
+     class="id-lightbox"
+     onclick="closeSellerIdLightbox(event)"
+     style="position:fixed; inset:0; z-index:10000; display:none; align-items:center; justify-content:center; padding:20px; background:rgba(15,10,25,.88);">
+
+    <button type="button"
+            onclick="closeSellerIdLightbox(event)"
+            aria-label="Close ID preview"
+            style="position:absolute; top:18px; right:18px; width:42px; height:42px; border:none; border-radius:50%; background:rgba(255,255,255,.16); color:white; font-size:24px;">
+        ×
+    </button>
+
+    <div onclick="event.stopPropagation()"
+         style="max-width:min(960px,100%); max-height:calc(100vh - 40px); border-radius:16px; overflow:hidden; background:#111;">
+
+        <img id="sellerIdLightboxImage"
+             src=""
+             alt="ID document preview"
+             style="display:block; width:100%; height:auto; max-height:calc(100vh - 40px); object-fit:contain;" />
+
+    </div>
+
+</div>
+
+
+<script>
+    function openSellerIdLightbox(src) {
+        const overlay = document.getElementById("sellerIdLightbox");
+        const image = document.getElementById("sellerIdLightboxImage");
+        if (!overlay || !image || !src) return;
+        image.src = src;
+        overlay.style.display = "flex";
+    }
+
+    function closeSellerIdLightbox(event) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        const overlay = document.getElementById("sellerIdLightbox");
+        const image = document.getElementById("sellerIdLightboxImage");
+        if (!overlay) return;
+        overlay.style.display = "none";
+        if (image) image.src = "";
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") closeSellerIdLightbox();
+    });
+</script>

@@ -2,26 +2,57 @@
 
 @{
     ViewData["Title"] = "Identity Verification";
+
+    string GetLetter(ApplicationUser user)
+    {
+        var name =
+            user.FullName?
+                .Trim()
+                .ToUpperInvariant();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return "#";
+        }
+
+        var letter =
+            name[0];
+
+        return char.IsLetter(letter)
+            ? letter.ToString()
+            : "#";
+    }
+
+    string GetSavedFileName(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return string.Empty;
+        }
+
+        return System.IO.Path.GetFileName(url);
+    }
 }
 
-<div class="container py-5">
+<div class="identity-page">
 
-    <!-- ============================================================
-         HEADER
-         ============================================================ -->
-
-    <div class="mb-4 d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div class="identity-header">
 
         <div>
-            <h1 class="fw-bold">
+            <h1 class="fw-bold mb-1">
                 Identity Verification
             </h1>
 
             <p class="text-muted mb-0">
-                Review government-issued identification documents
-                submitted by ThriftHub users.
+                Review ID documents saved by user name and filter alphabetically.
             </p>
         </div>
+
+        <a asp-controller="Admin"
+           asp-action="ReviewedIdentities"
+           class="btn btn-outline-dark">
+            View Saved IDs
+        </a>
 
         <a asp-controller="Admin"
            asp-action="Index"
@@ -32,66 +63,83 @@
     </div>
 
 
-    <!-- ============================================================
-         SUCCESS MESSAGE
-         ============================================================ -->
     @if (TempData["SuccessMessage"] != null)
     {
         <div class="alert alert-success alert-dismissible fade show">
-
             @TempData["SuccessMessage"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
 
-    <!-- ============================================================
-         ERROR MESSAGE
-         ============================================================ -->
     @if (TempData["ErrorMessage"] != null)
     {
         <div class="alert alert-danger alert-dismissible fade show">
-
             @TempData["ErrorMessage"]
-
-            <button type="button"
-                    class="btn-close"
-                    data-bs-dismiss="alert">
-            </button>
-
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     }
 
 
-    <!-- ============================================================
-         PENDING USERS
-         ============================================================ -->
     @if (Model != null && Model.Any())
     {
-        <div class="row g-4">
+        <div class="identity-toolbar">
+
+            <input type="search"
+                   id="identitySearchInput"
+                   class="identity-search-input"
+                   placeholder="Search by name, email, or ID number..." />
+
+            <div class="alphabet-filter"
+                 id="alphabetFilter">
+
+                <button type="button"
+                        class="alphabet-btn active"
+                        data-letter="ALL">
+                    All
+                </button>
+
+                @foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+                {
+                    <button type="button"
+                            class="alphabet-btn"
+                            data-letter="@letter">
+                        @letter
+                    </button>
+                }
+
+                <button type="button"
+                        class="alphabet-btn"
+                        data-letter="#">
+                    #
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div class="row g-4"
+             id="identityCardsList">
 
             @foreach (var user in Model)
             {
-                <div class="col-12 col-lg-6">
+                var letter = GetLetter(user);
+                var searchText =
+                    $"{user.FullName} {user.Email} {user.IdCardNumber} {user.IdCardType}"
+                        .ToLowerInvariant();
 
-                    <div class="card shadow-sm border-0 h-100">
+                <div class="col-12 col-lg-6 identity-card-col"
+                     data-letter="@letter"
+                     data-search="@searchText">
+
+                    <div class="card shadow-sm border-0 h-100 identity-card">
 
                         <div class="card-body">
 
-                            <!-- ====================================================
-                                 USER INFORMATION
-                                 ==================================================== -->
-
-                            <div class="d-flex justify-content-between
-                                align-items-start mb-3">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
 
                                 <div>
-
                                     <h4 class="fw-bold mb-1">
                                         @(user.FullName ?? "No name")
                                     </h4>
@@ -99,9 +147,7 @@
                                     <p class="text-muted mb-0">
                                         @(user.Email ?? "No email")
                                     </p>
-
                                 </div>
-
 
                                 <span class="badge bg-warning text-dark">
                                     Pending
@@ -110,133 +156,95 @@
                             </div>
 
 
-                            <!-- ====================================================
-                                 PERSONAL INFORMATION
-                                 ==================================================== -->
-
                             <div class="mb-3">
-
-                                <h6 class="fw-bold">
-                                    Personal Information
-                                </h6>
-
+                                <h6 class="fw-bold">Personal Information</h6>
 
                                 <p class="mb-1">
                                     <strong>Phone:</strong>
                                     @(user.PhoneNumber ?? "Not provided")
                                 </p>
 
-
                                 <p class="mb-1">
                                     <strong>Country:</strong>
                                     @(user.Country ?? "Not provided")
                                 </p>
-
 
                                 <p class="mb-1">
                                     <strong>City:</strong>
                                     @(user.City ?? "Not provided")
                                 </p>
 
-
-                                <p class="mb-1">
+                                <p class="mb-0">
                                     <strong>Account Type:</strong>
                                     @(user.UserType ?? "Customer")
                                 </p>
-
                             </div>
 
-
-                            <!-- ====================================================
-                                 ID INFORMATION
-                                 ==================================================== -->
 
                             <div class="border rounded p-3 mb-3">
-
-                                <h6 class="fw-bold mb-3">
-                                    🪪 Identity Information
-                                </h6>
-
+                                <h6 class="fw-bold mb-3">🪪 Identity Information</h6>
 
                                 <p class="mb-2">
-
                                     <strong>ID Type:</strong>
-
                                     @(user.IdCardType ?? "Not provided")
-
                                 </p>
-
 
                                 <p class="mb-0">
-
                                     <strong>ID Number:</strong>
-
                                     @(user.IdCardNumber ?? "Not provided")
-
                                 </p>
+                            </div>
+
+
+                            <div class="row g-3 mb-3">
+
+                                @if (!string.IsNullOrWhiteSpace(user.IdCardFrontUrl))
+                                {
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="fw-bold">ID Card Front</h6>
+
+                                        <button type="button"
+                                                class="id-preview-button"
+                                                onclick="openIdLightbox('@user.IdCardFrontUrl')">
+
+                                            <img src="@user.IdCardFrontUrl"
+                                                 alt="ID card front for @(user.FullName)"
+                                                 class="id-preview-image" />
+
+                                        </button>
+
+                                        <small class="text-muted d-block mt-2">
+                                            @GetSavedFileName(user.IdCardFrontUrl)
+                                        </small>
+                                    </div>
+                                }
+
+
+                                @if (!string.IsNullOrWhiteSpace(user.IdCardBackUrl))
+                                {
+                                    <div class="col-12 col-md-6">
+                                        <h6 class="fw-bold">ID Card Back</h6>
+
+                                        <button type="button"
+                                                class="id-preview-button"
+                                                onclick="openIdLightbox('@user.IdCardBackUrl')">
+
+                                            <img src="@user.IdCardBackUrl"
+                                                 alt="ID card back for @(user.FullName)"
+                                                 class="id-preview-image" />
+
+                                        </button>
+
+                                        <small class="text-muted d-block mt-2">
+                                            @GetSavedFileName(user.IdCardBackUrl)
+                                        </small>
+                                    </div>
+                                }
 
                             </div>
 
 
-                            <!-- ====================================================
-                                 ID FRONT
-                                 ==================================================== -->
-                            @if (!string.IsNullOrWhiteSpace(
-                                                            user.IdCardFrontUrl))
-                            {
-                                <div class="mb-3">
-
-                                    <h6 class="fw-bold">
-                                        ID Card Front
-                                    </h6>
-
-
-                                    <a href="@user.IdCardFrontUrl"
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       class="btn btn-outline-dark">
-
-                                        View ID Front
-
-                                    </a>
-
-                                </div>
-                            }
-
-
-                            <!-- ====================================================
-                                 ID BACK
-                                 ==================================================== -->
-                            @if (!string.IsNullOrWhiteSpace(
-                                                            user.IdCardBackUrl))
-                            {
-                                <div class="mb-3">
-
-                                    <h6 class="fw-bold">
-                                        ID Card Back
-                                    </h6>
-
-
-                                    <a href="@user.IdCardBackUrl"
-                                       target="_blank"
-                                       rel="noopener noreferrer"
-                                       class="btn btn-outline-dark">
-
-                                        View ID Back
-
-                                    </a>
-
-                                </div>
-                            }
-
-
-                            <!-- ====================================================
-                                 VERIFICATION ACTIONS
-                                 ==================================================== -->
-
                             <div class="d-flex gap-2 mt-4">
-
-                                <!-- VERIFY -->
 
                                 <form asp-controller="Admin"
                                       asp-action="VerifyIdentity"
@@ -249,18 +257,13 @@
                                            name="id"
                                            value="@user.Id" />
 
-
                                     <button type="submit"
                                             class="btn btn-success w-100">
-
                                         ✓ Verify Identity
-
                                     </button>
 
                                 </form>
 
-
-                                <!-- REJECT -->
 
                                 <form asp-controller="Admin"
                                       asp-action="RejectIdentity"
@@ -273,12 +276,9 @@
                                            name="id"
                                            value="@user.Id" />
 
-
                                     <button type="submit"
                                             class="btn btn-danger w-100">
-
                                         ✕ Reject
-
                                     </button>
 
                                 </form>
@@ -293,40 +293,380 @@
             }
 
         </div>
+
+
+        <div id="identityEmptyFilter"
+             class="identity-empty-filter"
+             style="display:none;">
+
+            <h3 class="fw-bold">
+                No matching users
+            </h3>
+
+            <p class="text-muted mb-0">
+                Try another letter or search term.
+            </p>
+
+        </div>
     }
     else
     {
-        <!-- ============================================================
-             NO PENDING VERIFICATIONS
-             ============================================================ -->
-
         <div class="text-center py-5">
 
-            <div style="font-size:60px;">
-                ✅
-            </div>
-
+            <div style="font-size:60px;">✅</div>
 
             <h3 class="fw-bold mt-3">
                 No Pending Identity Verifications
             </h3>
 
-
             <p class="text-muted">
-                There are currently no identity documents
-                waiting for administrator review.
+                There are currently no identity documents waiting for administrator review.
             </p>
-
 
             <a asp-controller="Admin"
                asp-action="Index"
                class="btn btn-dark mt-2">
-
                 Back to Dashboard
-
             </a>
 
         </div>
     }
 
 </div>
+
+
+<div id="idLightbox"
+     class="id-lightbox"
+     onclick="closeIdLightbox(event)">
+
+    <button type="button"
+            class="id-lightbox-close"
+            onclick="closeIdLightbox(event)"
+            aria-label="Close ID preview">
+        ×
+    </button>
+
+    <div class="id-lightbox-content"
+         onclick="event.stopPropagation()">
+
+        <img id="idLightboxImage"
+             src=""
+             alt="ID document preview" />
+
+    </div>
+
+</div>
+
+
+<style>
+    .identity-page {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 40px 24px 80px;
+    }
+
+    .identity-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .identity-toolbar {
+        background: white;
+        border: 1px solid #eee9f5;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 24px;
+        box-shadow: 0 5px 20px rgba(70, 40, 110, .06);
+    }
+
+    .identity-search-input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid #ddd6e8;
+        border-radius: 9px;
+        padding: 11px 14px;
+        font-size: 14px;
+        margin-bottom: 14px;
+        outline: none;
+    }
+
+        .identity-search-input:focus {
+            border-color: #6f3cc3;
+            box-shadow: 0 0 0 2px rgba(111, 60, 195, .08);
+        }
+
+    .alphabet-filter {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .alphabet-btn {
+        min-width: 34px;
+        height: 34px;
+        border: 1px solid #ddd6e8;
+        border-radius: 8px;
+        background: #fff;
+        color: #555064;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        padding: 0 8px;
+    }
+
+        .alphabet-btn.active,
+        .alphabet-btn:hover {
+            background: #6f3cc3;
+            border-color: #6f3cc3;
+            color: white;
+        }
+
+    .id-preview-button {
+        display: block;
+        width: 100%;
+        padding: 0;
+        border: 1px solid #ddd6e8;
+        border-radius: 12px;
+        overflow: hidden;
+        background: #faf9fc;
+        cursor: zoom-in;
+    }
+
+    .id-preview-image {
+        display: block;
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+    }
+
+    .identity-empty-filter {
+        text-align: center;
+        padding: 40px 20px;
+        background: white;
+        border: 1px dashed #ddd6e8;
+        border-radius: 14px;
+    }
+
+    .id-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(15, 10, 25, 0.88);
+    }
+
+        .id-lightbox.show {
+            display: flex;
+        }
+
+    .id-lightbox-content {
+        max-width: min(960px, 100%);
+        max-height: calc(100vh - 40px);
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        background: #111;
+    }
+
+        .id-lightbox-content img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: calc(100vh - 40px);
+            object-fit: contain;
+        }
+
+    .id-lightbox-close {
+        position: absolute;
+        top: 18px;
+        right: 18px;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16);
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 700px) {
+        .identity-page {
+            padding: 30px 15px 60px;
+        }
+    }
+</style>
+
+
+<script>
+    let activeIdentityLetter = "ALL";
+
+    const identitySearchInput =
+        document.getElementById("identitySearchInput");
+
+    const identityCards =
+        document.querySelectorAll(".identity-card-col");
+
+    const identityEmptyFilter =
+        document.getElementById("identityEmptyFilter");
+
+
+    function filterIdentityCards() {
+
+        const query =
+            (identitySearchInput?.value || "")
+                .trim()
+                .toLowerCase();
+
+        let visibleCount = 0;
+
+
+        identityCards.forEach(function (card) {
+
+            const letter =
+                card.dataset.letter || "#";
+
+            const searchText =
+                card.dataset.search || "";
+
+            const matchesLetter =
+                activeIdentityLetter === "ALL" ||
+                letter === activeIdentityLetter;
+
+            const matchesSearch =
+                !query ||
+                searchText.includes(query);
+
+
+            const visible =
+                matchesLetter && matchesSearch;
+
+
+            card.style.display =
+                visible ? "" : "none";
+
+
+            if (visible) {
+                visibleCount++;
+            }
+
+        });
+
+
+        if (identityEmptyFilter) {
+            identityEmptyFilter.style.display =
+                visibleCount === 0 ? "block" : "none";
+        }
+
+    }
+
+
+    document
+        .querySelectorAll(".alphabet-btn")
+        .forEach(function (button) {
+
+            button.addEventListener(
+                "click",
+                function () {
+
+                    document
+                        .querySelectorAll(".alphabet-btn")
+                        .forEach(function (item) {
+                            item.classList.remove("active");
+                        });
+
+
+                    button.classList.add("active");
+
+                    activeIdentityLetter =
+                        button.dataset.letter || "ALL";
+
+
+                    filterIdentityCards();
+
+                }
+            );
+
+        });
+
+
+    if (identitySearchInput) {
+
+        identitySearchInput.addEventListener(
+            "input",
+            filterIdentityCards
+        );
+
+    }
+
+
+    function openIdLightbox(src) {
+
+        const overlay =
+            document.getElementById("idLightbox");
+
+        const image =
+            document.getElementById("idLightboxImage");
+
+
+        if (!overlay || !image || !src) {
+            return;
+        }
+
+
+        image.src = src;
+
+        overlay.classList.add("show");
+
+    }
+
+
+    function closeIdLightbox(event) {
+
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+
+        const overlay =
+            document.getElementById("idLightbox");
+
+        const image =
+            document.getElementById("idLightboxImage");
+
+
+        if (!overlay) {
+            return;
+        }
+
+
+        overlay.classList.remove("show");
+
+
+        if (image) {
+            image.src = "";
+        }
+
+    }
+
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Escape") {
+                closeIdLightbox();
+            }
+
+        }
+    );
+
+</script>
