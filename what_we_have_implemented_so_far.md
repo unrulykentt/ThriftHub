@@ -69,7 +69,12 @@ git push origin main
 ## ✉️ 6. Robust Email Verification Service
 
 *   **MailKit Migration**: Replaced the obsolete `System.Net.Mail.SmtpClient` in [EmailSender.cs](ThriftHub/Services/EmailSender.cs) with the modern, secure **MailKit `SmtpClient`** to negotiate modern TLS/SSL handshakes successfully on cloud container hosts.
-*   **Resend API**: Email delivery was later moved to the Resend HTTP API so emails work on Render where outbound SMTP is blocked. Configure `Resend:ApiKey` and `Resend:FromEmail` as environment variables on Render.
+*   **Resend API**: Email delivery was later moved to the Resend HTTP API so emails work on Render where outbound SMTP is blocked.
+*   **Render environment variables required** (Dashboard → your service → Environment):
+    *   `Resend__ApiKey` = your Resend API key (`re_...`)
+    *   `Resend__FromEmail` = `noreply@thrifthubgh.com` (must use your verified domain — not `onboarding@resend.dev`)
+    *   `Resend__FromName` = `ThriftHub`
+*   **Resend domain setup**: Add `thrifthubgh.com` at [resend.com/domains](https://resend.com/domains), copy the DNS records Resend gives you into Namecheap, wait for verification, then use a `@thrifthubgh.com` sender address.
 
 ---
 

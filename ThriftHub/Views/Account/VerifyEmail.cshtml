@@ -30,6 +30,20 @@
                     <!-- VALIDATION SUMMARY -->
                     <!-- ================================================= -->
 
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-warning">
+                            @TempData["ErrorMessage"]
+                        </div>
+                    }
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success">
+                            @TempData["SuccessMessage"]
+                        </div>
+                    }
+
                     <div asp-validation-summary="ModelOnly"
                          class="text-danger mb-3">
                     </div>

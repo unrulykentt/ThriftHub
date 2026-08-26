@@ -169,7 +169,7 @@ builder.Services.AddHttpClient<PaystackService>();
 // the Resend API.
 // ------------------------------------------------------------
 
-builder.Services.AddHttpClient();
+builder.Services.AddHttpClient("Resend");
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
@@ -199,6 +199,62 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 // ============================================================
 
 var app = builder.Build();
+
+
+// ============================================================
+// EMAIL CONFIGURATION CHECK (RENDER LOGS)
+// ============================================================
+
+{
+    var startupLogger =
+        app.Services.GetRequiredService<ILogger<Program>>();
+
+    var resendApiKey =
+        app.Configuration["Resend:ApiKey"]
+        ?? Environment.GetEnvironmentVariable("RESEND_API_KEY");
+
+    var resendFromEmail =
+        app.Configuration["Resend:FromEmail"];
+
+    if (string.IsNullOrWhiteSpace(resendApiKey))
+    {
+        startupLogger.LogWarning(
+            "Resend API key is missing. " +
+            "Set Resend__ApiKey on Render before registration emails will work."
+        );
+    }
+    else
+    {
+        startupLogger.LogInformation(
+            "Resend API key is configured."
+        );
+    }
+
+    if (string.IsNullOrWhiteSpace(resendFromEmail))
+    {
+        startupLogger.LogWarning(
+            "Resend:FromEmail is missing. " +
+            "Verify thrifthubgh.com on Resend and set Resend__FromEmail " +
+            "to noreply@thrifthubgh.com on Render."
+        );
+    }
+    else if (resendFromEmail.Contains(
+            "resend.dev",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        startupLogger.LogWarning(
+            "Resend:FromEmail uses resend.dev. " +
+            "Production registration emails require a verified domain sender."
+        );
+    }
+    else
+    {
+        startupLogger.LogInformation(
+            "Resend sender email is configured as {SenderEmail}.",
+            resendFromEmail
+        );
+    }
+}
 
 
 app.UseForwardedHeaders();

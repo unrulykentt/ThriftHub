@@ -17,6 +17,7 @@ namespace ThriftHub.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
+        private readonly ILogger<AccountController> _logger;
 
         // ============================================================
         // ADMIN EMAIL
@@ -35,13 +36,15 @@ namespace ThriftHub.Controllers
             SignInManager<ApplicationUser> signInManager,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _context = context;
             _emailSender = emailSender;
+            _logger = logger;
         }
 
 
@@ -402,9 +405,11 @@ namespace ThriftHub.Controllers
                     // ----------------------------------------------------
 
                     var frontFileName =
-                        Guid.NewGuid()
-                            .ToString("N")
-                        + frontExtension;
+                        BuildIdCardStorageName(
+                            user.FullName,
+                            "front",
+                            frontExtension,
+                            idDirectory);
 
 
                     var frontFilePath =
@@ -443,9 +448,11 @@ namespace ThriftHub.Controllers
                             backExtension))
                     {
                         var backFileName =
-                            Guid.NewGuid()
-                                .ToString("N")
-                            + backExtension;
+                            BuildIdCardStorageName(
+                                user.FullName,
+                                "back",
+                                backExtension,
+                                idDirectory);
 
 
                         var backFilePath =
@@ -667,44 +674,24 @@ namespace ThriftHub.Controllers
                     emailSubject,
                     emailMessage);
             }
-            catch
+            catch (Exception ex)
             {
-                await _userManager.DeleteAsync(user);
+                _logger.LogError(
+                    ex,
+                    "Registration verification email failed for {Email}.",
+                    email);
 
+                TempData["ErrorMessage"] =
+                    "Your account was created, but we could not send the verification email yet. " +
+                    "Use Resend Code on the next page once email delivery is restored, " +
+                    "or contact ThriftHub support if the problem continues.";
 
-                if (System.IO.File.Exists(
-                        savedFrontPath))
-                {
-                    try
+                return RedirectToAction(
+                    nameof(VerifyEmail),
+                    new
                     {
-                        System.IO.File.Delete(
-                            savedFrontPath);
-                    }
-                    catch
-                    {
-                    }
-                }
-
-
-                if (System.IO.File.Exists(
-                        savedBackPath))
-                {
-                    try
-                    {
-                        System.IO.File.Delete(
-                            savedBackPath);
-                    }
-                    catch
-                    {
-                    }
-                }
-
-
-                ModelState.AddModelError(
-                    "",
-                    "We could not send the verification email. Please check your email settings and try again.");
-
-                return View(model);
+                        email
+                    });
             }
 
 
@@ -1026,11 +1013,16 @@ namespace ThriftHub.Controllers
                     emailSubject,
                     emailMessage);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(
+                    ex,
+                    "Resend verification email failed for {Email}.",
+                    email);
+
                 ModelState.AddModelError(
                     "",
-                    "We could not send the verification email. Please check your email settings.");
+                    "We could not send the verification email. Please try again shortly.");
 
                 return View(
                     "VerifyEmail",
@@ -2175,6 +2167,114 @@ namespace ThriftHub.Controllers
                 returnUrl;
 
             return View();
+        }
+
+
+        private static string BuildIdCardStorageName(
+            string? fullName,
+            string side,
+            string extension,
+            string idDirectory)
+        {
+            var slug =
+                SanitizeNameForFile(fullName);
+
+            var baseName =
+                $"{slug}-{side}";
+
+            return ResolveUniqueFileName(
+                idDirectory,
+                baseName,
+                extension);
+        }
+
+
+        private static string SanitizeNameForFile(
+            string? fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return "user";
+            }
+
+
+            var slug =
+                new string(
+                    fullName
+                        .Trim()
+                        .ToLowerInvariant()
+                        .Select(c =>
+                            char.IsLetterOrDigit(c)
+                                ? c
+                                : '-')
+                        .ToArray());
+
+
+            while (slug.Contains("--"))
+            {
+                slug =
+                    slug.Replace(
+                        "--",
+                        "-",
+                        StringComparison.Ordinal);
+            }
+
+
+            slug =
+                slug.Trim('-');
+
+
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                return "user";
+            }
+
+
+            if (slug.Length > 60)
+            {
+                slug =
+                    slug[..60].Trim('-');
+            }
+
+
+            return slug;
+        }
+
+
+        private static string ResolveUniqueFileName(
+            string directory,
+            string baseName,
+            string extension)
+        {
+            var candidate =
+                baseName + extension;
+
+            if (!System.IO.File.Exists(
+                    Path.Combine(
+                        directory,
+                        candidate)))
+            {
+                return candidate;
+            }
+
+
+            for (var i = 2; i <= 99; i++)
+            {
+                candidate =
+                    $"{baseName}-{i}{extension}";
+
+                if (!System.IO.File.Exists(
+                        Path.Combine(
+                            directory,
+                            candidate)))
+                {
+                    return candidate;
+                }
+            }
+
+
+            return
+                $"{baseName}-{Guid.NewGuid():N}{extension}";
         }
     }
 }
