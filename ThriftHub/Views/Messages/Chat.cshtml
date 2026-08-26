@@ -482,62 +482,96 @@
      ========================================================= -->
 
 <div id="callOverlay"
-     class="call-overlay">
+     class="call-overlay"
+     aria-hidden="true">
 
-    <div class="call-card">
+    <div class="call-screen">
 
-        <div class="call-avatar">
-            @if (!string.IsNullOrWhiteSpace(recipientPhoto))
-            {
-                <img src="@recipientPhoto" alt="@recipientName" />
-            }
-            else
-            {
-                @recipientInitials
-            }
-        </div>
+        <div class="call-screen-content">
 
-        <div class="call-name">
+            <div class="call-type-badge">
+                Voice call
+            </div>
 
-            @recipientName
+            <div id="callAvatarRing"
+                 class="call-avatar-ring">
 
-        </div>
+                <div class="call-avatar">
+                    @if (!string.IsNullOrWhiteSpace(recipientPhoto))
+                    {
+                        <img src="@recipientPhoto" alt="@recipientName" />
+                    }
+                    else
+                    {
+                        @recipientInitials
+                    }
+                </div>
 
-        <div id="callStatus"
-             class="call-status">
+            </div>
 
-            Calling...
+            <div class="call-name">
+                @recipientName
+            </div>
 
-        </div>
+            <span class="call-role-badge @recipientRoleClass">
+                @recipientRoleLabel
+            </span>
 
-        <div class="call-controls">
+            <div id="callStatus"
+                 class="call-status">
+                Calling...
+            </div>
 
-            <button type="button"
-                    id="acceptCallButton"
-                    class="call-control accept-call"
-                    title="Answer">
+            <div id="callTimer"
+                 class="call-timer">
+            </div>
 
-                📞
+            <div id="callControlsIncoming"
+                 class="call-controls incoming-controls">
 
-            </button>
+                <button type="button"
+                        id="declineCallButton"
+                        class="call-btn decline-call"
+                        title="Decline">
+                    <span class="call-btn-icon">✕</span>
+                    <span class="call-btn-label">Decline</span>
+                </button>
 
-            <button type="button"
-                    id="muteCallButton"
-                    class="call-control mute-call"
-                    title="Mute">
+                <button type="button"
+                        id="acceptCallButton"
+                        class="call-btn accept-call"
+                        title="Answer">
+                    <span class="call-btn-icon">📞</span>
+                    <span class="call-btn-label">Answer</span>
+                </button>
 
-                🎤
+            </div>
 
-            </button>
+            <div id="callControlsActive"
+                 class="call-controls active-controls"
+                 hidden>
 
-            <button type="button"
-                    id="endCallButton"
-                    class="call-control end-call"
-                    title="End call">
+                <button type="button"
+                        id="muteCallButton"
+                        class="call-btn mute-call"
+                        title="Mute">
+                    <span class="call-btn-icon">🎤</span>
+                    <span class="call-btn-label">Mute</span>
+                </button>
 
-                📵
+                <button type="button"
+                        id="endCallButton"
+                        class="call-btn end-call"
+                        title="End call">
+                    <span class="call-btn-icon">📵</span>
+                    <span class="call-btn-label">End</span>
+                </button>
 
-            </button>
+            </div>
+
+            <p id="callHint"
+               class="call-hint">
+            </p>
 
         </div>
 
@@ -683,6 +717,30 @@
         const endCallButton =
             document.getElementById(
                 "endCallButton");
+
+        const declineCallButton =
+            document.getElementById(
+                "declineCallButton");
+
+        const callControlsIncoming =
+            document.getElementById(
+                "callControlsIncoming");
+
+        const callControlsActive =
+            document.getElementById(
+                "callControlsActive");
+
+        const callAvatarRing =
+            document.getElementById(
+                "callAvatarRing");
+
+        const callTimer =
+            document.getElementById(
+                "callTimer");
+
+        const callHint =
+            document.getElementById(
+                "callHint");
 
         const remoteAudio =
             document.getElementById(
@@ -2455,6 +2513,18 @@
         let isMuted =
             false;
 
+        let isOutgoingCall =
+            false;
+
+        let isCallSessionActive =
+            false;
+
+        let callTimerInterval =
+            null;
+
+        let callConnectedAt =
+            null;
+
 
         /* =========================================================
            ADDED AUDIO FIX
@@ -2479,11 +2549,193 @@
                 {
                     urls:
                         "stun:stun1.l.google.com:19302"
+                },
+
+                {
+                    urls:
+                        "stun:stun2.l.google.com:19302"
                 }
 
-            ]
+            ],
+
+            iceCandidatePoolSize: 10
 
         };
+
+
+        function setCallStatus(
+            text,
+            tone
+        ) {
+
+            if (!callStatus) {
+                return;
+            }
+
+            callStatus.textContent =
+                text;
+
+            callStatus.classList.remove(
+                "connecting",
+                "connected",
+                "failed"
+            );
+
+            if (tone) {
+                callStatus.classList.add(
+                    tone
+                );
+            }
+
+        }
+
+
+        function setCallHint(
+            text
+        ) {
+
+            if (callHint) {
+                callHint.textContent =
+                    text || "";
+            }
+
+        }
+
+
+        function setCallControlsMode(
+            mode
+        ) {
+
+            const incoming =
+                mode === "incoming";
+
+            const active =
+                mode === "active"
+                || mode === "outgoing";
+
+
+            if (callControlsIncoming) {
+                callControlsIncoming.hidden =
+                    !incoming;
+            }
+
+            if (callControlsActive) {
+                callControlsActive.hidden =
+                    !active;
+            }
+
+        }
+
+
+        function setCallRinging(
+            ringing
+        ) {
+
+            if (!callAvatarRing) {
+                return;
+            }
+
+            callAvatarRing.classList.toggle(
+                "ringing",
+                !!ringing
+            );
+
+        }
+
+
+        function startCallTimer() {
+
+            stopCallTimer();
+
+            callConnectedAt =
+                Date.now();
+
+
+            if (callTimer) {
+                callTimer.textContent =
+                    "00:00";
+            }
+
+
+            callTimerInterval =
+                setInterval(
+                    function () {
+
+                        if (
+                            !callConnectedAt ||
+                            !callTimer
+                        ) {
+                            return;
+                        }
+
+                        const elapsed =
+                            Math.floor(
+                                (
+                                    Date.now() -
+                                    callConnectedAt
+                                ) / 1000
+                            );
+
+                        const minutes =
+                            Math.floor(
+                                elapsed / 60
+                            );
+
+                        const seconds =
+                            elapsed % 60;
+
+                        callTimer.textContent =
+                            String(minutes)
+                                .padStart(2, "0")
+                            + ":"
+                            + String(seconds)
+                                .padStart(2, "0");
+
+                    },
+                    1000
+                );
+
+        }
+
+
+        function stopCallTimer() {
+
+            if (callTimerInterval) {
+                clearInterval(
+                    callTimerInterval
+                );
+
+                callTimerInterval =
+                    null;
+            }
+
+            callConnectedAt =
+                null;
+
+            if (callTimer) {
+                callTimer.textContent =
+                    "";
+            }
+
+        }
+
+
+        function markCallConnected() {
+
+            setCallRinging(false);
+
+            setCallStatus(
+                "Connected",
+                "connected"
+            );
+
+            setCallHint(
+                "Your voice call is live."
+            );
+
+            startCallTimer();
+
+        }
 
 
         /* =========================================================
@@ -2514,6 +2766,16 @@
                 }
 
 
+                isOutgoingCall =
+                    true;
+
+                isCallSessionActive =
+                    true;
+
+                currentCallUser =
+                    recipientId;
+
+
                 localStream =
                     await navigator.mediaDevices
                         .getUserMedia({
@@ -2522,17 +2784,9 @@
                         });
 
 
-                currentCallUser =
-                    recipientId;
-
-
-                await createPeerConnection(
-                    recipientId
-                );
-
-
                 showCallWindow(
-                    "Calling..."
+                    "Calling...",
+                    "outgoing"
                 );
 
 
@@ -2587,6 +2841,19 @@
             "IncomingVoiceCall",
             function(callerId) {
 
+                if (
+                    String(callerId) !==
+                    String(recipientId)
+                ) {
+                    return;
+                }
+
+                isOutgoingCall =
+                    false;
+
+                isCallSessionActive =
+                    true;
+
                 currentCallUser =
                     callerId;
 
@@ -2602,17 +2869,26 @@
                 "show"
             );
 
-
-            callStatus.textContent =
-                "Incoming voice call...";
-
-
-            acceptCallButton.style.display =
-                "flex";
+            callOverlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
 
 
-            muteCallButton.style.display =
-                "none";
+            setCallRinging(true);
+
+            setCallStatus(
+                "Incoming voice call...",
+                "connecting"
+            );
+
+            setCallHint(
+                "Tap Answer to connect."
+            );
+
+            setCallControlsMode(
+                "incoming"
+            );
 
         }
 
@@ -2625,8 +2901,16 @@
             "CallStarted",
             function() {
 
-                callStatus.textContent =
-                    "Calling...";
+                setCallStatus(
+                    "Calling...",
+                    "connecting"
+                );
+
+                setCallHint(
+                    "Waiting for the other person to answer."
+                );
+
+                setCallRinging(true);
 
             }
         );
@@ -2642,9 +2926,75 @@
         );
 
 
+        if (declineCallButton) {
+
+            declineCallButton.addEventListener(
+                "click",
+                declineVoiceCall
+            );
+
+        }
+
+
+        async function declineVoiceCall() {
+
+            try {
+
+                if (
+                    currentCallUser &&
+                    connection.state ===
+                    signalR.HubConnectionState.Connected
+                ) {
+
+                    await connection.invoke(
+                        "DeclineCall",
+                        currentCallUser
+                    );
+
+                }
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+            }
+
+
+            setCallStatus(
+                "Call declined",
+                "failed"
+            );
+
+            setCallHint("");
+
+            setTimeout(
+                closeCall,
+                900
+            );
+
+        }
+
+
         async function acceptVoiceCall() {
 
             try {
+
+                setCallRinging(false);
+
+                setCallStatus(
+                    "Connecting...",
+                    "connecting"
+                );
+
+                setCallHint(
+                    "Setting up secure audio..."
+                );
+
+                setCallControlsMode(
+                    "active"
+                );
+
 
                 localStream =
                     await navigator.mediaDevices
@@ -2664,18 +3014,6 @@
                     currentCallUser
                 );
 
-
-                acceptCallButton.style.display =
-                    "none";
-
-
-                muteCallButton.style.display =
-                    "flex";
-
-
-                callStatus.textContent =
-                    "Connected";
-
             }
             catch (error) {
 
@@ -2684,7 +3022,15 @@
                 );
 
 
-                closeCall();
+                setCallStatus(
+                    "Could not join call",
+                    "failed"
+                );
+
+                setTimeout(
+                    closeCall,
+                    1200
+                );
 
             }
 
@@ -2703,16 +3049,37 @@
                     userId;
 
 
-                acceptCallButton.style.display =
-                    "none";
+                setCallControlsMode(
+                    "active"
+                );
+
+                setCallRinging(false);
 
 
-                muteCallButton.style.display =
-                    "flex";
+                if (!isOutgoingCall) {
+
+                    setCallStatus(
+                        "Connecting...",
+                        "connecting"
+                    );
+
+                    setCallHint(
+                        "Waiting for audio handshake..."
+                    );
+
+                    return;
+
+                }
 
 
-                callStatus.textContent =
-                    "Connected";
+                setCallStatus(
+                    "Connecting...",
+                    "connecting"
+                );
+
+                setCallHint(
+                    "Starting secure voice connection..."
+                );
 
 
                 if (!peerConnection) {
@@ -2726,7 +3093,9 @@
 
                 const offer =
                     await peerConnection
-                        .createOffer();
+                        .createOffer({
+                            offerToReceiveAudio: true
+                        });
 
 
                 await peerConnection
@@ -2755,13 +3124,74 @@
             "CallDeclined",
             function() {
 
-                callStatus.textContent =
-                    "Call declined";
+                setCallStatus(
+                    "Call declined",
+                    "failed"
+                );
+
+                setCallHint("");
+
+                setCallRinging(false);
 
 
                 setTimeout(
                     closeCall,
                     1000
+                );
+
+            }
+        );
+
+
+        connection.on(
+            "CallError",
+            function(message) {
+
+                setCallStatus(
+                    message || "Call failed",
+                    "failed"
+                );
+
+                setCallHint("");
+
+                setCallRinging(false);
+
+
+                setTimeout(
+                    closeCall,
+                    1400
+                );
+
+            }
+        );
+
+
+        connection.on(
+            "CallUnavailable",
+            function(userId, message) {
+
+                if (
+                    String(userId) !==
+                    String(recipientId)
+                ) {
+                    return;
+                }
+
+                setCallStatus(
+                    message || "User unavailable",
+                    "failed"
+                );
+
+                setCallHint(
+                    "The other person may be offline."
+                );
+
+                setCallRinging(false);
+
+
+                setTimeout(
+                    closeCall,
+                    1600
                 );
 
             }
@@ -2828,22 +3258,42 @@
                 signal
             ) {
 
+                if (
+                    !isCallSessionActive ||
+                    String(senderId) !==
+                    String(currentCallUser)
+                ) {
+                    return;
+                }
+
                 try {
 
-                    if (!peerConnection) {
+                    if (
+                        !peerConnection &&
+                        signal.type === "offer"
+                    ) {
 
-                        localStream =
-                            await navigator.mediaDevices
-                                .getUserMedia({
-                                    audio: true,
-                                    video: false
-                                });
+                        if (!localStream) {
+
+                            localStream =
+                                await navigator.mediaDevices
+                                    .getUserMedia({
+                                        audio: true,
+                                        video: false
+                                    });
+
+                        }
 
 
                         await createPeerConnection(
                             senderId
                         );
 
+                    }
+
+
+                    if (!peerConnection) {
+                        return;
                     }
 
 
@@ -2895,10 +3345,6 @@
                             }
                         );
 
-
-                        callStatus.textContent =
-                            "Connected";
-
                     }
 
 
@@ -2928,10 +3374,6 @@
 
 
                         await addPendingIceCandidates();
-
-
-                        callStatus.textContent =
-                            "Connected";
 
                     }
 
@@ -2984,6 +3426,11 @@
                     console.error(
                         "Voice signal error:",
                         error
+                    );
+
+                    setCallStatus(
+                        "Connection failed",
+                        "failed"
                     );
 
                 }
@@ -3268,8 +3715,7 @@
                         "connected"
                     ) {
 
-                        callStatus.textContent =
-                            "Connected";
+                        markCallConnected();
 
                     }
 
@@ -3279,8 +3725,14 @@
                         "failed"
                     ) {
 
-                        callStatus.textContent =
-                            "Connection failed";
+                        setCallStatus(
+                            "Connection failed",
+                            "failed"
+                        );
+
+                        setCallHint(
+                            "Try calling again."
+                        );
 
                     }
 
@@ -3308,6 +3760,35 @@
                             1500
                         );
 
+                    }
+
+                };
+
+
+            peerConnection.oniceconnectionstatechange =
+                function() {
+
+                    if (!peerConnection) {
+                        return;
+                    }
+
+                    const iceState =
+                        peerConnection.iceConnectionState;
+
+                    if (
+                        iceState === "connected" ||
+                        iceState === "completed"
+                    ) {
+                        markCallConnected();
+                    }
+
+                    if (
+                        iceState === "failed"
+                    ) {
+                        setCallStatus(
+                            "Connection failed",
+                            "failed"
+                        );
                     }
 
                 };
@@ -3377,10 +3858,35 @@
                     !tracks[0]?.enabled;
 
 
-                muteCallButton.textContent =
+                muteCallButton.classList.toggle(
+                    "muted",
                     isMuted
-                        ? "🔇"
-                        : "🎤";
+                );
+
+
+                const muteIcon =
+                    muteCallButton.querySelector(
+                        ".call-btn-icon"
+                    );
+
+                const muteLabel =
+                    muteCallButton.querySelector(
+                        ".call-btn-label"
+                    );
+
+                if (muteIcon) {
+                    muteIcon.textContent =
+                        isMuted
+                            ? "🔇"
+                            : "🎤";
+                }
+
+                if (muteLabel) {
+                    muteLabel.textContent =
+                        isMuted
+                            ? "Unmute"
+                            : "Mute";
+                }
 
             }
         );
@@ -3391,24 +3897,36 @@
            ========================================================= */
 
         function showCallWindow(
-            status
+            status,
+            mode
         ) {
 
             callOverlay.classList.add(
                 "show"
             );
 
-
-            callStatus.textContent =
-                status;
-
-
-            acceptCallButton.style.display =
-                "none";
+            callOverlay.setAttribute(
+                "aria-hidden",
+                "false"
+            );
 
 
-            muteCallButton.style.display =
-                "flex";
+            setCallStatus(
+                status,
+                "connecting"
+            );
+
+            setCallControlsMode(
+                mode || "outgoing"
+            );
+
+            setCallRinging(true);
+
+            setCallHint(
+                mode === "outgoing"
+                    ? "Waiting for the other person to answer."
+                    : ""
+            );
 
         }
 
@@ -3418,6 +3936,10 @@
            ========================================================= */
 
         function closeCall() {
+
+            stopCallTimer();
+
+            setCallRinging(false);
 
             if (localStream) {
 
@@ -3469,6 +3991,13 @@
                 null;
 
 
+            isOutgoingCall =
+                false;
+
+            isCallSessionActive =
+                false;
+
+
             isMuted =
                 false;
 
@@ -3481,12 +4010,50 @@
                 [];
 
 
-            muteCallButton.textContent =
-                "🎤";
+            if (muteCallButton) {
+                muteCallButton.classList.remove(
+                    "muted"
+                );
+            }
+
+
+            if (muteCallButton) {
+
+                const muteIcon =
+                    muteCallButton.querySelector(
+                        ".call-btn-icon"
+                    );
+
+                if (muteIcon) {
+                    muteIcon.textContent = "🎤";
+                }
+
+                const muteLabel =
+                    muteCallButton.querySelector(
+                        ".call-btn-label"
+                    );
+
+                if (muteLabel) {
+                    muteLabel.textContent = "Mute";
+                }
+
+            }
+
+
+            setCallHint("");
+
+            setCallControlsMode(
+                "outgoing"
+            );
 
 
             callOverlay.classList.remove(
                 "show"
+            );
+
+            callOverlay.setAttribute(
+                "aria-hidden",
+                "true"
             );
 
         }
