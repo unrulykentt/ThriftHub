@@ -20,19 +20,22 @@ namespace ThriftHub.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly IHubContext<ChatHub> _hubContext;
         private readonly NotificationService _notificationService;
+        private readonly AppStorageService _storage;
 
         public MessagesController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             IWebHostEnvironment environment,
             IHubContext<ChatHub> hubContext,
-            NotificationService notificationService)
+            NotificationService notificationService,
+            AppStorageService storage)
         {
             _context = context;
             _userManager = userManager;
             _environment = environment;
             _hubContext = hubContext;
             _notificationService = notificationService;
+            _storage = storage;
         }
 
         // ============================================================
@@ -128,7 +131,13 @@ namespace ThriftHub.Controllers
                                 : otherUser.Email ??
                                   "User",
 
-                        UserRole = "Buyer",
+                        UserRole =
+                            string.Equals(
+                                otherUser.UserType,
+                                "Seller",
+                                StringComparison.OrdinalIgnoreCase)
+                                ? "Seller"
+                                : "Buyer",
 
                         ProfileImageUrl =
                             !string.IsNullOrWhiteSpace(
@@ -336,7 +345,13 @@ namespace ThriftHub.Controllers
                             : otherUser.Email ??
                               "User",
 
-                    UserRole = "Buyer",
+                    UserRole =
+                        string.Equals(
+                            otherUser.UserType,
+                            "Seller",
+                            StringComparison.OrdinalIgnoreCase)
+                            ? "Seller"
+                            : "Buyer",
 
                     ProfileImageUrl =
                         !string.IsNullOrWhiteSpace(
@@ -352,6 +367,9 @@ namespace ThriftHub.Controllers
 
                     UnreadCount = 0
                 };
+
+            ViewBag.CurrentUserRole =
+                currentUser.UserType ?? "Customer";
 
             return View(model);
         }
@@ -590,13 +608,8 @@ namespace ThriftHub.Controllers
             }
 
             var uploadsFolder =
-                Path.Combine(
-                    _environment.WebRootPath,
-                    "uploads",
+                _storage.GetUploadsCategoryPath(
                     "messages");
-
-            Directory.CreateDirectory(
-                uploadsFolder);
 
             var extension =
                 Path.GetExtension(
