@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
@@ -32,7 +33,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
            .ConfigureWarnings(warnings => warnings.Ignore(
                Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.NonTransactionalMigrationOperationWarning));
 });
-
 
 
 // ============================================================
@@ -163,8 +163,13 @@ builder.Services.AddHttpClient<PaystackService>();
 
 
 // ------------------------------------------------------------
-// Email
+// Email - Resend
 // ------------------------------------------------------------
+// Required by the new EmailSender which sends emails through
+// the Resend API.
+// ------------------------------------------------------------
+
+builder.Services.AddHttpClient();
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
@@ -177,10 +182,26 @@ builder.Services.AddScoped<NotificationService>();
 
 
 // ============================================================
+// RENDER / REVERSE PROXY
+// ============================================================
+// Ensures password reset links in emails use https on Render.
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor |
+        ForwardedHeaders.XForwardedProto;
+});
+
+
+// ============================================================
 // BUILD APPLICATION
 // ============================================================
 
 var app = builder.Build();
+
+
+app.UseForwardedHeaders();
 
 
 // ============================================================
@@ -190,17 +211,26 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+
     try
     {
-        var context = services.GetRequiredService<ApplicationDbContext>();
+        var context =
+            services.GetRequiredService<ApplicationDbContext>();
+
         context.Database.Migrate();
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
+        var logger =
+            services.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(
+            ex,
+            "An error occurred while migrating the database."
+        );
     }
 }
+
 
 // ============================================================
 // ERROR HANDLING

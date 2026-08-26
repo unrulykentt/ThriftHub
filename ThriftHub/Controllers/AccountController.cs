@@ -1,6 +1,8 @@
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
@@ -1810,6 +1812,322 @@ namespace ThriftHub.Controllers
 
             return RedirectToAction(
                 nameof(SellerVerification));
+        }
+
+
+        // ============================================================
+        // FORGOT PASSWORD - GET
+        // ============================================================
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+
+        // ============================================================
+        // FORGOT PASSWORD - POST
+        // ============================================================
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(
+            ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+
+            var email =
+                model.Email?
+                    .Trim()
+                    .ToLowerInvariant();
+
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                ModelState.AddModelError(
+                    "",
+                    "Please enter your email address.");
+
+                return View(model);
+            }
+
+
+            var user =
+                await _userManager.FindByEmailAsync(email);
+
+
+            if (user != null)
+            {
+                var resetToken =
+                    await _userManager.GeneratePasswordResetTokenAsync(
+                        user);
+
+
+                var encodedToken =
+                    WebEncoders.Base64UrlEncode(
+                        Encoding.UTF8.GetBytes(resetToken));
+
+
+                var resetLink =
+                    Url.Action(
+                        nameof(ResetPassword),
+                        "Account",
+                        new
+                        {
+                            email,
+                            token = encodedToken
+                        },
+                        protocol: Request.Scheme);
+
+
+                var safeFullName =
+                    System.Net.WebUtility.HtmlEncode(
+                        user.FullName);
+
+
+                var safeResetLink =
+                    System.Net.WebUtility.HtmlEncode(
+                        resetLink ?? string.Empty);
+
+
+                var emailSubject =
+                    "Reset Your ThriftHub Password";
+
+
+                var emailMessage = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='UTF-8'>
+    <title>ThriftHub Password Reset</title>
+</head>
+
+<body style='font-family:Arial,sans-serif;'>
+
+<div style='max-width:600px;
+            margin:auto;
+            padding:30px;
+            border:1px solid #ddd;
+            border-radius:10px;'>
+
+    <h2 style='color:#6f42c1;'>
+        ThriftHub Password Reset
+    </h2>
+
+    <p>
+        Hello <strong>{safeFullName}</strong>,
+    </p>
+
+    <p>
+        We received a request to reset your ThriftHub password.
+        Click the button below to choose a new password.
+    </p>
+
+    <p style='text-align:center;
+              margin:30px 0;'>
+
+        <a href='{safeResetLink}'
+           style='background:#6f42c1;
+                  color:#ffffff;
+                  padding:12px 24px;
+                  text-decoration:none;
+                  border-radius:6px;
+                  display:inline-block;'>
+
+            Reset Password
+
+        </a>
+
+    </p>
+
+    <p>
+        If the button does not work, copy and paste this link
+        into your browser:
+    </p>
+
+    <p style='word-break:break-all;'>
+        {safeResetLink}
+    </p>
+
+    <p>
+        If you did not request a password reset, you can safely
+        ignore this email.
+    </p>
+
+    <p>
+        Regards,<br>
+        <strong>ThriftHub Team</strong>
+    </p>
+
+</div>
+
+</body>
+</html>
+";
+
+
+                try
+                {
+                    await _emailSender.SendEmailAsync(
+                        email,
+                        emailSubject,
+                        emailMessage);
+                }
+                catch
+                {
+                    ModelState.AddModelError(
+                        "",
+                        "We could not send the password reset email. Please try again later.");
+
+                    return View(model);
+                }
+            }
+
+
+            return RedirectToAction(
+                nameof(ForgotPasswordConfirmation));
+        }
+
+
+        // ============================================================
+        // FORGOT PASSWORD CONFIRMATION
+        // ============================================================
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ForgotPasswordConfirmation()
+        {
+            return View();
+        }
+
+
+        // ============================================================
+        // RESET PASSWORD - GET
+        // ============================================================
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPassword(
+            string? email,
+            string? token)
+        {
+            if (string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(token))
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            return View(
+                new ResetPasswordViewModel
+                {
+                    Email =
+                        email.Trim()
+                            .ToLowerInvariant(),
+                    Token = token
+                });
+        }
+
+
+        // ============================================================
+        // RESET PASSWORD - POST
+        // ============================================================
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPassword(
+            ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+
+            var email =
+                model.Email?
+                    .Trim()
+                    .ToLowerInvariant();
+
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                return RedirectToAction(
+                    nameof(ResetPasswordConfirmation));
+            }
+
+
+            var user =
+                await _userManager.FindByEmailAsync(email);
+
+
+            if (user == null)
+            {
+                return RedirectToAction(
+                    nameof(ResetPasswordConfirmation));
+            }
+
+
+            string decodedToken;
+
+            try
+            {
+                decodedToken =
+                    Encoding.UTF8.GetString(
+                        WebEncoders.Base64UrlDecode(model.Token));
+            }
+            catch
+            {
+                ModelState.AddModelError(
+                    "",
+                    "This password reset link is invalid or has expired.");
+
+                return View(model);
+            }
+
+
+            var result =
+                await _userManager.ResetPasswordAsync(
+                    user,
+                    decodedToken,
+                    model.Password);
+
+
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(
+                        "",
+                        error.Description);
+                }
+
+                return View(model);
+            }
+
+
+            return RedirectToAction(
+                nameof(ResetPasswordConfirmation));
+        }
+
+
+        // ============================================================
+        // RESET PASSWORD CONFIRMATION
+        // ============================================================
+
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult ResetPasswordConfirmation()
+        {
+            return View();
         }
 
 
