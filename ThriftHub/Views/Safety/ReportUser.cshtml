@@ -1,4 +1,5 @@
 ﻿@model ThriftHub.Models.Report
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Report User";
@@ -7,7 +8,7 @@
         ViewBag.ReportedUser as ThriftHub.Models.ApplicationUser;
 
     var reportedUserName =
-        reportedUser?.UserName ?? "User";
+        UserPresentationHelper.GetDisplayName(reportedUser);
 
     var reportedUserEmail =
         reportedUser?.Email ?? "";

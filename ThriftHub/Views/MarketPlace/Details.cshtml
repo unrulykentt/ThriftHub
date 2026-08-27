@@ -1,5 +1,7 @@
 ﻿@model ThriftHub.Models.Product
 
+@using ThriftHub.Services
+
 @{
     ViewData["Title"] = Model.Name;
 
@@ -7,7 +9,7 @@
         ViewBag.Seller as ThriftHub.Models.ApplicationUser;
 
     var sellerName =
-        seller?.UserName ?? "Seller";
+        UserPresentationHelper.GetDisplayName(seller);
 
     var sellerEmail =
         seller?.Email ?? "";

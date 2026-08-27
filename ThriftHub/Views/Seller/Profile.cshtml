@@ -1,4 +1,5 @@
 ﻿@model ThriftHub.ViewModels.SellerProfileViewModel
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Seller Profile";
@@ -6,7 +7,7 @@
     var seller = Model.Seller;
 
     var sellerName =
-        seller?.UserName ?? "Seller";
+        UserPresentationHelper.GetDisplayName(seller);
 
     var sellerEmail =
         seller?.Email ?? "";
@@ -599,6 +600,29 @@
                 </div>
 
             </div>
+
+            @if (isOwnProfile)
+            {
+                <div class="profile-actions">
+
+                    <a asp-controller="Dashboard"
+                       asp-action="Index"
+                       class="profile-action message-button">
+
+                        ✏️ Edit Your Name
+
+                    </a>
+
+                    <a asp-controller="Account"
+                       asp-action="EditProfile"
+                       class="profile-action report-button">
+
+                        Edit Full Profile
+
+                    </a>
+
+                </div>
+            }
 
 
             <!-- =====================================================

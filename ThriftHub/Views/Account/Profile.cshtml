@@ -1,10 +1,13 @@
 ﻿@using Microsoft.AspNetCore.Identity
 @using ThriftHub.Models
+@using ThriftHub.Services
 @inject UserManager<ApplicationUser> UserManager
 
 @{
     ViewData["Title"] = "My Profile";
     var user = await UserManager.GetUserAsync(User);
+    var displayName =
+        UserPresentationHelper.GetDisplayName(user);
 }
 
 <div class="container py-5">
@@ -32,6 +35,16 @@
                         <div class="mb-4">
                             <h4>Account Information</h4>
                             <hr />
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <strong>Name:</strong>
+                            </div>
+
+                            <div class="col-md-8">
+                                @displayName
+                            </div>
                         </div>
 
                         <div class="row mb-3">
@@ -108,7 +121,7 @@
                             <a asp-controller="Account"
                                asp-action="EditProfile"
                                class="btn btn-primary">
-                                Edit Profile
+                                Edit Name &amp; Profile
                             </a>
 
                         </div>

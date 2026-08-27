@@ -80,11 +80,16 @@
 
                             <label asp-for="FullName"
                                    class="form-label fw-semibold">
+                                Your Name
                             </label>
 
                             <input asp-for="FullName"
                                    class="form-control"
-                                   placeholder="Enter your full name" />
+                                   placeholder="Enter the name shown on your profile and listings" />
+
+                            <div class="form-text">
+                                This name is visible to buyers and sellers on the marketplace, messages, and your profile.
+                            </div>
 
                             <span asp-validation-for="FullName"
                                   class="text-danger">

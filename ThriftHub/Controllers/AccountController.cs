@@ -1561,7 +1561,9 @@ namespace ThriftHub.Controllers
                 new EditProfileViewModel
                 {
                     FullName =
-                        user.FullName,
+                        string.IsNullOrWhiteSpace(user.FullName)
+                            ? UserPresentationHelper.GetDisplayName(user)
+                            : user.FullName.Trim(),
 
                     Country =
                         user.Country,
@@ -1639,7 +1641,7 @@ namespace ThriftHub.Controllers
 
 
             user.FullName =
-                model.FullName;
+                model.FullName?.Trim();
 
             user.Country =
                 model.Country;

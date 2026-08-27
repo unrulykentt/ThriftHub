@@ -4,6 +4,7 @@
     ViewData["Title"] = "Dashboard";
 
     var fullName = ViewBag.FullName as string ?? "User";
+    var storedFullName = ViewBag.StoredFullName as string ?? fullName;
     var email = ViewBag.Email as string ?? "";
     var userType = ViewBag.UserType as string ?? "Customer";
     var profileImageUrl = ViewBag.ProfileImageUrl as string;
@@ -190,6 +191,41 @@
                 <h2>
                     @fullName
                 </h2>
+
+                <form asp-controller="Dashboard"
+                      asp-action="UpdateDisplayName"
+                      method="post"
+                      class="name-edit-form">
+
+                    @Html.AntiForgeryToken()
+
+                    <label for="displayNameInput" class="name-edit-label">
+                        Edit your name
+                    </label>
+
+                    <div class="name-edit-row">
+
+                        <input type="text"
+                               id="displayNameInput"
+                               name="FullName"
+                               value="@storedFullName"
+                               maxlength="100"
+                               required
+                               class="name-edit-input"
+                               placeholder="Enter your name" />
+
+                        <button type="submit"
+                                class="name-edit-button">
+                            Save
+                        </button>
+
+                    </div>
+
+                    <p class="name-edit-hint">
+                        Shown on your profile, listings, and messages.
+                    </p>
+
+                </form>
 
                 <p class="email">
                     @email
@@ -1220,6 +1256,61 @@
 
     .profile-information strong {
         color: #333;
+    }
+
+    .name-edit-form {
+        margin: 10px 0 12px;
+        max-width: 420px;
+    }
+
+    .name-edit-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #555;
+        margin-bottom: 6px;
+    }
+
+    .name-edit-row {
+        display: flex;
+        gap: 8px;
+    }
+
+    .name-edit-input {
+        flex: 1;
+        min-width: 0;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        padding: 10px 12px;
+        font-size: 14px;
+    }
+
+    .name-edit-input:focus {
+        outline: none;
+        border-color: #6f3cc3;
+        box-shadow: 0 0 0 3px rgba(111, 60, 195, 0.12);
+    }
+
+    .name-edit-button {
+        border: none;
+        border-radius: 10px;
+        background: #6f3cc3;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+        padding: 0 16px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .name-edit-button:hover {
+        background: #54249c;
+    }
+
+    .name-edit-hint {
+        margin: 6px 0 0;
+        font-size: 11px;
+        color: #999;
     }
 
 

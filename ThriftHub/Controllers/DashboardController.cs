@@ -198,7 +198,12 @@ namespace ThriftHub.Controllers
             // ========================================================
 
             ViewBag.FullName =
-                user.FullName;
+                UserPresentationHelper.GetDisplayName(user);
+
+            ViewBag.StoredFullName =
+                string.IsNullOrWhiteSpace(user.FullName)
+                    ? UserPresentationHelper.GetDisplayName(user)
+                    : user.FullName.Trim();
 
             ViewBag.Email =
                 user.Email;
@@ -437,6 +442,69 @@ namespace ThriftHub.Controllers
             return RedirectToAction(
                 "SellerVerification",
                 "Account");
+        }
+
+
+        // ============================================================
+        // UPDATE DISPLAY NAME
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDisplayName(
+            UpdateDisplayNameViewModel model)
+        {
+            var user =
+                await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction(
+                    "Login",
+                    "Account");
+            }
+
+            if (user.IsSuspended)
+            {
+                await _signInManager.SignOutAsync();
+
+                TempData["ErrorMessage"] =
+                    "Your ThriftHub account has been suspended.";
+
+                return RedirectToAction(
+                    "Login",
+                    "Account");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] =
+                    "Please enter a valid name (2–100 characters).";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            user.FullName =
+                model.FullName.Trim();
+
+            var result =
+                await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+            {
+                TempData["SuccessMessage"] =
+                    "Your name has been updated.";
+
+                return RedirectToAction(
+                    nameof(Index));
+            }
+
+            TempData["ErrorMessage"] =
+                "Could not update your name. Please try again.";
+
+            return RedirectToAction(
+                nameof(Index));
         }
 
 
