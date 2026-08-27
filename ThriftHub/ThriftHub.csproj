@@ -7,8 +7,11 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<Content Update="thriftHub.db" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+		<Content Update="thrifthub.db" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+	</ItemGroup>
 
-		<!-- ASP.NET Core Identity -->
+	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
 
 		<!-- Entity Framework Core -->
