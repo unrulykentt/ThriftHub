@@ -129,9 +129,112 @@ namespace ThriftHub.Services
             var relativePath =
                 normalized["/uploads/".Length..];
 
-            return Path.Combine(
-                GetUploadsRoot(),
-                relativePath.Replace('/', Path.DirectorySeparatorChar));
+            var primaryPath =
+                Path.Combine(
+                    GetUploadsRoot(),
+                    relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+            if (File.Exists(primaryPath))
+            {
+                return primaryPath;
+            }
+
+            if (UsesPersistentStorage)
+            {
+                var legacyPath =
+                    Path.Combine(
+                        _environment.WebRootPath,
+                        "uploads",
+                        relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+                if (File.Exists(legacyPath))
+                {
+                    return legacyPath;
+                }
+            }
+
+            return primaryPath;
+        }
+
+        public void MigrateLegacyUploadsToPersistentStorage()
+        {
+            if (!UsesPersistentStorage)
+            {
+                return;
+            }
+
+            var persistentRoot =
+                GetUploadsRoot();
+
+            Directory.CreateDirectory(persistentRoot);
+
+            var legacyRoots =
+                new[]
+                {
+                    Path.Combine(
+                        _environment.WebRootPath,
+                        "uploads"),
+                    Path.Combine(
+                        _environment.ContentRootPath,
+                        "wwwroot",
+                        "uploads"),
+                    Path.Combine(
+                        _environment.ContentRootPath,
+                        "uploads")
+                };
+
+            foreach (var legacyRoot in legacyRoots)
+            {
+                if (!Directory.Exists(legacyRoot))
+                {
+                    continue;
+                }
+
+                CopyMissingFiles(
+                    legacyRoot,
+                    persistentRoot);
+            }
+        }
+
+        private static void CopyMissingFiles(
+            string sourceDirectory,
+            string destinationDirectory)
+        {
+            foreach (var sourcePath in Directory.EnumerateFiles(
+                sourceDirectory,
+                "*",
+                SearchOption.AllDirectories))
+            {
+                var relativePath =
+                    Path.GetRelativePath(
+                        sourceDirectory,
+                        sourcePath);
+
+                var destinationPath =
+                    Path.Combine(
+                        destinationDirectory,
+                        relativePath);
+
+                var destinationFolder =
+                    Path.GetDirectoryName(destinationPath);
+
+                if (!string.IsNullOrWhiteSpace(destinationFolder))
+                {
+                    Directory.CreateDirectory(destinationFolder);
+                }
+
+                if (
+                    File.Exists(destinationPath) &&
+                    new FileInfo(destinationPath).Length > 0)
+                {
+                    continue;
+                }
+
+                File.Copy(
+                    sourcePath,
+                    destinationPath,
+                    overwrite: false);
+            }
         }
 
         public void SeedPersistentDatabaseIfNeeded()

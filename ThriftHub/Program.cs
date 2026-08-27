@@ -1,8 +1,11 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using AspNet.Security.OAuth.Apple;
 using ThriftHub.Data;
 using ThriftHub.Hubs;
 using ThriftHub.Models;
@@ -91,6 +94,80 @@ builder.Services
     })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+
+// ============================================================
+// GOOGLE / APPLE SIGN-IN
+// ============================================================
+
+var externalAuth =
+    builder.Services.AddAuthentication();
+
+var googleClientId =
+    builder.Configuration["Authentication:Google:ClientId"];
+
+var googleClientSecret =
+    builder.Configuration["Authentication:Google:ClientSecret"];
+
+if (
+    !string.IsNullOrWhiteSpace(googleClientId) &&
+    !string.IsNullOrWhiteSpace(googleClientSecret))
+{
+    externalAuth.AddGoogle(
+        GoogleDefaults.AuthenticationScheme,
+        options =>
+        {
+            options.ClientId =
+                googleClientId;
+
+            options.ClientSecret =
+                googleClientSecret;
+
+            options.SaveTokens = true;
+        });
+}
+
+var appleClientId =
+    builder.Configuration["Authentication:Apple:ClientId"];
+
+var appleTeamId =
+    builder.Configuration["Authentication:Apple:TeamId"];
+
+var appleKeyId =
+    builder.Configuration["Authentication:Apple:KeyId"];
+
+var applePrivateKey =
+    builder.Configuration["Authentication:Apple:PrivateKey"];
+
+if (
+    !string.IsNullOrWhiteSpace(appleClientId) &&
+    !string.IsNullOrWhiteSpace(appleTeamId) &&
+    !string.IsNullOrWhiteSpace(appleKeyId) &&
+    !string.IsNullOrWhiteSpace(applePrivateKey))
+{
+    externalAuth.AddApple(
+        AppleAuthenticationDefaults.AuthenticationScheme,
+        options =>
+        {
+            options.ClientId =
+                appleClientId;
+
+            options.TeamId =
+                appleTeamId;
+
+            options.KeyId =
+                appleKeyId;
+
+            options.PrivateKey =
+                (_, _) =>
+                    Task.FromResult<ReadOnlyMemory<char>>(
+                        applePrivateKey
+                            .Replace("\\n", "\n")
+                            .AsMemory());
+
+            options.SaveTokens = true;
+        });
+}
 
 
 builder.Services
@@ -321,6 +398,8 @@ var app = builder.Build();
     persistence.LogPersistenceWarnings();
 
     storage.SeedPersistentDatabaseIfNeeded();
+
+    storage.MigrateLegacyUploadsToPersistentStorage();
 
     if (persistence.UsesPersistentStorage)
     {

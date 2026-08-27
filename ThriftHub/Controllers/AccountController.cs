@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +22,7 @@ namespace ThriftHub.Controllers
         private readonly ILogger<AccountController> _logger;
         private readonly AppStorageService _storage;
         private readonly SellerSubscriptionService _subscriptionService;
+        private readonly IConfiguration _configuration;
 
         // ============================================================
         // ADMIN EMAIL
@@ -41,7 +44,8 @@ namespace ThriftHub.Controllers
             IEmailSender emailSender,
             ILogger<AccountController> logger,
             AppStorageService storage,
-            SellerSubscriptionService subscriptionService)
+            SellerSubscriptionService subscriptionService,
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -51,6 +55,7 @@ namespace ThriftHub.Controllers
             _logger = logger;
             _storage = storage;
             _subscriptionService = subscriptionService;
+            _configuration = configuration;
         }
 
 
@@ -62,6 +67,8 @@ namespace ThriftHub.Controllers
         [AllowAnonymous]
         public IActionResult Register()
         {
+            SetExternalAuthViewBag();
+
             return View(new RegisterViewModel());
         }
 
@@ -1067,6 +1074,8 @@ namespace ThriftHub.Controllers
             ViewData["ReturnUrl"] =
                 returnUrl;
 
+            SetExternalAuthViewBag();
+
             return View(
                 new LoginViewModel());
         }
@@ -1886,6 +1895,337 @@ namespace ThriftHub.Controllers
 
             return RedirectToAction(
                 nameof(SellerVerification));
+        }
+
+
+        // ============================================================
+        // GOOGLE / APPLE SIGN-IN
+        // ============================================================
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public IActionResult ExternalLogin(
+            string provider,
+            string? returnUrl = null)
+        {
+            var redirectUrl =
+                Url.Action(
+                    nameof(ExternalLoginCallback),
+                    "Account",
+                    new { returnUrl });
+
+            var properties =
+                _signInManager.ConfigureExternalAuthenticationProperties(
+                    provider,
+                    redirectUrl);
+
+            return Challenge(
+                properties,
+                provider);
+        }
+
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(
+            string? returnUrl = null,
+            string? remoteError = null)
+        {
+            if (!string.IsNullOrWhiteSpace(remoteError))
+            {
+                TempData["ErrorMessage"] =
+                    "Sign-in was cancelled or failed. Please try again.";
+
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            var info =
+                await _signInManager.GetExternalLoginInfoAsync();
+
+            if (info == null)
+            {
+                TempData["ErrorMessage"] =
+                    "We could not verify your Google or Apple sign-in. Please try again.";
+
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            var providerEmail =
+                info.Principal.FindFirstValue(
+                    ClaimTypes.Email)?
+                    .Trim()
+                    .ToLowerInvariant();
+
+            var signInResult =
+                await _signInManager.ExternalLoginSignInAsync(
+                    info.LoginProvider,
+                    info.ProviderKey,
+                    isPersistent: true,
+                    bypassTwoFactor: true);
+
+
+            if (signInResult.Succeeded)
+            {
+                var signedInUser =
+                    await _userManager.FindByLoginAsync(
+                        info.LoginProvider,
+                        info.ProviderKey);
+
+                if (signedInUser != null)
+                {
+                    await TrySetUserOnlineAsync(
+                        signedInUser,
+                        true);
+                }
+
+                return RedirectAfterExternalLogin(
+                    returnUrl,
+                    signedInUser);
+            }
+
+
+            ApplicationUser? user =
+                null;
+
+            if (!string.IsNullOrWhiteSpace(providerEmail))
+            {
+                user =
+                    await _userManager.FindByEmailAsync(
+                        providerEmail);
+
+                if (user == null)
+                {
+                    var normalizedEmail =
+                        _userManager.NormalizeEmail(
+                            providerEmail);
+
+                    if (!string.IsNullOrEmpty(normalizedEmail))
+                    {
+                        user =
+                            await _userManager.Users
+                                .FirstOrDefaultAsync(
+                                    u =>
+                                        u.NormalizedEmail ==
+                                        normalizedEmail);
+                    }
+                }
+            }
+
+
+            if (user != null)
+            {
+                var addLoginResult =
+                    await _userManager.AddLoginAsync(
+                        user,
+                        info);
+
+                if (!addLoginResult.Succeeded)
+                {
+                    TempData["ErrorMessage"] =
+                        "We found your account but could not link this sign-in method.";
+
+                    return RedirectToAction(nameof(Login));
+                }
+
+                if (!user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                }
+
+                await _signInManager.SignInAsync(
+                    user,
+                    isPersistent: true);
+
+                await TrySetUserOnlineAsync(
+                    user,
+                    true);
+
+                return RedirectAfterExternalLogin(
+                    returnUrl,
+                    user);
+            }
+
+
+            if (string.IsNullOrWhiteSpace(providerEmail))
+            {
+                TempData["ErrorMessage"] =
+                    "We could not read an email address from your sign-in provider.";
+
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            var fullName =
+                info.Principal.FindFirstValue(ClaimTypes.Name)
+                ?? info.Principal.FindFirstValue("name")
+                ?? providerEmail.Split('@')[0];
+
+            user =
+                new ApplicationUser
+                {
+                    UserName = providerEmail,
+                    Email = providerEmail,
+                    EmailConfirmed = true,
+                    FullName = fullName,
+                    UserType = "Customer",
+                    VerificationStatus = "NotSubmitted",
+                    CreatedAt = DateTime.UtcNow
+                };
+
+            var createResult =
+                await _userManager.CreateAsync(user);
+
+            if (!createResult.Succeeded)
+            {
+                TempData["ErrorMessage"] =
+                    "We could not create your account from this sign-in.";
+
+                return RedirectToAction(nameof(Login));
+            }
+
+
+            await _userManager.AddLoginAsync(
+                user,
+                info);
+
+            await _subscriptionService.GrantWelcomeTrialAsync(
+                user.Id);
+
+            await TrySaveExternalProfilePhotoAsync(
+                user,
+                info);
+
+            await _signInManager.SignInAsync(
+                user,
+                isPersistent: true);
+
+            await TrySetUserOnlineAsync(
+                user,
+                true);
+
+            TempData["SuccessMessage"] =
+                "Welcome to ThriftHub! Your account is ready.";
+
+            return RedirectAfterExternalLogin(
+                returnUrl,
+                user);
+        }
+
+
+        private IActionResult RedirectAfterExternalLogin(
+            string? returnUrl,
+            ApplicationUser? user)
+        {
+            if (
+                user != null &&
+                string.Equals(
+                    user.Email,
+                    AdminEmail,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(
+                    "Index",
+                    "Admin");
+            }
+
+            if (
+                !string.IsNullOrWhiteSpace(returnUrl) &&
+                Url.IsLocalUrl(returnUrl))
+            {
+                return Redirect(returnUrl);
+            }
+
+            return RedirectToAction(
+                "Index",
+                "Dashboard");
+        }
+
+
+        private void SetExternalAuthViewBag()
+        {
+            ViewBag.GoogleEnabled =
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Google:ClientId"]) &&
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Google:ClientSecret"]);
+
+            ViewBag.AppleEnabled =
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Apple:ClientId"]) &&
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Apple:TeamId"]) &&
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Apple:KeyId"]) &&
+                !string.IsNullOrWhiteSpace(
+                    _configuration["Authentication:Apple:PrivateKey"]);
+        }
+
+
+        private async Task TrySaveExternalProfilePhotoAsync(
+            ApplicationUser user,
+            ExternalLoginInfo info)
+        {
+            if (!string.IsNullOrWhiteSpace(user.ProfileImageUrl))
+            {
+                return;
+            }
+
+            var pictureUrl =
+                info.Principal.FindFirstValue("picture");
+
+            if (string.IsNullOrWhiteSpace(pictureUrl))
+            {
+                return;
+            }
+
+            try
+            {
+                using var httpClient =
+                    new HttpClient();
+
+                var imageBytes =
+                    await httpClient.GetByteArrayAsync(
+                        pictureUrl);
+
+                if (imageBytes.Length == 0)
+                {
+                    return;
+                }
+
+                var uploadsFolder =
+                    _storage.GetUploadsCategoryPath(
+                        "profiles");
+
+                var fileName =
+                    $"{user.Id}-{Guid.NewGuid():N}.jpg";
+
+                var filePath =
+                    Path.Combine(
+                        uploadsFolder,
+                        fileName);
+
+                await System.IO.File.WriteAllBytesAsync(
+                    filePath,
+                    imageBytes);
+
+                user.ProfileImageUrl =
+                    _storage.BuildUploadsWebPath(
+                        "profiles",
+                        fileName);
+
+                await _userManager.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Could not save external profile photo for user {UserId}.",
+                    user.Id);
+            }
         }
 
 

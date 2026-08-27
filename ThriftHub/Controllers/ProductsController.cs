@@ -17,7 +17,7 @@ namespace ThriftHub.Controllers
 
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IWebHostEnvironment _environment;
+        private readonly AppStorageService _storage;
         private readonly SellerSubscriptionService _subscriptionService;
 
 
@@ -28,12 +28,12 @@ namespace ThriftHub.Controllers
         public ProductsController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            IWebHostEnvironment environment,
+            AppStorageService storage,
             SellerSubscriptionService subscriptionService)
         {
             _context = context;
             _userManager = userManager;
-            _environment = environment;
+            _storage = storage;
             _subscriptionService = subscriptionService;
         }
 
@@ -136,11 +136,8 @@ namespace ThriftHub.Controllers
 
         private string GetProductImageDirectory()
         {
-            return Path.Combine(
-                _environment.WebRootPath,
-                "uploads",
-                "products"
-            );
+            return _storage.GetUploadsCategoryPath(
+                "products");
         }
 
 
@@ -249,9 +246,9 @@ namespace ThriftHub.Controllers
             // RETURN PUBLIC URL
             // --------------------------------------------------------
 
-            return
-                "/uploads/products/" +
-                fileName;
+            return _storage.BuildUploadsWebPath(
+                "products",
+                fileName);
         }
 
 
@@ -272,51 +269,24 @@ namespace ThriftHub.Controllers
             // ONLY DELETE PRODUCT UPLOADS
             // --------------------------------------------------------
 
-            const string prefix =
-                "/uploads/products/";
-
-
-            if (!imageUrl.StartsWith(
-                    prefix,
-                    StringComparison.OrdinalIgnoreCase))
-            {
-                return;
-            }
-
-
-            var fileName =
-                Path.GetFileName(
-                    imageUrl
-                );
-
-
-            if (string.IsNullOrWhiteSpace(fileName))
-            {
-                return;
-            }
-
-
             var filePath =
-                Path.Combine(
-                    GetProductImageDirectory(),
-                    fileName
-                );
+                _storage.MapWebPathToPhysicalPath(
+                    imageUrl);
 
-
-            if (System.IO.File.Exists(
-                    filePath))
+            if (
+                string.IsNullOrWhiteSpace(filePath) ||
+                !System.IO.File.Exists(filePath))
             {
-                try
-                {
-                    System.IO.File.Delete(
-                        filePath
-                    );
-                }
-                catch
-                {
-                    // Do not break database operations
-                    // because an image could not be deleted.
-                }
+                return;
+            }
+
+
+            try
+            {
+                System.IO.File.Delete(filePath);
+            }
+            catch
+            {
             }
         }
 

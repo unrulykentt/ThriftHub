@@ -16,6 +16,18 @@ services:
         value: production
       - key: ThriftHub__DataPath
         value: /data
+      - key: Authentication__Google__ClientId
+        sync: false
+      - key: Authentication__Google__ClientSecret
+        sync: false
+      - key: Authentication__Apple__ClientId
+        sync: false
+      - key: Authentication__Apple__TeamId
+        sync: false
+      - key: Authentication__Apple__KeyId
+        sync: false
+      - key: Authentication__Apple__PrivateKey
+        sync: false
     disk:
       name: thrifthub-data
       mountPath: /data

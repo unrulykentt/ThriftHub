@@ -13,15 +13,18 @@ namespace ThriftHub.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly AppStorageService _storage;
         private readonly SellerSubscriptionService _subscriptionService;
 
         public SellerController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
+            AppStorageService storage,
             SellerSubscriptionService subscriptionService)
         {
             _context = context;
             _userManager = userManager;
+            _storage = storage;
             _subscriptionService = subscriptionService;
         }
 
@@ -265,10 +268,7 @@ namespace ThriftHub.Controllers
 
 
                 var uploadsFolder =
-                    Path.Combine(
-                        Directory.GetCurrentDirectory(),
-                        "wwwroot",
-                        "uploads",
+                    _storage.GetUploadsCategoryPath(
                         "products");
 
 
@@ -304,8 +304,9 @@ namespace ThriftHub.Controllers
 
 
                 imageUrl =
-                    "/uploads/products/"
-                    + fileName;
+                    _storage.BuildUploadsWebPath(
+                        "products",
+                        fileName);
             }
 
 
