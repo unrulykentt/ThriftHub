@@ -31,6 +31,78 @@
 </div>
 
 <style>
+    .th-product-image-interactive {
+        position: relative;
+    }
+
+    .th-image-zoom-trigger {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        cursor: zoom-in;
+        display: block;
+    }
+
+    .th-product-image-interactive .th-product-photo,
+    .th-product-image-interactive img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .th-image-detail-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 28px 14px 14px;
+        background: linear-gradient(
+            to top,
+            rgba(20, 16, 30, 0.92) 0%,
+            rgba(20, 16, 30, 0.62) 72%,
+            transparent 100%);
+        color: #ffffff;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .th-overlay-title {
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }
+
+    .th-overlay-meta {
+        font-size: 11px;
+        opacity: 0.92;
+    }
+
+    .th-overlay-price {
+        font-size: 16px;
+        font-weight: 900;
+        margin-top: 6px;
+    }
+
+    .th-overlay-description {
+        font-size: 11px;
+        line-height: 1.45;
+        margin-top: 5px;
+        opacity: 0.95;
+        max-height: 2.9em;
+        overflow: hidden;
+    }
+
+    .th-product-image-interactive .status-badge {
+        z-index: 4;
+    }
+
     .th-product-lightbox {
         position: fixed;
         inset: 0;

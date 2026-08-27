@@ -1,0 +1,97 @@
+@model ThriftHub.Models.Product
+
+@{
+    var showStatus =
+        ViewData["ShowStatus"] as bool?
+        ?? false;
+
+    var placeholderIcon =
+        ViewData["PlaceholderIcon"] as string
+        ?? "🛍️";
+
+    var descriptionPreview =
+        string.IsNullOrWhiteSpace(Model.Description)
+            ? "No description provided."
+            : (Model.Description.Length > 90
+                ? Model.Description.Substring(0, 90) + "..."
+                : Model.Description);
+}
+
+<div class="product-image th-product-image-interactive">
+
+    @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+    {
+        <button type="button"
+                class="th-image-zoom-trigger"
+                data-image="@Model.ImageUrl"
+                data-title="@Model.Name"
+                aria-label="View larger image of @Model.Name">
+
+            <img src="@Model.ImageUrl"
+                 alt="@Model.Name"
+                 class="th-product-photo" />
+
+        </button>
+    }
+    else
+    {
+        <div class="no-image th-no-image">
+
+            <span class="th-no-image-icon">
+                @placeholderIcon
+            </span>
+
+            No image
+
+        </div>
+    }
+
+    <div class="th-image-detail-overlay">
+
+        <div class="th-overlay-title">
+            @Model.Name
+        </div>
+
+        <div class="th-overlay-meta">
+
+            <span>@Model.Category</span>
+
+            @if (!string.IsNullOrWhiteSpace(Model.Condition))
+            {
+                <span> · @Model.Condition</span>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Model.Sizes))
+            {
+                <span> · @Model.Sizes.Split(',')[0].Trim()</span>
+            }
+
+        </div>
+
+        <div class="th-overlay-price">
+            GH₵ @Model.Price.ToString("N2")
+        </div>
+
+        <div class="th-overlay-description">
+            @descriptionPreview
+        </div>
+
+    </div>
+
+    @if (showStatus)
+    {
+        @if (Model.IsSold)
+        {
+            <span class="status-badge sold">
+                Sold
+            </span>
+        }
+        else
+        {
+            <span class="status-badge available">
+                Available
+            </span>
+        }
+    }
+
+</div>

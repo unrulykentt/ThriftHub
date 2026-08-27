@@ -153,48 +153,12 @@
                              PRODUCT IMAGE
                              ===================================== -->
 
-                        <div class="product-image">
-
-                            @if (!string.IsNullOrWhiteSpace(
-                                product.ImageUrl))
-                            {
-                                <img src="@product.ImageUrl"
-                                     alt="@product.Name" />
-                            }
-                            else
-                            {
-                                <div class="no-image">
-
-                                    <span>
-                                        🛍️
-                                    </span>
-
-                                    No image
-
-                                </div>
-                            }
-
-
-                            <!-- STATUS -->
-
-                            @if (product.IsSold)
-                            {
-                                <span class="status-badge sold">
-
-                                    Sold
-
-                                </span>
-                            }
-                            else
-                            {
-                                <span class="status-badge available">
-
-                                    Available
-
-                                </span>
-                            }
-
-                        </div>
+                        <partial name="_ProductImageWithDetails"
+                                 model="product"
+                                 view-data="@(new ViewDataDictionary(ViewData)
+                                 {
+                                     { "ShowStatus", true }
+                                 })" />
 
 
                         <!-- =====================================
@@ -655,24 +619,13 @@
 
     .product-image {
 
-        height: 250px;
+        height: 280px;
 
         background: #f5f1fa;
 
         position: relative;
 
         overflow: hidden;
-
-    }
-
-
-    .product-image img {
-
-        width: 100%;
-
-        height: 100%;
-
-        object-fit: cover;
 
     }
 
