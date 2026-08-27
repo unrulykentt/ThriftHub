@@ -1936,6 +1936,22 @@ namespace ThriftHub.Controllers
             var user =
                 await _userManager.FindByEmailAsync(email);
 
+            if (user == null)
+            {
+                var normalizedEmail =
+                    _userManager.NormalizeEmail(email);
+
+                if (!string.IsNullOrEmpty(normalizedEmail))
+                {
+                    user =
+                        await _userManager.Users
+                            .FirstOrDefaultAsync(
+                                u =>
+                                    u.NormalizedEmail ==
+                                    normalizedEmail);
+                }
+            }
+
 
             if (user != null)
             {
@@ -1949,6 +1965,16 @@ namespace ThriftHub.Controllers
                         Encoding.UTF8.GetBytes(resetToken));
 
 
+                var resetScheme =
+                    Request.IsHttps ||
+                    string.Equals(
+                        Request.Headers["X-Forwarded-Proto"],
+                        "https",
+                        StringComparison.OrdinalIgnoreCase)
+                        ? "https"
+                        : Request.Scheme;
+
+
                 var resetLink =
                     Url.Action(
                         nameof(ResetPassword),
@@ -1958,7 +1984,7 @@ namespace ThriftHub.Controllers
                             email,
                             token = encodedToken
                         },
-                        protocol: Request.Scheme);
+                        protocol: resetScheme);
 
 
                 var safeFullName =
@@ -2054,8 +2080,13 @@ namespace ThriftHub.Controllers
                         emailSubject,
                         emailMessage);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger.LogError(
+                        ex,
+                        "Password reset email failed for {Email}.",
+                        email);
+
                     ModelState.AddModelError(
                         "",
                         "We could not send the password reset email. Please try again later.");

@@ -212,6 +212,9 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor |
         ForwardedHeaders.XForwardedProto;
+
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 
@@ -251,6 +254,9 @@ var app = builder.Build();
     var resendFromEmail =
         app.Configuration["Resend:FromEmail"];
 
+    var smtpSenderEmail =
+        app.Configuration["EmailSettings:SenderEmail"];
+
     if (string.IsNullOrWhiteSpace(resendApiKey))
     {
         startupLogger.LogWarning(
@@ -287,6 +293,22 @@ var app = builder.Build();
         startupLogger.LogInformation(
             "Resend sender email is configured as {SenderEmail}.",
             resendFromEmail
+        );
+    }
+
+    if (string.IsNullOrWhiteSpace(smtpSenderEmail))
+    {
+        startupLogger.LogWarning(
+            "EmailSettings:SenderEmail is missing. " +
+            "Set EmailSettings__SenderEmail and EmailSettings__SenderPassword on Render " +
+            "so password reset emails can use SMTP when Resend fails."
+        );
+    }
+    else
+    {
+        startupLogger.LogInformation(
+            "SMTP fallback sender is configured as {SenderEmail}.",
+            smtpSenderEmail
         );
     }
 

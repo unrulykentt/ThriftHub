@@ -1,9 +1,12 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 
 namespace ThriftHub.Services
 {
@@ -31,99 +34,222 @@ namespace ThriftHub.Services
             string subject,
             string message)
         {
-            var apiKey = ResolveApiKey();
-            var senderEmail = ResolveSenderEmail();
-            var senderName =
-                _configuration["Resend:FromName"]
-                ?? "ThriftHub";
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                throw new InvalidOperationException(
+                    "Recipient email address is empty.");
+            }
+
+            var resendError =
+                await TrySendViaResendAsync(
+                    email,
+                    subject,
+                    message);
+
+            if (resendError == null)
+            {
+                return;
+            }
+
+            _logger.LogWarning(
+                "Resend could not send email to {Recipient}: {Error}. Trying SMTP fallback.",
+                email,
+                resendError);
+
+            var smtpError =
+                await TrySendViaSmtpAsync(
+                    email,
+                    subject,
+                    message);
+
+            if (smtpError == null)
+            {
+                return;
+            }
+
+            _logger.LogError(
+                "All email providers failed for {Recipient}. Resend: {ResendError}. SMTP: {SmtpError}",
+                email,
+                resendError,
+                smtpError);
+
+            throw new InvalidOperationException(
+                "Email could not be sent. Please try again later.");
+        }
+
+        private async Task<string?> TrySendViaResendAsync(
+            string email,
+            string subject,
+            string message)
+        {
+            var apiKey =
+                ResolveApiKey();
+
+            var senderEmail =
+                ResolveResendSenderEmail();
 
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                throw new InvalidOperationException(
-                    "Resend API key is not configured. " +
-                    "Set Resend:ApiKey or RESEND_API_KEY on Render."
-                );
+                return "Resend API key is not configured.";
             }
 
             if (string.IsNullOrWhiteSpace(senderEmail))
             {
-                throw new InvalidOperationException(
-                    "Resend sender email is not configured. " +
-                    "Set Resend:FromEmail to an address on your verified domain " +
-                    "(for example noreply@thrifthubgh.com)."
-                );
+                return "Resend sender email is not configured.";
             }
 
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                throw new InvalidOperationException(
-                    "Recipient email address is empty."
-                );
-            }
-
-            if (senderEmail.Contains(
+            if (
+                senderEmail.Contains(
                     "resend.dev",
                     StringComparison.OrdinalIgnoreCase) &&
                 !_environment.IsDevelopment())
             {
-                throw new InvalidOperationException(
-                    "onboarding@resend.dev can only send to your own Resend account email. " +
-                    "Verify thrifthubgh.com on Resend and set Resend:FromEmail " +
-                    "to noreply@thrifthubgh.com on Render."
-                );
+                return
+                    "onboarding@resend.dev cannot send to users in production.";
             }
 
-            var requestBody = new
-            {
-                from = $"{senderName} <{senderEmail}>",
-                to = new[] { email },
-                subject = subject,
-                html = message
-            };
+            var senderName =
+                _configuration["Resend:FromName"]
+                ?? "ThriftHub";
 
-            var json = JsonSerializer.Serialize(requestBody);
+            var requestBody =
+                new
+                {
+                    from = $"{senderName} <{senderEmail}>",
+                    to = new[] { email },
+                    subject = subject,
+                    html = message
+                };
 
-            using var request = new HttpRequestMessage(
-                HttpMethod.Post,
-                "https://api.resend.com/emails"
-            );
+            var json =
+                JsonSerializer.Serialize(requestBody);
+
+            using var request =
+                new HttpRequestMessage(
+                    HttpMethod.Post,
+                    "https://api.resend.com/emails");
 
             request.Headers.Authorization =
                 new AuthenticationHeaderValue(
                     "Bearer",
-                    apiKey
-                );
+                    apiKey);
 
-            request.Content = new StringContent(
-                json,
-                Encoding.UTF8,
-                "application/json"
-            );
+            request.Content =
+                new StringContent(
+                    json,
+                    Encoding.UTF8,
+                    "application/json");
 
-            using var response =
-                await _httpClient.SendAsync(request);
-
-            var responseBody =
-                await response.Content.ReadAsStringAsync();
-
-            if (!response.IsSuccessStatusCode)
+            try
             {
-                _logger.LogError(
-                    "Resend rejected email to {Recipient}. " +
-                    "HTTP {StatusCode}. Response: {ResponseBody}",
-                    email,
-                    (int)response.StatusCode,
-                    responseBody);
+                using var response =
+                    await _httpClient.SendAsync(request);
 
-                throw new InvalidOperationException(
-                    $"Resend email failed (HTTP {(int)response.StatusCode}). " +
-                    DescribeResendError(responseBody)
-                );
+                var responseBody =
+                    await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return
+                        $"HTTP {(int)response.StatusCode}: {DescribeResendError(responseBody)}";
+                }
+
+                _logger.LogInformation(
+                    "Email sent to {Recipient} via Resend.",
+                    email);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
+        private async Task<string?> TrySendViaSmtpAsync(
+            string email,
+            string subject,
+            string message)
+        {
+            var senderEmail =
+                _configuration["EmailSettings:SenderEmail"]
+                ?? _configuration["Gmail:Email"];
+
+            var senderPassword =
+                _configuration["EmailSettings:SenderPassword"]
+                ?? _configuration["Gmail:AppPassword"];
+
+            var senderName =
+                _configuration["EmailSettings:SenderName"]
+                ?? "ThriftHub";
+
+            var smtpServer =
+                _configuration["EmailSettings:SmtpServer"]
+                ?? "smtp.gmail.com";
+
+            var smtpPort =
+                int.TryParse(
+                    _configuration["EmailSettings:SmtpPort"],
+                    out var port)
+                    ? port
+                    : 587;
+
+            if (
+                string.IsNullOrWhiteSpace(senderEmail) ||
+                string.IsNullOrWhiteSpace(senderPassword))
+            {
+                return "SMTP sender email or password is not configured.";
             }
 
-            _logger.LogInformation(
-                "Verification email sent to {Recipient} via Resend.",
-                email);
+            try
+            {
+                var mimeMessage =
+                    new MimeMessage();
+
+                mimeMessage.From.Add(
+                    new MailboxAddress(
+                        senderName,
+                        senderEmail));
+
+                mimeMessage.To.Add(
+                    MailboxAddress.Parse(email));
+
+                mimeMessage.Subject =
+                    subject;
+
+                mimeMessage.Body =
+                    new TextPart("html")
+                    {
+                        Text = message
+                    };
+
+                using var smtp =
+                    new SmtpClient();
+
+                await smtp.ConnectAsync(
+                    smtpServer,
+                    smtpPort,
+                    SecureSocketOptions.StartTls);
+
+                await smtp.AuthenticateAsync(
+                    senderEmail,
+                    senderPassword);
+
+                await smtp.SendAsync(mimeMessage);
+
+                await smtp.DisconnectAsync(true);
+
+                _logger.LogInformation(
+                    "Email sent to {Recipient} via SMTP ({SmtpServer}).",
+                    email,
+                    smtpServer);
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
         private string? ResolveApiKey()
@@ -133,7 +259,7 @@ namespace ThriftHub.Services
                 ?? Environment.GetEnvironmentVariable("RESEND_API_KEY");
         }
 
-        private string? ResolveSenderEmail()
+        private string? ResolveResendSenderEmail()
         {
             var configuredEmail =
                 _configuration["Resend:FromEmail"];
@@ -151,7 +277,8 @@ namespace ThriftHub.Services
             return null;
         }
 
-        private static string DescribeResendError(string responseBody)
+        private static string DescribeResendError(
+            string responseBody)
         {
             if (string.IsNullOrWhiteSpace(responseBody))
             {
