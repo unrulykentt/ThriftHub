@@ -1115,6 +1115,27 @@ namespace ThriftHub.Controllers
         }
 
 
+        private async Task TrySetUserOnlineAsync(
+            ApplicationUser user,
+            bool isOnline)
+        {
+            try
+            {
+                user.IsOnline =
+                    isOnline;
+
+                await _userManager.UpdateAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Could not update online status for user {UserId}.",
+                    user.Id);
+            }
+        }
+
+
         private async Task<IActionResult> LoginCoreAsync(
             LoginViewModel model,
             string? returnUrl)
@@ -1341,11 +1362,9 @@ namespace ThriftHub.Controllers
                     model.RememberMe);
 
 
-                user.IsOnline =
-                    true;
-
-
-                await _userManager.UpdateAsync(user);
+                await TrySetUserOnlineAsync(
+                    user,
+                    true);
 
 
                 return RedirectToAction(
@@ -1407,7 +1426,9 @@ namespace ThriftHub.Controllers
                     true;
 
 
-                await _userManager.UpdateAsync(user);
+                await TrySetUserOnlineAsync(
+                    user,
+                    true);
 
 
                 if (!string.IsNullOrWhiteSpace(returnUrl) &&

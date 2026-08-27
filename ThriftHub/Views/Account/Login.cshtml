@@ -52,8 +52,6 @@
                           asp-controller="Account"
                           method="post">
 
-                        @Html.AntiForgeryToken()
-
                         <input type="hidden"
                                name="returnUrl"
                                value="@ViewData["ReturnUrl"]" />

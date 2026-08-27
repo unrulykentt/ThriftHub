@@ -55,12 +55,23 @@ namespace ThriftHub.Services
                 !string.IsNullOrWhiteSpace(
                     Environment.GetEnvironmentVariable("RENDER"));
 
-            if (isProduction || runningOnRender)
+            if (
+                runningOnRender ||
+                (
+                    isProduction &&
+                    OperatingSystem.IsLinux()))
             {
                 return DefaultRenderDataPath;
             }
 
             return null;
+        }
+
+        private static string BuildSqliteConnectionString(
+            string databasePath)
+        {
+            return
+                $"Data Source={databasePath};Mode=ReadWriteCreate";
         }
 
         public bool UsesPersistentStorage =>
@@ -134,8 +145,7 @@ namespace ThriftHub.Services
                 Directory.CreateDirectory(dataRoot);
             }
 
-            return
-                $"Data Source={databasePath};Cache=Shared;Mode=ReadWriteCreate";
+            return BuildSqliteConnectionString(databasePath);
         }
 
         public static string GetDataProtectionPath(
@@ -169,8 +179,7 @@ namespace ThriftHub.Services
                 Directory.CreateDirectory(_dataRoot!);
             }
 
-            return
-                $"Data Source={databasePath};Cache=Shared;Mode=ReadWriteCreate";
+            return BuildSqliteConnectionString(databasePath);
         }
 
         public void PrepareStorageDirectories()
@@ -247,6 +256,8 @@ namespace ThriftHub.Services
             var bestCandidate =
                 FindBestDatabaseCandidate();
 
+            SqliteConnection.ClearAllPools();
+
             if (
                 bestCandidate != null &&
                 !string.Equals(
@@ -284,13 +295,9 @@ namespace ThriftHub.Services
                     primaryPath);
             }
 
-            EnsureDatabaseWritable(
+            await RunMigrationsWithRecoveryAsync(
+                context,
                 primaryPath);
-
-            await context.Database.MigrateAsync();
-
-            await context.Database.ExecuteSqlRawAsync(
-                "PRAGMA journal_mode=WAL;");
 
             await RestoreIfDatabaseDegradedAsync(
                 context);
@@ -641,6 +648,13 @@ namespace ThriftHub.Services
             }
         }
 
+        private static string BuildReadOnlyConnectionString(
+            string databasePath)
+        {
+            return
+                $"Data Source={databasePath};Mode=ReadOnly";
+        }
+
         private static int CountUsersInDatabase(
             string databasePath)
         {
@@ -648,7 +662,8 @@ namespace ThriftHub.Services
             {
                 using var connection =
                     new SqliteConnection(
-                        $"Data Source={databasePath};Mode=ReadOnly;Cache=Shared");
+                        BuildReadOnlyConnectionString(
+                            databasePath));
 
                 connection.Open();
 
@@ -676,7 +691,8 @@ namespace ThriftHub.Services
             {
                 using var connection =
                     new SqliteConnection(
-                        $"Data Source={databasePath};Mode=ReadOnly;Cache=Shared");
+                        BuildReadOnlyConnectionString(
+                            databasePath));
 
                 connection.Open();
 
@@ -697,6 +713,97 @@ namespace ThriftHub.Services
             }
         }
 
+        private async Task RunMigrationsWithRecoveryAsync(
+            ApplicationDbContext context,
+            string primaryPath)
+        {
+            for (var attempt = 1; attempt <= 3; attempt++)
+            {
+                try
+                {
+                    await PrepareDatabaseForMigrationAsync(
+                        context,
+                        primaryPath);
+
+                    await context.Database.MigrateAsync();
+
+                    await context.Database.ExecuteSqlRawAsync(
+                        "PRAGMA journal_mode=WAL;");
+
+                    return;
+                }
+                catch (SqliteException ex)
+                    when (
+                        ex.SqliteErrorCode == 8 &&
+                        attempt < 3)
+                {
+                    _logger.LogWarning(
+                        ex,
+                        "Migration attempt {Attempt} failed because the database is read-only. Repairing storage.",
+                        attempt);
+
+                    RepairReadOnlyDatabase(
+                        primaryPath);
+                }
+            }
+        }
+
+        private async Task PrepareDatabaseForMigrationAsync(
+            ApplicationDbContext context,
+            string primaryPath)
+        {
+            await context.Database.CloseConnectionAsync();
+
+            SqliteConnection.ClearAllPools();
+
+            EnsureDatabaseWritable(
+                primaryPath);
+
+            if (!File.Exists(primaryPath))
+            {
+                return;
+            }
+
+            try
+            {
+                using var connection =
+                    new SqliteConnection(
+                        BuildSqliteConnectionString(
+                            primaryPath));
+
+                connection.Open();
+
+                using var command =
+                    connection.CreateCommand();
+
+                command.CommandText =
+                    """
+                    DELETE FROM "__EFMigrationsLock";
+                    PRAGMA journal_mode=DELETE;
+                    PRAGMA wal_checkpoint(TRUNCATE);
+                    """;
+
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Could not reset SQLite journal mode before migration.");
+            }
+
+            SqliteConnection.ClearAllPools();
+
+            EnsureDatabaseWritable(
+                primaryPath);
+        }
+
+        public void PrepareWritableStorage()
+        {
+            PrepareStorageDirectories();
+            EnsureStorageWritable();
+        }
+
         private void EnsureStorageWritable()
         {
             if (UsesPersistentStorage)
@@ -709,6 +816,24 @@ namespace ThriftHub.Services
 
             EnsureDirectoryWritable(
                 GetDataProtectionKeysPath());
+
+            EnsureDataProtectionKeysWritable();
+        }
+
+        private void EnsureDataProtectionKeysWritable()
+        {
+            var keysPath =
+                GetDataProtectionKeysPath();
+
+            if (!Directory.Exists(keysPath))
+            {
+                return;
+            }
+
+            foreach (var filePath in Directory.GetFiles(keysPath))
+            {
+                MakeFileWritable(filePath);
+            }
         }
 
         private void EnsureDatabaseWritable(
@@ -854,7 +979,8 @@ namespace ThriftHub.Services
             {
                 using var connection =
                     new SqliteConnection(
-                        $"Data Source={databasePath};Mode=ReadWriteCreate");
+                        BuildSqliteConnectionString(
+                            databasePath));
 
                 connection.Open();
 

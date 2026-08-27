@@ -223,6 +223,20 @@ var app = builder.Build();
 
 
 // ============================================================
+// WRITABLE PERSISTENT STORAGE (RENDER DISK)
+// ============================================================
+
+{
+    var persistence =
+        app.Services.GetRequiredService<DatabasePersistenceService>();
+
+    persistence.PrepareWritableStorage();
+
+    Directory.CreateDirectory(dataProtectionPath);
+}
+
+
+// ============================================================
 // EMAIL CONFIGURATION CHECK (RENDER LOGS)
 // ============================================================
 
@@ -296,6 +310,28 @@ var app = builder.Build();
 
 
 app.UseForwardedHeaders();
+
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex)
+    {
+        var logger =
+            context.RequestServices.GetRequiredService<ILogger<Program>>();
+
+        logger.LogError(
+            ex,
+            "Unhandled request failure for {Method} {Path}.",
+            context.Request.Method,
+            context.Request.Path);
+
+        throw;
+    }
+});
 
 
 // ============================================================
