@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
@@ -1932,6 +1933,30 @@ namespace ThriftHub.Controllers
             string? returnUrl = null,
             string? remoteError = null)
         {
+            try
+            {
+                return await ExternalLoginCallbackCoreAsync(
+                    returnUrl,
+                    remoteError);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "External login callback failed.");
+
+                TempData["ErrorMessage"] =
+                    "Google or Apple sign-in failed. Please try again or use email login.";
+
+                return RedirectToAction(nameof(Login));
+            }
+        }
+
+
+        private async Task<IActionResult> ExternalLoginCallbackCoreAsync(
+            string? returnUrl,
+            string? remoteError)
+        {
             if (!string.IsNullOrWhiteSpace(remoteError))
             {
                 TempData["ErrorMessage"] =
@@ -2077,10 +2102,20 @@ namespace ThriftHub.Controllers
                 };
 
             var createResult =
-                await _userManager.CreateAsync(user);
+                await _userManager.CreateAsync(
+                    user,
+                    GenerateExternalLoginPassword());
 
             if (!createResult.Succeeded)
             {
+                _logger.LogWarning(
+                    "External account creation failed for {Email}: {Errors}",
+                    providerEmail,
+                    string.Join(
+                        ", ",
+                        createResult.Errors.Select(
+                            error => error.Description)));
+
                 TempData["ErrorMessage"] =
                     "We could not create your account from this sign-in.";
 
@@ -2092,8 +2127,18 @@ namespace ThriftHub.Controllers
                 user,
                 info);
 
-            await _subscriptionService.GrantWelcomeTrialAsync(
-                user.Id);
+            try
+            {
+                await _subscriptionService.GrantWelcomeTrialAsync(
+                    user.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(
+                    ex,
+                    "Could not grant welcome trial during external login for {UserId}.",
+                    user.Id);
+            }
 
             await TrySaveExternalProfilePhotoAsync(
                 user,
@@ -2113,6 +2158,15 @@ namespace ThriftHub.Controllers
             return RedirectAfterExternalLogin(
                 returnUrl,
                 user);
+        }
+
+
+        private static string GenerateExternalLoginPassword()
+        {
+            return
+                Convert.ToBase64String(
+                    RandomNumberGenerator.GetBytes(24))
+                + "Aa1!";
         }
 
 

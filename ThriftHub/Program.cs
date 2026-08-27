@@ -124,6 +124,15 @@ if (
                 googleClientSecret;
 
             options.SaveTokens = true;
+
+            options.SignInScheme =
+                IdentityConstants.ExternalScheme;
+
+            options.CorrelationCookie.SameSite =
+                SameSiteMode.None;
+
+            options.CorrelationCookie.SecurePolicy =
+                CookieSecurePolicy.Always;
         });
 }
 
@@ -166,6 +175,15 @@ if (
                             .AsMemory());
 
             options.SaveTokens = true;
+
+            options.SignInScheme =
+                IdentityConstants.ExternalScheme;
+
+            options.CorrelationCookie.SameSite =
+                SameSiteMode.None;
+
+            options.CorrelationCookie.SecurePolicy =
+                CookieSecurePolicy.Always;
         });
 }
 
@@ -191,6 +209,24 @@ builder.Services.ConfigureApplicationCookie(options =>
         TimeSpan.FromDays(14);
 
     options.SlidingExpiration = true;
+
+    options.Cookie.SameSite =
+        SameSiteMode.Lax;
+
+    options.Cookie.SecurePolicy =
+        CookieSecurePolicy.Always;
+});
+
+builder.Services.ConfigureExternalCookie(options =>
+{
+    options.Cookie.SameSite =
+        SameSiteMode.None;
+
+    options.Cookie.SecurePolicy =
+        CookieSecurePolicy.Always;
+
+    options.ExpireTimeSpan =
+        TimeSpan.FromMinutes(15);
 });
 
 
