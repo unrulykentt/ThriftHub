@@ -428,81 +428,15 @@ namespace ThriftHub.Controllers
 
 
             // ========================================================
-            // CHANGE CUSTOMER TO SELLER
-            // ========================================================
-
-            user.UserType =
-                "Seller";
-
-
-            // ========================================================
-            // SELLER VERIFICATION
-            // ========================================================
-            //
-            // Seller verification is still required.
-            //
-            // Verification does NOT automatically give permission
-            // to post products.
-            //
-            // Subscription controls posting permission.
-            //
-            // ========================================================
-
-            user.IsVerified =
-                false;
-
-            user.VerificationStatus =
-                "Pending";
-
-
-            // ========================================================
-            // SAVE USER
-            // ========================================================
-
-            var result =
-                await _userManager.UpdateAsync(
-                    user);
-
-
-            if (!result.Succeeded)
-            {
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        error.Description);
-                }
-
-                TempData["ErrorMessage"] =
-                    "We could not process your seller request.";
-
-                return RedirectToAction(
-                    nameof(Index));
-            }
-
-
-            // ========================================================
-            // REFRESH LOGIN SESSION
-            // ========================================================
-            //
-            // The account has changed from Customer to Seller.
-            // Refresh the authentication cookie immediately.
-            //
-            // ========================================================
-
-            await _signInManager.RefreshSignInAsync(
-                user);
-
-
-            // ========================================================
-            // SUCCESS
+            // DIRECT CUSTOMERS TO ID VERIFICATION FIRST
             // ========================================================
 
             TempData["SuccessMessage"] =
-                "Your seller request has been submitted. Please wait for verification.";
+                "Please upload your government ID documents to apply as a seller.";
 
             return RedirectToAction(
-                nameof(Index));
+                "SellerVerification",
+                "Account");
         }
 
 

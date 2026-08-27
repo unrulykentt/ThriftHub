@@ -397,6 +397,8 @@ builder.Services.AddSingleton<AppStorageService>();
 
 builder.Services.AddScoped<IdentityDocumentArchiveService>();
 
+builder.Services.AddScoped<AccountDeletionService>();
+
 
 // ------------------------------------------------------------
 // Notifications

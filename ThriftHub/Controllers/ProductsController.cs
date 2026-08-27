@@ -110,11 +110,7 @@ namespace ThriftHub.Controllers
             // SELLER VERIFICATION
             // --------------------------------------------------------
 
-            if (!user.IsVerified ||
-                !string.Equals(
-                    user.VerificationStatus,
-                    "Approved",
-                    StringComparison.OrdinalIgnoreCase))
+            if (!SellerVerificationRules.CanSellerManageProducts(user))
             {
                 return false;
             }

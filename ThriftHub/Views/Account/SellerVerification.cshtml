@@ -411,25 +411,99 @@
 
 
                 <p>
-                    Your seller account has not yet been approved.
-                    Please submit your seller verification application.
+                    @if (ViewBag.NeedsIdentityDocuments == true)
+                    {
+                        @:To sell on ThriftHub, upload your government ID documents below. An administrator must verify your ID before your seller account can be approved.
+                    }
+                    else
+                    {
+                        @:Your seller application has been submitted. Please wait for administrator review.
+                    }
                 </p>
 
+                @if (ViewBag.NeedsIdentityDocuments == true)
+                {
+                    <form asp-controller="Account"
+                          asp-action="ApplyAsSeller"
+                          method="post"
+                          enctype="multipart/form-data"
+                          class="seller-id-form">
 
-                <form asp-controller="Account"
-                      asp-action="SellerVerificationSubmit"
-                      method="post">
+                        @Html.AntiForgeryToken()
 
-                    @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label class="form-label" for="IdCardType">
+                                ID Type
+                            </label>
+                            <select class="form-select"
+                                    id="IdCardType"
+                                    name="IdCardType"
+                                    required>
+                                <option value="">Select ID type</option>
+                                <option value="Ghana Card">Ghana Card</option>
+                                <option value="Passport">Passport</option>
+                                <option value="Driver's License">Driver's License</option>
+                                <option value="Voter ID">Voter ID</option>
+                            </select>
+                        </div>
 
-                    <button type="submit"
-                            class="primary-button">
+                        <div class="mb-3">
+                            <label class="form-label" for="IdCardNumber">
+                                ID Number
+                            </label>
+                            <input class="form-control"
+                                   id="IdCardNumber"
+                                   name="IdCardNumber"
+                                   required />
+                        </div>
 
-                        Submit Seller Verification
+                        <div class="mb-3">
+                            <label class="form-label" for="IdCardFront">
+                                ID Front (required)
+                            </label>
+                            <input class="form-control"
+                                   type="file"
+                                   id="IdCardFront"
+                                   name="IdCardFront"
+                                   accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                   required />
+                        </div>
 
-                    </button>
+                        <div class="mb-3">
+                            <label class="form-label" for="IdCardBack">
+                                ID Back (optional)
+                            </label>
+                            <input class="form-control"
+                                   type="file"
+                                   id="IdCardBack"
+                                   name="IdCardBack"
+                                   accept=".jpg,.jpeg,.png,.webp,.pdf" />
+                        </div>
 
-                </form>
+                        <button type="submit"
+                                class="primary-button">
+                            Submit Seller Application
+                        </button>
+
+                    </form>
+                }
+                else
+                {
+                    <form asp-controller="Account"
+                          asp-action="SellerVerificationSubmit"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="primary-button">
+
+                            Submit Seller Verification
+
+                        </button>
+
+                    </form>
+                }
 
 
                 <a asp-controller="Dashboard"

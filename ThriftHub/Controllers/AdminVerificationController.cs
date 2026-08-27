@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -80,6 +81,18 @@ namespace ThriftHub.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
+
+            if (string.Equals(
+                    user.UserType,
+                    "Seller",
+                    StringComparison.OrdinalIgnoreCase) &&
+                !SellerVerificationRules.IsIdentityApproved(user))
+            {
+                TempData["ErrorMessage"] =
+                    "Seller accounts cannot be approved until their government ID has been verified.";
+
+                return RedirectToAction(nameof(Index));
+            }
 
             user.IsVerified = true;
 

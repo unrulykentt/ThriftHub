@@ -1770,8 +1770,266 @@ namespace ThriftHub.Controllers
                         DateTime.UtcNow);
             }
 
+            ViewBag.NeedsIdentityDocuments =
+                !SellerVerificationRules.HasSubmittedIdentityDocuments(
+                    user);
+
 
             return View(user);
+        }
+
+
+        // ============================================================
+        // APPLY AS SELLER (WITH ID DOCUMENTS)
+        // ============================================================
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApplyAsSeller(
+            SellerApplicationViewModel model)
+        {
+            var user =
+                await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction(nameof(Login));
+            }
+
+            if (user.IsSuspended)
+            {
+                await _signInManager.SignOutAsync();
+
+                TempData["ErrorMessage"] =
+                    "Your ThriftHub account has been suspended.";
+
+                return RedirectToAction(nameof(Login));
+            }
+
+            if (user.UserType == "Admin" ||
+                await _userManager.IsInRoleAsync(user, "Admin"))
+            {
+                TempData["ErrorMessage"] =
+                    "Admin accounts cannot apply as sellers.";
+
+                return RedirectToAction(nameof(SellerVerification));
+            }
+
+            if (
+                user.IsVerified &&
+                string.Equals(
+                    user.VerificationStatus,
+                    "Approved",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["SuccessMessage"] =
+                    "Your seller account has already been approved.";
+
+                return RedirectToAction(nameof(SellerVerification));
+            }
+
+            if (!ModelState.IsValid)
+            {
+                ViewBag.NeedsIdentityDocuments = true;
+
+                return View(
+                    "SellerVerification",
+                    user);
+            }
+
+            if (model.IdCardFront == null ||
+                model.IdCardFront.Length == 0)
+            {
+                ModelState.AddModelError(
+                    nameof(model.IdCardFront),
+                    "Please upload the front of your ID card.");
+
+                ViewBag.NeedsIdentityDocuments = true;
+
+                return View(
+                    "SellerVerification",
+                    user);
+            }
+
+            var allowedExtensions =
+                new[]
+                {
+                    ".jpg",
+                    ".jpeg",
+                    ".png",
+                    ".webp",
+                    ".pdf"
+                };
+
+            const long maximumFileSize =
+                5 * 1024 * 1024;
+
+            var frontExtension =
+                Path.GetExtension(model.IdCardFront.FileName)
+                    .ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(frontExtension))
+            {
+                ModelState.AddModelError(
+                    nameof(model.IdCardFront),
+                    "Invalid ID front file type.");
+
+                ViewBag.NeedsIdentityDocuments = true;
+
+                return View(
+                    "SellerVerification",
+                    user);
+            }
+
+            if (model.IdCardFront.Length > maximumFileSize)
+            {
+                ModelState.AddModelError(
+                    nameof(model.IdCardFront),
+                    "The ID front file must not be larger than 5 MB.");
+
+                ViewBag.NeedsIdentityDocuments = true;
+
+                return View(
+                    "SellerVerification",
+                    user);
+            }
+
+            string? backExtension = null;
+
+            if (model.IdCardBack != null &&
+                model.IdCardBack.Length > 0)
+            {
+                backExtension =
+                    Path.GetExtension(model.IdCardBack.FileName)
+                        .ToLowerInvariant();
+
+                if (!allowedExtensions.Contains(backExtension))
+                {
+                    ModelState.AddModelError(
+                        nameof(model.IdCardBack),
+                        "Invalid ID back file type.");
+
+                    ViewBag.NeedsIdentityDocuments = true;
+
+                    return View(
+                        "SellerVerification",
+                        user);
+                }
+
+                if (model.IdCardBack.Length > maximumFileSize)
+                {
+                    ModelState.AddModelError(
+                        nameof(model.IdCardBack),
+                        "The ID back file must not be larger than 5 MB.");
+
+                    ViewBag.NeedsIdentityDocuments = true;
+
+                    return View(
+                        "SellerVerification",
+                        user);
+                }
+            }
+
+            try
+            {
+                var idDirectory =
+                    _storage.GetUploadsCategoryPath("id-cards");
+
+                var frontFileName =
+                    BuildIdCardStorageName(
+                        user.FullName,
+                        "front",
+                        frontExtension,
+                        idDirectory);
+
+                var frontFilePath =
+                    Path.Combine(idDirectory, frontFileName);
+
+                await using (
+                    var frontStream =
+                        new FileStream(
+                            frontFilePath,
+                            FileMode.CreateNew))
+                {
+                    await model.IdCardFront.CopyToAsync(
+                        frontStream);
+                }
+
+                user.IdCardFrontUrl =
+                    "/uploads/id-cards/" + frontFileName;
+
+                if (model.IdCardBack != null &&
+                    model.IdCardBack.Length > 0 &&
+                    backExtension != null)
+                {
+                    var backFileName =
+                        BuildIdCardStorageName(
+                            user.FullName,
+                            "back",
+                            backExtension,
+                            idDirectory);
+
+                    var backFilePath =
+                        Path.Combine(idDirectory, backFileName);
+
+                    await using (
+                        var backStream =
+                            new FileStream(
+                                backFilePath,
+                                FileMode.CreateNew))
+                    {
+                        await model.IdCardBack.CopyToAsync(
+                            backStream);
+                    }
+
+                    user.IdCardBackUrl =
+                        "/uploads/id-cards/" + backFileName;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Could not save seller ID documents for {UserId}.",
+                    user.Id);
+
+                TempData["ErrorMessage"] =
+                    "We could not save your ID documents. Please try again.";
+
+                return RedirectToAction(nameof(SellerVerification));
+            }
+
+            user.UserType = "Seller";
+            user.IdCardType = model.IdCardType.Trim();
+            user.IdCardNumber = model.IdCardNumber.Trim();
+            user.IdCardVerified = false;
+            user.IdCardVerificationStatus = "Pending";
+            user.IdCardReviewedAt = null;
+            user.IsVerified = false;
+            user.VerificationStatus = "Verification Pending";
+
+            var result =
+                await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] =
+                    "Your seller application could not be submitted.";
+
+                foreach (var error in result.Errors)
+                {
+                    TempData["ErrorMessage"] +=
+                        $" {error.Description}";
+                }
+
+                return RedirectToAction(nameof(SellerVerification));
+            }
+
+            TempData["SuccessMessage"] =
+                "Your seller application and ID documents have been submitted. An administrator will verify your ID before approving your seller account.";
+
+            return RedirectToAction(nameof(SellerVerification));
         }
 
 

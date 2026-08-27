@@ -15,6 +15,7 @@ namespace ThriftHub.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly IdentityDocumentArchiveService _identityArchive;
+        private readonly AccountDeletionService _accountDeletion;
 
         private const string AdminEmail =
             "antwiagyeibright9@gmail.com";
@@ -28,12 +29,14 @@ namespace ThriftHub.Controllers
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
-            IdentityDocumentArchiveService identityArchive)
+            IdentityDocumentArchiveService identityArchive,
+            AccountDeletionService accountDeletion)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
             _identityArchive = identityArchive;
+            _accountDeletion = accountDeletion;
         }
 
 
@@ -490,8 +493,10 @@ namespace ThriftHub.Controllers
             var pendingSellers =
                 await _userManager.Users
                     .Where(u =>
-                        u.VerificationStatus == "Pending" ||
-                        u.VerificationStatus == "Verification Pending")
+                        u.UserType == "Seller" &&
+                        (u.VerificationStatus == "Pending" ||
+                         u.VerificationStatus == "Verification Pending") &&
+                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl))
                     .OrderBy(u => u.FullName)
                     .ToListAsync();
 
@@ -532,6 +537,15 @@ namespace ThriftHub.Controllers
             {
                 TempData["ErrorMessage"] =
                     "User could not be found.";
+
+                return RedirectToAction(
+                    nameof(SellerVerification));
+            }
+
+            if (!SellerVerificationRules.CanAdminApproveSeller(user))
+            {
+                TempData["ErrorMessage"] =
+                    "This seller cannot be approved until their government ID has been verified in Identity Verification.";
 
                 return RedirectToAction(
                     nameof(SellerVerification));
@@ -1234,7 +1248,8 @@ namespace ThriftHub.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteUser(
-            string id)
+            string id,
+            string? returnTo = null)
         {
             if (!await IsAdmin())
             {
@@ -1248,8 +1263,7 @@ namespace ThriftHub.Controllers
                 TempData["ErrorMessage"] =
                     "Invalid user.";
 
-                return RedirectToAction(
-                    nameof(Users));
+                return RedirectToAdminList(returnTo);
             }
 
             var currentUser =
@@ -1261,8 +1275,7 @@ namespace ThriftHub.Controllers
                 TempData["ErrorMessage"] =
                     "You cannot delete your own administrator account.";
 
-                return RedirectToAction(
-                    nameof(Users));
+                return RedirectToAdminList(returnTo);
             }
 
             var user =
@@ -1273,32 +1286,50 @@ namespace ThriftHub.Controllers
                 TempData["ErrorMessage"] =
                     "User could not be found.";
 
-                return RedirectToAction(
-                    nameof(Users));
+                return RedirectToAdminList(returnTo);
             }
 
-            var result =
-                await _userManager.DeleteAsync(user);
+            if (string.Equals(
+                    user.UserType,
+                    "Admin",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] =
+                    "Administrator accounts cannot be deleted from here.";
 
-            if (result.Succeeded)
+                return RedirectToAdminList(returnTo);
+            }
+
+            var deleteResult =
+                await _accountDeletion.DeleteAccountAsync(id);
+
+            if (deleteResult.Succeeded)
             {
                 TempData["SuccessMessage"] =
-                    "User deleted successfully.";
+                    deleteResult.Message;
             }
             else
             {
                 TempData["ErrorMessage"] =
-                    "Unable to delete user.";
-
-                foreach (var error in result.Errors)
-                {
-                    TempData["ErrorMessage"] +=
-                        " " + error.Description;
-                }
+                    deleteResult.Message;
             }
 
-            return RedirectToAction(
-                nameof(Users));
+            return RedirectToAdminList(returnTo);
+        }
+
+
+        private IActionResult RedirectToAdminList(
+            string? returnTo)
+        {
+            if (string.Equals(
+                    returnTo,
+                    "Sellers",
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return RedirectToAction(nameof(Sellers));
+            }
+
+            return RedirectToAction(nameof(Users));
         }
 
 
@@ -1311,69 +1342,9 @@ namespace ThriftHub.Controllers
         public async Task<IActionResult> DeleteSeller(
             string id)
         {
-            if (!await IsAdmin())
-            {
-                return RedirectToAction(
-                    "Index",
-                    "Dashboard");
-            }
-
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                TempData["ErrorMessage"] =
-                    "Invalid seller.";
-
-                return RedirectToAction(
-                    nameof(Sellers));
-            }
-
-            var currentUser =
-                await _userManager.GetUserAsync(User);
-
-            if (currentUser != null &&
-                currentUser.Id == id)
-            {
-                TempData["ErrorMessage"] =
-                    "You cannot delete your own administrator account.";
-
-                return RedirectToAction(
-                    nameof(Sellers));
-            }
-
-            var seller =
-                await _userManager.FindByIdAsync(id);
-
-            if (seller == null)
-            {
-                TempData["ErrorMessage"] =
-                    "Seller could not be found.";
-
-                return RedirectToAction(
-                    nameof(Sellers));
-            }
-
-            var result =
-                await _userManager.DeleteAsync(seller);
-
-            if (result.Succeeded)
-            {
-                TempData["SuccessMessage"] =
-                    "Seller deleted successfully.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] =
-                    "Unable to delete seller.";
-
-                foreach (var error in result.Errors)
-                {
-                    TempData["ErrorMessage"] +=
-                        " " + error.Description;
-                }
-            }
-
-            return RedirectToAction(
-                nameof(Sellers));
+            return await DeleteUser(
+                id,
+                "Sellers");
         }
 
 

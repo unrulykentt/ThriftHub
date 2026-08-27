@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Seller Verification";
@@ -302,6 +303,10 @@
                             📅 @seller.CreatedAt.ToString("dd/MM/yyyy")
                         </span>
 
+                        <span class="detail">
+                            🪪 ID: @seller.IdCardVerificationStatus
+                        </span>
+
                     </div>
 
 
@@ -309,6 +314,8 @@
 
                         <!-- APPROVE -->
 
+                        @if (SellerVerificationRules.IsIdentityApproved(seller))
+                        {
                         <form asp-controller="Admin"
                               asp-action="ApproveSeller"
                               method="post"
@@ -333,6 +340,13 @@
                             </button>
 
                         </form>
+                        }
+                        else
+                        {
+                            <p class="text-muted small mb-2">
+                                Verify this seller's ID in Identity Verification before approving.
+                            </p>
+                        }
 
 
                         <!-- REJECT -->
