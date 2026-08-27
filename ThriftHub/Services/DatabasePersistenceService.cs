@@ -135,7 +135,7 @@ namespace ThriftHub.Services
             }
 
             return
-                $"Data Source={databasePath};Cache=Shared";
+                $"Data Source={databasePath};Cache=Shared;Mode=ReadWriteCreate";
         }
 
         public static string GetDataProtectionPath(
@@ -170,7 +170,7 @@ namespace ThriftHub.Services
             }
 
             return
-                $"Data Source={databasePath};Cache=Shared";
+                $"Data Source={databasePath};Cache=Shared;Mode=ReadWriteCreate";
         }
 
         public void PrepareStorageDirectories()
@@ -234,10 +234,15 @@ namespace ThriftHub.Services
         {
             PrepareStorageDirectories();
 
-            BackupDatabaseIfExists();
+            EnsureStorageWritable();
 
             var primaryPath =
                 GetDatabasePath();
+
+            EnsureDatabaseWritable(
+                primaryPath);
+
+            BackupDatabaseIfExists();
 
             var bestCandidate =
                 FindBestDatabaseCandidate();
@@ -267,13 +272,20 @@ namespace ThriftHub.Services
                 if (!string.IsNullOrWhiteSpace(primaryDirectory))
                 {
                     Directory.CreateDirectory(primaryDirectory);
+                    EnsureDirectoryWritable(
+                        primaryDirectory);
                 }
 
-                File.Copy(
+                CopyDatabaseFile(
                     bestCandidate.Path,
-                    primaryPath,
-                    overwrite: true);
+                    primaryPath);
+
+                EnsureDatabaseWritable(
+                    primaryPath);
             }
+
+            EnsureDatabaseWritable(
+                primaryPath);
 
             await context.Database.MigrateAsync();
 
@@ -392,10 +404,12 @@ namespace ThriftHub.Services
 
             SqliteConnection.ClearAllPools();
 
-            File.Copy(
+            CopyDatabaseFile(
                 bestBackup.Path,
-                databasePath,
-                overwrite: true);
+                databasePath);
+
+            EnsureDatabaseWritable(
+                databasePath);
 
             await context.Database.MigrateAsync();
 
@@ -680,6 +694,242 @@ namespace ThriftHub.Services
             catch
             {
                 return 0;
+            }
+        }
+
+        private void EnsureStorageWritable()
+        {
+            if (UsesPersistentStorage)
+            {
+                EnsureDirectoryWritable(_dataRoot!);
+            }
+
+            EnsureDirectoryWritable(
+                GetBackupsDirectory());
+
+            EnsureDirectoryWritable(
+                GetDataProtectionKeysPath());
+        }
+
+        private void EnsureDatabaseWritable(
+            string databasePath)
+        {
+            var directory =
+                Path.GetDirectoryName(databasePath);
+
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                EnsureDirectoryWritable(directory);
+            }
+
+            if (!File.Exists(databasePath))
+            {
+                return;
+            }
+
+            MakeFileWritable(databasePath);
+            MakeFileWritable($"{databasePath}-wal");
+            MakeFileWritable($"{databasePath}-shm");
+
+            if (CanWriteToDatabase(databasePath))
+            {
+                return;
+            }
+
+            _logger.LogWarning(
+                "Database at {DatabasePath} is read-only. Attempting repair.",
+                databasePath);
+
+            RepairReadOnlyDatabase(
+                databasePath);
+
+            if (!CanWriteToDatabase(databasePath))
+            {
+                throw new InvalidOperationException(
+                    $"Database at {databasePath} is read-only and could not be repaired. " +
+                    "Ensure the Render persistent disk mounted at /data is writable.");
+            }
+        }
+
+        private void RepairReadOnlyDatabase(
+            string databasePath)
+        {
+            var directory =
+                Path.GetDirectoryName(databasePath)
+                ?? throw new InvalidOperationException(
+                    "Database path has no directory.");
+
+            EnsureDirectoryWritable(directory);
+
+            SqliteConnection.ClearAllPools();
+
+            var tempPath =
+                Path.Combine(
+                    directory,
+                    $"thrifthub-repair-{Guid.NewGuid():N}.db");
+
+            try
+            {
+                File.Copy(
+                    databasePath,
+                    tempPath,
+                    overwrite: false);
+
+                MakeFileWritable(tempPath);
+
+                if (!CanWriteToDatabase(tempPath))
+                {
+                    throw new InvalidOperationException(
+                        $"Could not create a writable copy of the database in {directory}.");
+                }
+
+                RemoveDatabaseFiles(databasePath);
+
+                File.Move(
+                    tempPath,
+                    databasePath);
+
+                MakeFileWritable(databasePath);
+
+                _logger.LogWarning(
+                    "Repaired read-only database at {DatabasePath}.",
+                    databasePath);
+            }
+            catch
+            {
+                if (File.Exists(tempPath))
+                {
+                    try
+                    {
+                        File.Delete(tempPath);
+                    }
+                    catch
+                    {
+                    }
+                }
+
+                throw;
+            }
+        }
+
+        private static void CopyDatabaseFile(
+            string sourcePath,
+            string destinationPath)
+        {
+            RemoveDatabaseFiles(destinationPath);
+
+            File.Copy(
+                sourcePath,
+                destinationPath,
+                overwrite: false);
+
+            MakeFileWritable(destinationPath);
+        }
+
+        private static void RemoveDatabaseFiles(
+            string databasePath)
+        {
+            foreach (var path in new[]
+            {
+                databasePath,
+                $"{databasePath}-wal",
+                $"{databasePath}-shm"
+            })
+            {
+                if (!File.Exists(path))
+                {
+                    continue;
+                }
+
+                MakeFileWritable(path);
+
+                File.Delete(path);
+            }
+        }
+
+        private static bool CanWriteToDatabase(
+            string databasePath)
+        {
+            try
+            {
+                using var connection =
+                    new SqliteConnection(
+                        $"Data Source={databasePath};Mode=ReadWriteCreate");
+
+                connection.Open();
+
+                using var command =
+                    connection.CreateCommand();
+
+                command.CommandText =
+                    "CREATE TABLE IF NOT EXISTS __thrifthub_write_test (id INTEGER); " +
+                    "DELETE FROM __thrifthub_write_test; " +
+                    "DROP TABLE IF EXISTS __thrifthub_write_test;";
+
+                command.ExecuteNonQuery();
+
+                return true;
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 8)
+            {
+                return false;
+            }
+        }
+
+        private static void EnsureDirectoryWritable(
+            string path)
+        {
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(path);
+
+            if (OperatingSystem.IsLinux() ||
+                OperatingSystem.IsMacOS())
+            {
+                File.SetUnixFileMode(
+                    path,
+                    UnixFileMode.UserRead |
+                    UnixFileMode.UserWrite |
+                    UnixFileMode.UserExecute |
+                    UnixFileMode.GroupRead |
+                    UnixFileMode.GroupWrite |
+                    UnixFileMode.GroupExecute);
+            }
+        }
+
+        private static void MakeFileWritable(
+            string path)
+        {
+            if (!File.Exists(path))
+            {
+                return;
+            }
+
+            if (OperatingSystem.IsLinux() ||
+                OperatingSystem.IsMacOS())
+            {
+                File.SetUnixFileMode(
+                    path,
+                    UnixFileMode.UserRead |
+                    UnixFileMode.UserWrite |
+                    UnixFileMode.GroupRead |
+                    UnixFileMode.GroupWrite |
+                    UnixFileMode.OtherRead);
+            }
+            else
+            {
+                var attributes =
+                    File.GetAttributes(path);
+
+                if (attributes.HasFlag(FileAttributes.ReadOnly))
+                {
+                    File.SetAttributes(
+                        path,
+                        attributes & ~FileAttributes.ReadOnly);
+                }
             }
         }
 
