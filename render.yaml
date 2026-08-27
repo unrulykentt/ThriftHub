@@ -1,0 +1,22 @@
+# Render Blueprint — attach a persistent disk so accounts and messages
+# survive every deploy. Sync this file from the Render Dashboard if needed.
+#
+# After adding the disk, set:
+#   ThriftHub__DataPath=/data
+
+services:
+  - type: web
+    name: thrifthub
+    runtime: dotnet
+    plan: starter
+    buildCommand: dotnet publish ThriftHub/ThriftHub.csproj -c Release -o out
+    startCommand: dotnet out/ThriftHub.dll
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: production
+      - key: ThriftHub__DataPath
+        value: /data
+    disk:
+      name: thrifthub-data
+      mountPath: /data
+      sizeGB: 10

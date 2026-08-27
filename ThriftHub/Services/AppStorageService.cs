@@ -14,9 +14,9 @@ namespace ThriftHub.Services
             _environment = environment;
 
             _dataRoot =
-                configuration["ThriftHub:DataPath"]?
-                    .Trim()
-                    .TrimEnd('/', '\\');
+                DatabasePersistenceService.ResolveDataRoot(
+                    configuration,
+                    environment.IsProduction());
 
             if (string.IsNullOrWhiteSpace(_dataRoot))
             {
@@ -136,92 +136,8 @@ namespace ThriftHub.Services
 
         public void SeedPersistentDatabaseIfNeeded()
         {
-            if (!UsesPersistentStorage)
-            {
-                return;
-            }
-
-            var targetPath =
-                GetDatabasePath();
-
-            if (File.Exists(targetPath))
-            {
-                return;
-            }
-
-            var seedPath =
-                Path.Combine(
-                    _environment.ContentRootPath,
-                    "thrifthub.db");
-
-            if (!File.Exists(seedPath))
-            {
-                return;
-            }
-
-            File.Copy(
-                seedPath,
-                targetPath);
-
-            CopySeedUploadsIfEmpty();
-        }
-
-        private void CopySeedUploadsIfEmpty()
-        {
-            var persistentUploads =
-                GetUploadsRoot();
-
-            if (Directory.EnumerateFileSystemEntries(
-                    persistentUploads)
-                .Any())
-            {
-                return;
-            }
-
-            var seedUploads =
-                Path.Combine(
-                    _environment.WebRootPath,
-                    "uploads");
-
-            if (!Directory.Exists(seedUploads))
-            {
-                return;
-            }
-
-            CopyDirectory(
-                seedUploads,
-                persistentUploads);
-        }
-
-        private static void CopyDirectory(
-            string sourceDir,
-            string destinationDir)
-        {
-            Directory.CreateDirectory(destinationDir);
-
-            foreach (var file in Directory.GetFiles(sourceDir))
-            {
-                var destinationFile =
-                    Path.Combine(
-                        destinationDir,
-                        Path.GetFileName(file));
-
-                if (!File.Exists(destinationFile))
-                {
-                    File.Copy(
-                        file,
-                        destinationFile);
-                }
-            }
-
-            foreach (var directory in Directory.GetDirectories(sourceDir))
-            {
-                CopyDirectory(
-                    directory,
-                    Path.Combine(
-                        destinationDir,
-                        Path.GetFileName(directory)));
-            }
+            // Schema is created by EF migrations.
+            // Never copy a bundled seed database over production data.
         }
     }
 }

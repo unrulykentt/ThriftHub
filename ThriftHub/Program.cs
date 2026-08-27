@@ -15,69 +15,17 @@ var builder = WebApplication.CreateBuilder(args);
 // PERSISTENT STORAGE (RENDER DISK)
 // ============================================================
 
-var dataPath =
-    builder.Configuration["ThriftHub:DataPath"]?
-        .Trim()
-        .TrimEnd('/', '\\');
-
 var connectionString =
-    ResolveConnectionString(
+    DatabasePersistenceService.BuildConnectionString(
         builder.Configuration,
-        builder.Environment.ContentRootPath,
-        dataPath);
+        builder.Environment);
 
 var dataProtectionPath =
-    !string.IsNullOrWhiteSpace(dataPath)
-        ? Path.Combine(dataPath, "dp-keys")
-        : Path.Combine(
-            builder.Environment.ContentRootPath,
-            "dp-keys");
+    DatabasePersistenceService.GetDataProtectionPath(
+        builder.Configuration,
+        builder.Environment);
 
 Directory.CreateDirectory(dataProtectionPath);
-
-
-static string ResolveConnectionString(
-    IConfiguration configuration,
-    string contentRootPath,
-    string? dataPath)
-{
-    if (!string.IsNullOrWhiteSpace(dataPath))
-    {
-        Directory.CreateDirectory(dataPath);
-
-        var databasePath =
-            Path.Combine(
-                dataPath,
-                "thrifthub.db");
-
-        var seedDatabasePath =
-            Path.Combine(
-                contentRootPath,
-                "thrifthub.db");
-
-        if (!File.Exists(databasePath) &&
-            File.Exists(seedDatabasePath))
-        {
-            File.Copy(
-                seedDatabasePath,
-                databasePath);
-        }
-
-        return $"Data Source={databasePath}";
-    }
-
-    var configuredConnection =
-        configuration.GetConnectionString("DefaultConnection");
-
-    if (string.IsNullOrWhiteSpace(configuredConnection))
-    {
-        throw new InvalidOperationException(
-            "DefaultConnection was not found in appsettings.json."
-        );
-    }
-
-    return configuredConnection;
-}
 
 
 // ============================================================
@@ -238,6 +186,8 @@ builder.Services.AddHttpClient("Resend");
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 
+builder.Services.AddSingleton<DatabasePersistenceService>();
+
 builder.Services.AddSingleton<AppStorageService>();
 
 builder.Services.AddScoped<IdentityDocumentArchiveService>();
@@ -329,22 +279,18 @@ var app = builder.Build();
     var storage =
         app.Services.GetRequiredService<AppStorageService>();
 
-    if (storage.UsesPersistentStorage)
-    {
-        storage.SeedPersistentDatabaseIfNeeded();
+    var persistence =
+        app.Services.GetRequiredService<DatabasePersistenceService>();
 
+    persistence.LogPersistenceWarnings();
+
+    storage.SeedPersistentDatabaseIfNeeded();
+
+    if (persistence.UsesPersistentStorage)
+    {
         startupLogger.LogInformation(
             "Persistent storage enabled at {DataPath}.",
-            storage.DataRoot
-        );
-    }
-    else
-    {
-        startupLogger.LogWarning(
-            "Persistent storage is not configured. " +
-            "Set ThriftHub__DataPath=/data on Render with a mounted disk " +
-            "so accounts survive redeploys."
-        );
+            persistence.DataRoot);
     }
 }
 
@@ -365,7 +311,24 @@ using (var scope = app.Services.CreateScope())
         var context =
             services.GetRequiredService<ApplicationDbContext>();
 
-        context.Database.Migrate();
+        var persistence =
+            services.GetRequiredService<DatabasePersistenceService>();
+
+        persistence.PrepareStorageDirectories();
+
+        persistence.BackupDatabaseIfExists();
+
+        await context.Database.MigrateAsync();
+
+        await context.Database.ExecuteSqlRawAsync(
+            "PRAGMA journal_mode=WAL;");
+
+        await persistence
+            .RestoreLatestBackupIfDatabaseEmptyAsync(
+                context);
+
+        await persistence.LogDatabaseHealthAsync(
+            context);
     }
     catch (Exception ex)
     {
