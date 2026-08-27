@@ -323,10 +323,12 @@ using (var scope = app.Services.CreateScope())
         var logger =
             services.GetRequiredService<ILogger<Program>>();
 
-        logger.LogError(
+        logger.LogCritical(
             ex,
-            "An error occurred while migrating the database."
+            "Database startup failed. The app cannot run safely until this is fixed."
         );
+
+        throw;
     }
 }
 

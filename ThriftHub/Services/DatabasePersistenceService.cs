@@ -259,6 +259,8 @@ namespace ThriftHub.Services
 
                 await context.Database.CloseConnectionAsync();
 
+                SqliteConnection.ClearAllPools();
+
                 var primaryDirectory =
                     Path.GetDirectoryName(primaryPath);
 
@@ -387,6 +389,8 @@ namespace ThriftHub.Services
                 bestBackup.Path);
 
             await context.Database.CloseConnectionAsync();
+
+            SqliteConnection.ClearAllPools();
 
             File.Copy(
                 bestBackup.Path,

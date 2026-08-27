@@ -1093,6 +1093,32 @@ namespace ThriftHub.Controllers
             }
 
 
+            try
+            {
+                return await LoginCoreAsync(
+                    model,
+                    returnUrl);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Login failed for {Email}.",
+                    model.Email);
+
+                ModelState.AddModelError(
+                    "",
+                    "We could not sign you in right now. Please try again in a moment.");
+
+                return View(model);
+            }
+        }
+
+
+        private async Task<IActionResult> LoginCoreAsync(
+            LoginViewModel model,
+            string? returnUrl)
+        {
             var email =
                 model.Email?
                     .Trim()
@@ -1114,14 +1140,18 @@ namespace ThriftHub.Controllers
 
             if (user == null)
             {
-                user =
-                    await _userManager.Users
-                        .FirstOrDefaultAsync(
-                            u =>
-                                u.Email != null &&
-                                u.Email.Trim()
-                                    .ToLowerInvariant() ==
-                                email);
+                var normalizedEmail =
+                    _userManager.NormalizeEmail(email);
+
+                if (!string.IsNullOrEmpty(normalizedEmail))
+                {
+                    user =
+                        await _userManager.Users
+                            .FirstOrDefaultAsync(
+                                u =>
+                                    u.NormalizedEmail ==
+                                    normalizedEmail);
+                }
             }
 
 
