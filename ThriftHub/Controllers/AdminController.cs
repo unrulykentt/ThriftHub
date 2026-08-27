@@ -495,8 +495,7 @@ namespace ThriftHub.Controllers
                     .Where(u =>
                         u.UserType == "Seller" &&
                         (u.VerificationStatus == "Pending" ||
-                         u.VerificationStatus == "Verification Pending") &&
-                        !string.IsNullOrWhiteSpace(u.IdCardFrontUrl))
+                         u.VerificationStatus == "Verification Pending"))
                     .OrderBy(u => u.FullName)
                     .ToListAsync();
 

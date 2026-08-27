@@ -304,7 +304,14 @@
                         </span>
 
                         <span class="detail">
-                            🪪 ID: @seller.IdCardVerificationStatus
+                            @if (SellerVerificationRules.HasSubmittedIdentityDocuments(seller))
+                            {
+                                @:🪪 ID: @seller.IdCardVerificationStatus
+                            }
+                            else
+                            {
+                                @:⚠️ ID documents not uploaded
+                            }
                         </span>
 
                     </div>
@@ -344,7 +351,14 @@
                         else
                         {
                             <p class="text-muted small mb-2">
-                                Verify this seller's ID in Identity Verification before approving.
+                                @if (!SellerVerificationRules.HasSubmittedIdentityDocuments(seller))
+                                {
+                                    @:This seller has not uploaded ID documents yet. Ask them to open Seller Verification on their dashboard and submit their ID, or delete the account from Manage Users.
+                                }
+                                else
+                                {
+                                    @:Verify this seller's ID in Identity Verification before approving.
+                                }
                             </p>
                         }
 

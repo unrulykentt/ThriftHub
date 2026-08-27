@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<ThriftHub.Models.ApplicationUser>
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Manage Users";
@@ -208,6 +209,18 @@
                                         <span class="badge pending">
                                             Pending
                                         </span>
+
+                                        @if (
+                                            string.Equals(
+                                                user.UserType,
+                                                "Seller",
+                                                StringComparison.OrdinalIgnoreCase) &&
+                                            !SellerVerificationRules.HasSubmittedIdentityDocuments(user))
+                                        {
+                                            <div class="small-note text-warning">
+                                                Missing ID documents
+                                            </div>
+                                        }
                                     }
 
                                 </td>
