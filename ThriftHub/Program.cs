@@ -16,6 +16,50 @@ using ThriftHub.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 
+static string MapExternalLoginFailureCode(
+    Exception? failure)
+{
+    var message =
+        failure?.Message
+        ?? string.Empty;
+
+    if (
+        message.Contains(
+            "Correlation",
+            StringComparison.OrdinalIgnoreCase) ||
+        message.Contains(
+            "state was missing or invalid",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        return "correlation";
+    }
+
+    if (
+        message.Contains(
+            "token endpoint",
+            StringComparison.OrdinalIgnoreCase) ||
+        message.Contains(
+            "invalid_client",
+            StringComparison.OrdinalIgnoreCase) ||
+        message.Contains(
+            "Unauthorized",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        return "invalid_client";
+    }
+
+    if (
+        message.Contains(
+            "redirect_uri",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        return "redirect_uri";
+    }
+
+    return "signin_failed";
+}
+
+
 static void ConfigureRemoteAuthOptions(
     RemoteAuthenticationOptions options)
 {
@@ -25,7 +69,7 @@ static void ConfigureRemoteAuthOptions(
     options.SaveTokens = true;
 
     options.CorrelationCookie.SameSite =
-        SameSiteMode.None;
+        SameSiteMode.Lax;
 
     options.CorrelationCookie.SecurePolicy =
         CookieSecurePolicy.Always;
@@ -43,13 +87,18 @@ static void ConfigureRemoteAuthOptions(
                 context.HttpContext.RequestServices
                     .GetRequiredService<ILogger<Program>>();
 
+            var failureCode =
+                MapExternalLoginFailureCode(
+                    context.Failure);
+
             logger.LogWarning(
                 context.Failure,
-                "External login remote failure for {CallbackPath}.",
-                options.CallbackPath);
+                "External login remote failure for {CallbackPath}. Code={FailureCode}.",
+                options.CallbackPath,
+                failureCode);
 
             context.Response.Redirect(
-                "/Account/ExternalLoginCallback?remoteError=signin_failed");
+                $"/Account/ExternalLoginCallback?remoteError={failureCode}");
 
             context.HandleResponse();
 
@@ -148,10 +197,12 @@ var externalAuth =
     builder.Services.AddAuthentication();
 
 var googleClientId =
-    builder.Configuration["Authentication:Google:ClientId"];
+    builder.Configuration["Authentication:Google:ClientId"]
+        ?.Trim();
 
 var googleClientSecret =
-    builder.Configuration["Authentication:Google:ClientSecret"];
+    builder.Configuration["Authentication:Google:ClientSecret"]
+        ?.Trim();
 
 if (
     !string.IsNullOrWhiteSpace(googleClientId) &&
@@ -246,7 +297,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.ConfigureExternalCookie(options =>
 {
     options.Cookie.SameSite =
-        SameSiteMode.None;
+        SameSiteMode.Lax;
 
     options.Cookie.SecurePolicy =
         CookieSecurePolicy.Always;
@@ -476,6 +527,40 @@ var app = builder.Build();
             "SMTP fallback sender is configured as {SenderEmail}.",
             smtpSenderEmail
         );
+    }
+
+    var configuredGoogleClientId =
+        app.Configuration["Authentication:Google:ClientId"]
+            ?.Trim();
+
+    var configuredGoogleClientSecret =
+        app.Configuration["Authentication:Google:ClientSecret"]
+            ?.Trim();
+
+    if (
+        string.IsNullOrWhiteSpace(configuredGoogleClientId) ||
+        string.IsNullOrWhiteSpace(configuredGoogleClientSecret))
+    {
+        startupLogger.LogWarning(
+            "Google OAuth is not fully configured. " +
+            "Set Authentication__Google__ClientId and Authentication__Google__ClientSecret on Render."
+        );
+    }
+    else if (
+        !configuredGoogleClientId.EndsWith(
+            ".apps.googleusercontent.com",
+            StringComparison.OrdinalIgnoreCase))
+    {
+        startupLogger.LogWarning(
+            "Google OAuth client id does not look valid. " +
+            "Expected a value ending with .apps.googleusercontent.com."
+        );
+    }
+    else
+    {
+        startupLogger.LogInformation(
+            "Google OAuth is configured for client ending in {ClientSuffix}.",
+            configuredGoogleClientId[^12..]);
     }
 
     var storage =

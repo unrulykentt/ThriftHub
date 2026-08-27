@@ -1970,7 +1970,25 @@ namespace ThriftHub.Controllers
             if (!string.IsNullOrWhiteSpace(remoteError))
             {
                 TempData["ErrorMessage"] =
-                    "Sign-in was cancelled or failed. Please try again.";
+                    remoteError switch
+                    {
+                        "access_denied" =>
+                            "Google sign-in was cancelled.",
+
+                        "invalid_client" =>
+                            "Google sign-in is not set up correctly on the server. " +
+                            "Please use email login, or ask the site owner to update the Google Client Secret on Render.",
+
+                        "redirect_uri" =>
+                            "Google sign-in redirect URL does not match. " +
+                            "The site owner must add https://thrifthubgh.com/signin-google in Google Cloud Console.",
+
+                        "correlation" =>
+                            "Your Google sign-in session expired. Please try again.",
+
+                        _ =>
+                            "Sign-in was cancelled or failed. Please try again."
+                    };
 
                 return RedirectToAction(nameof(Login));
             }
