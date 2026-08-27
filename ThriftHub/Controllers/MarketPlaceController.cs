@@ -225,6 +225,7 @@ namespace ThriftHub.Controllers
                 "Books & Textbooks",
                 "Laptops & Computers",
                 "Phones & Tablets",
+                "Smartwatches",
                 "Electronics",
                 "Computer Accessories",
                 "Chargers & Cables",
@@ -552,6 +553,19 @@ namespace ThriftHub.Controllers
                     },
 
 
+                "smartwatches" =>
+                    new List<string>
+                    {
+                        "Apple Watch",
+                        "Samsung Galaxy Watch",
+                        "Fitbit",
+                        "Garmin",
+                        "Xiaomi / Mi Band",
+                        "Huawei Watch",
+                        "Other Smartwatches"
+                    },
+
+
                 "electronics" =>
                     new List<string>
                     {
@@ -561,8 +575,7 @@ namespace ThriftHub.Controllers
                         "Earphones",
                         "Cameras",
                         "Game Consoles",
-                        "Projectors",
-                        "Smart Watches"
+                        "Projectors"
                     },
 
 

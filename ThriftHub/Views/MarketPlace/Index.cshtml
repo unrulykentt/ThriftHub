@@ -103,6 +103,14 @@
 
         new
         {
+            Name = "Smartwatches",
+            Icon = "⌚",
+            Description = "Apple Watch, Samsung, Fitbit, Garmin and more",
+            Aliases = new[] { "Smartwatches", "Smart Watches", "Smart Watch" }
+        },
+
+        new
+        {
             Name = "Electronics",
             Icon = "🔌",
             Description = "Speakers, headphones, TVs, cameras and more",
@@ -508,17 +516,74 @@
            ========================================================= */
 
     .th-product-image {
-        height: 250px;
+        height: 320px;
         background: #f5f1fa;
         position: relative;
     }
 
-        .th-product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
+    .th-image-zoom-trigger {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 0;
+        margin: 0;
+        background: transparent;
+        cursor: zoom-in;
+        display: block;
+    }
+
+    .th-product-photo,
+    .th-product-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+        padding: 10px;
+        box-sizing: border-box;
+    }
+
+    .th-image-detail-overlay {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 28px 14px 14px;
+        background: linear-gradient(
+            to top,
+            rgba(20, 16, 30, 0.92) 0%,
+            rgba(20, 16, 30, 0.62) 72%,
+            transparent 100%);
+        color: #ffffff;
+        pointer-events: none;
+        z-index: 2;
+    }
+
+    .th-overlay-title {
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }
+
+    .th-overlay-meta {
+        font-size: 11px;
+        opacity: 0.92;
+    }
+
+    .th-overlay-price {
+        font-size: 16px;
+        font-weight: 900;
+        margin-top: 6px;
+    }
+
+    .th-overlay-description {
+        font-size: 11px;
+        line-height: 1.45;
+        margin-top: 5px;
+        opacity: 0.95;
+        max-height: 2.9em;
+        overflow: hidden;
+    }
 
     .th-no-image {
         width: 100%;
@@ -786,7 +851,15 @@
             }
 
         .th-product-image {
-            height: 210px;
+            height: 250px;
+        }
+
+        .th-overlay-title {
+            font-size: 12px;
+        }
+
+        .th-overlay-description {
+            font-size: 10px;
         }
 
         .th-product-body {
@@ -915,7 +988,7 @@
         }
 
         .th-product-image {
-            height: 175px;
+            height: 220px;
         }
 
         .th-product-body {
@@ -1181,108 +1254,13 @@
 
                         @foreach (var product in selectedProducts)
                         {
-                            var isFavorite =
-                                favoriteProductIds.Contains(product.Id);
-
-
-                            <div class="th-product-card">
-
-
-                                <!-- PRODUCT IMAGE -->
-
-                                <div class="th-product-image">
-
-                                    @if (!string.IsNullOrWhiteSpace(
-                                        product.ImageUrl))
-                                    {
-                                        <img src="@product.ImageUrl"
-                                             alt="@product.Name" />
-                                    }
-                                    else
-                                    {
-                                        <div class="th-no-image">
-
-                                            <div class="th-no-image-icon">
-                                                @selectedCategoryInfo.Icon
-                                            </div>
-
-                                            No image available
-
-                                        </div>
-                                    }
-
-
-                                    <!-- CONDITION -->
-                                    @if (!string.IsNullOrWhiteSpace(
-                                                                            product.Condition))
-                                    {
-                                        <div class="th-condition">
-
-                                            @product.Condition
-
-                                        </div>
-                                    }
-
-
-                                    <!-- =================================================
-                                         FIXED HEART
-                                         ================================================= -->
-                                    @if (User.Identity?.IsAuthenticated == true)
-                                    {
-                                        <form asp-controller="Favorites"
-                                              asp-action="Toggle"
-                                              method="post"
-                                              class="th-wishlist-form">
-
-                                            @Html.AntiForgeryToken()
-
-                                            <input type="hidden"
-                                                   name="productId"
-                                                   value="@product.Id" />
-
-                                            <button type="submit"
-                                                    class="th-wishlist @(isFavorite ? "favorited" : "")"
-                                                    title="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")"
-                                                    aria-label="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")">
-
-                                                @(isFavorite ? "♥" : "♡")
-
-                                            </button>
-
-                                        </form>
-                                    }
-
-                                </div>
-
-
-                                <!-- PRODUCT BODY -->
-
-                                <div class="th-product-body">
-
-                                    <h3 class="th-product-name">
-                                        @product.Name
-                                    </h3>
-
-                                    <div class="th-product-description">
-                                        @product.Description
-                                    </div>
-
-                                    <div class="th-product-price">
-                                        GH₵ @product.Price.ToString("N2")
-                                    </div>
-
-                                    <a asp-controller="MarketPlace"
-                                       asp-action="Details"
-                                       asp-route-id="@product.Id"
-                                       class="th-view-button">
-
-                                        View Item →
-
-                                    </a>
-
-                                </div>
-
-                            </div>
+                            <partial name="_MarketplaceProductCard"
+                                     model="product"
+                                     view-data="@(new ViewDataDictionary(ViewData)
+                                     {
+                                         { "CategoryIcon", selectedCategoryInfo.Icon },
+                                         { "IsFavorite", favoriteProductIds.Contains(product.Id) }
+                                     })" />
                         }
 
                     </div>
@@ -1376,121 +1354,13 @@
 
                         @foreach (var product in categoryProducts)
                         {
-
-                            var isFavorite =
-                                favoriteProductIds.Contains(product.Id);
-
-
-                            <div class="th-product-card">
-
-
-                                <!-- PRODUCT IMAGE -->
-
-                                <div class="th-product-image">
-
-                                    @if (!string.IsNullOrWhiteSpace(
-                                        product.ImageUrl))
-                                    {
-                                        <img src="@product.ImageUrl"
-                                             alt="@product.Name" />
-                                    }
-                                    else
-                                    {
-                                        <div class="th-no-image">
-
-                                            <div class="th-no-image-icon">
-                                                @category.Icon
-                                            </div>
-
-                                            No image available
-
-                                        </div>
-                                    }
-
-
-                                    <!-- CONDITION -->
-                                    @if (!string.IsNullOrWhiteSpace(
-                                                                            product.Condition))
-                                    {
-                                        <div class="th-condition">
-
-                                            @product.Condition
-
-                                        </div>
-                                    }
-
-
-                                    <!-- =================================================
-                                         FIXED HEART
-                                         ================================================= -->
-                                    @if (User.Identity?.IsAuthenticated == true)
-                                    {
-
-                                        <form asp-controller="Favorites"
-                                              asp-action="Toggle"
-                                              method="post"
-                                              class="th-wishlist-form">
-
-                                            @Html.AntiForgeryToken()
-
-                                            <input type="hidden"
-                                                   name="productId"
-                                                   value="@product.Id" />
-
-                                            <button type="submit"
-                                                    class="th-wishlist @(isFavorite ? "favorited" : "")"
-                                                    title="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")"
-                                                    aria-label="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")">
-
-                                                @(isFavorite ? "♥" : "♡")
-
-                                            </button>
-
-                                        </form>
-
-                                    }
-
-                                </div>
-
-
-                                <!-- PRODUCT INFORMATION -->
-
-                                <div class="th-product-body">
-
-                                    <h3 class="th-product-name">
-
-                                        @product.Name
-
-                                    </h3>
-
-
-                                    <div class="th-product-description">
-
-                                        @product.Description
-
-                                    </div>
-
-
-                                    <div class="th-product-price">
-
-                                        GH₵ @product.Price.ToString("N2")
-
-                                    </div>
-
-
-                                    <a asp-controller="MarketPlace"
-                                       asp-action="Details"
-                                       asp-route-id="@product.Id"
-                                       class="th-view-button">
-
-                                        View Item →
-
-                                    </a>
-
-                                </div>
-
-                            </div>
-
+                            <partial name="_MarketplaceProductCard"
+                                     model="product"
+                                     view-data="@(new ViewDataDictionary(ViewData)
+                                     {
+                                         { "CategoryIcon", category.Icon },
+                                         { "IsFavorite", favoriteProductIds.Contains(product.Id) }
+                                     })" />
                         }
 
                     </div>
@@ -1520,6 +1390,9 @@
     }
 
 </div>
+
+
+<partial name="_ProductImageLightbox" />
 
 
 <!-- =========================================================

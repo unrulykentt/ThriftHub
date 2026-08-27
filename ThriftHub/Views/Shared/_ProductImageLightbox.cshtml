@@ -1,0 +1,172 @@
+<div id="thProductLightbox"
+     class="th-product-lightbox"
+     hidden
+     aria-hidden="true">
+
+    <div class="th-product-lightbox-backdrop"
+         data-lightbox-close></div>
+
+    <div class="th-product-lightbox-dialog"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Product image preview">
+
+        <button type="button"
+                class="th-product-lightbox-close"
+                data-lightbox-close
+                aria-label="Close image preview">
+            ×
+        </button>
+
+        <img id="thProductLightboxImage"
+             src=""
+             alt=""
+             class="th-product-lightbox-image" />
+
+        <div id="thProductLightboxCaption"
+             class="th-product-lightbox-caption"></div>
+
+    </div>
+
+</div>
+
+<style>
+    .th-product-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .th-product-lightbox[hidden] {
+        display: none !important;
+    }
+
+    .th-product-lightbox-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(20, 16, 30, 0.88);
+    }
+
+    .th-product-lightbox-dialog {
+        position: relative;
+        z-index: 1;
+        width: min(96vw, 920px);
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .th-product-lightbox-close {
+        position: absolute;
+        top: -8px;
+        right: 0;
+        width: 42px;
+        height: 42px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.95);
+        color: #252238;
+        font-size: 28px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    .th-product-lightbox-image {
+        width: 100%;
+        max-height: calc(92vh - 70px);
+        object-fit: contain;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .th-product-lightbox-caption {
+        color: #ffffff;
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+        max-width: 100%;
+    }
+</style>
+
+<script>
+    (function () {
+
+        const lightbox =
+            document.getElementById("thProductLightbox");
+
+        if (!lightbox) {
+            return;
+        }
+
+        const lightboxImage =
+            document.getElementById("thProductLightboxImage");
+
+        const lightboxCaption =
+            document.getElementById("thProductLightboxCaption");
+
+        function openLightbox(imageUrl, title) {
+
+            if (!imageUrl) {
+                return;
+            }
+
+            lightboxImage.src = imageUrl;
+            lightboxImage.alt = title || "Product image";
+            lightboxCaption.textContent = title || "";
+            lightbox.hidden = false;
+            lightbox.setAttribute("aria-hidden", "false");
+            document.body.style.overflow = "hidden";
+        }
+
+        function closeLightbox() {
+
+            lightbox.hidden = true;
+            lightbox.setAttribute("aria-hidden", "true");
+            lightboxImage.src = "";
+            lightboxCaption.textContent = "";
+            document.body.style.overflow = "";
+        }
+
+        document.addEventListener("click", function (event) {
+
+            const trigger =
+                event.target.closest(".th-image-zoom-trigger");
+
+            if (trigger) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                openLightbox(
+                    trigger.dataset.image,
+                    trigger.dataset.title);
+
+                return;
+            }
+
+            if (
+                event.target.closest("[data-lightbox-close]") ||
+                event.target === lightbox
+            ) {
+                closeLightbox();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+
+            if (
+                event.key === "Escape" &&
+                !lightbox.hidden
+            ) {
+                closeLightbox();
+            }
+        });
+
+    })();
+</script>

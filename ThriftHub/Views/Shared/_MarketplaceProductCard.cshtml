@@ -1,0 +1,142 @@
+@model ThriftHub.Models.Product
+
+@{
+    var categoryIcon =
+        ViewData["CategoryIcon"] as string
+        ?? "🛍️";
+
+    var isFavorite =
+        ViewData["IsFavorite"] as bool?
+        ?? false;
+
+    var descriptionPreview =
+        string.IsNullOrWhiteSpace(Model.Description)
+            ? "No description provided."
+            : (Model.Description.Length > 90
+                ? Model.Description.Substring(0, 90) + "..."
+                : Model.Description);
+}
+
+<div class="th-product-card">
+
+    <div class="th-product-image th-product-image-interactive">
+
+        @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+        {
+            <button type="button"
+                    class="th-image-zoom-trigger"
+                    data-image="@Model.ImageUrl"
+                    data-title="@Model.Name"
+                    aria-label="View larger image of @Model.Name">
+
+                <img src="@Model.ImageUrl"
+                     alt="@Model.Name"
+                     class="th-product-photo" />
+
+            </button>
+        }
+        else
+        {
+            <div class="th-no-image">
+
+                <div class="th-no-image-icon">
+                    @categoryIcon
+                </div>
+
+                No image available
+
+            </div>
+        }
+
+        <div class="th-image-detail-overlay">
+
+            <div class="th-overlay-title">
+                @Model.Name
+            </div>
+
+            <div class="th-overlay-meta">
+
+                <span>@Model.Category</span>
+
+                @if (!string.IsNullOrWhiteSpace(Model.Condition))
+                {
+                    <span> · @Model.Condition</span>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(Model.Sizes))
+                {
+                    <span> · @Model.Sizes.Split(',')[0].Trim()</span>
+                }
+
+            </div>
+
+            <div class="th-overlay-price">
+                GH₵ @Model.Price.ToString("N2")
+            </div>
+
+            <div class="th-overlay-description">
+                @descriptionPreview
+            </div>
+
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Condition))
+        {
+            <div class="th-condition">
+                @Model.Condition
+            </div>
+        }
+
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <form asp-controller="Favorites"
+                  asp-action="Toggle"
+                  method="post"
+                  class="th-wishlist-form">
+
+                @Html.AntiForgeryToken()
+
+                <input type="hidden"
+                       name="productId"
+                       value="@Model.Id" />
+
+                <button type="submit"
+                        class="th-wishlist @(isFavorite ? "favorited" : "")"
+                        title="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")"
+                        aria-label="@(isFavorite ? "Remove from wishlist" : "Add to wishlist")">
+
+                    @(isFavorite ? "♥" : "♡")
+
+                </button>
+
+            </form>
+        }
+
+    </div>
+
+    <div class="th-product-body">
+
+        <h3 class="th-product-name">
+            @Model.Name
+        </h3>
+
+        <div class="th-product-description">
+            @Model.Description
+        </div>
+
+        <div class="th-product-price">
+            GH₵ @Model.Price.ToString("N2")
+        </div>
+
+        <a asp-controller="MarketPlace"
+           asp-action="Details"
+           asp-route-id="@Model.Id"
+           class="th-view-button">
+
+            View Item →
+
+        </a>
+
+    </div>
+
+</div>
