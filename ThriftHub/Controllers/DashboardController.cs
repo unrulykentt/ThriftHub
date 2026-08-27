@@ -19,6 +19,7 @@ namespace ThriftHub.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly ApplicationDbContext _context;
         private readonly AppStorageService _storage;
+        private readonly SellerSubscriptionService _subscriptionService;
 
 
         // ============================================================
@@ -29,12 +30,14 @@ namespace ThriftHub.Controllers
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             ApplicationDbContext context,
-            AppStorageService storage)
+            AppStorageService storage,
+            SellerSubscriptionService subscriptionService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _context = context;
             _storage = storage;
+            _subscriptionService = subscriptionService;
         }
 
 
@@ -284,56 +287,39 @@ namespace ThriftHub.Controllers
             bool hasActiveSubscription =
                 false;
 
+            SellerSubscription? activeSubscription =
+                null;
 
             if (isSeller)
             {
-                var now =
-                    DateTime.UtcNow;
+                activeSubscription =
+                    await _subscriptionService
+                        .GetActiveSubscriptionAsync(
+                            user.Id);
 
-
-                var subscription =
-                    await _context.SellerSubscriptions
-                        .Where(s =>
-                            s.SellerId == user.Id &&
-                            s.Status == "Active" &&
-                            s.EndDate > now
-                        )
-                        .OrderByDescending(
-                            s => s.EndDate
-                        )
-                        .FirstOrDefaultAsync();
-
-
-                if (subscription != null)
-                {
-                    // ------------------------------------------------
-                    // ADMIN-GRANTED SUBSCRIPTION
-                    // ------------------------------------------------
-
-                    if (subscription.IsAdminGranted)
-                    {
-                        hasActiveSubscription =
-                            true;
-                    }
-
-                    // ------------------------------------------------
-                    // NORMAL PAID SUBSCRIPTION
-                    // ------------------------------------------------
-
-                    else if (string.Equals(
-                        subscription.PaymentStatus,
-                        "Paid",
-                        StringComparison.OrdinalIgnoreCase))
-                    {
-                        hasActiveSubscription =
-                            true;
-                    }
-                }
+                hasActiveSubscription =
+                    activeSubscription != null;
             }
 
 
             ViewBag.HasActiveSubscription =
                 hasActiveSubscription;
+
+            ViewBag.ActiveSubscription =
+                activeSubscription;
+
+            ViewBag.IsWelcomeTrialActive =
+                activeSubscription != null
+                && SellerSubscriptionService.IsWelcomeTrial(
+                    activeSubscription);
+
+            if (activeSubscription != null)
+            {
+                ViewBag.TrialDaysRemaining =
+                    SellerSubscriptionService.GetDaysRemaining(
+                        activeSubscription,
+                        DateTime.UtcNow);
+            }
 
 
             // ========================================================

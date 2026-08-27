@@ -19,6 +19,7 @@ namespace ThriftHub.Controllers
         private readonly ApplicationDbContext _context;
         private readonly PaystackService _paystackService;
         private readonly IConfiguration _configuration;
+        private readonly SellerSubscriptionService _subscriptionService;
 
 
         // ============================================================
@@ -44,12 +45,14 @@ namespace ThriftHub.Controllers
             UserManager<ApplicationUser> userManager,
             ApplicationDbContext context,
             PaystackService paystackService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            SellerSubscriptionService subscriptionService)
         {
             _userManager = userManager;
             _context = context;
             _paystackService = paystackService;
             _configuration = configuration;
+            _subscriptionService = subscriptionService;
         }
 
 
@@ -77,22 +80,28 @@ namespace ThriftHub.Controllers
             // --------------------------------------------------------
 
             var activeSubscription =
-                await _context.SellerSubscriptions
-                    .Where(s =>
-                        s.SellerId == user.Id &&
-                        s.Status == "Active" &&
-                        s.EndDate > DateTime.UtcNow
-                    )
-                    .OrderByDescending(s => s.EndDate)
-                    .FirstOrDefaultAsync();
+                await _subscriptionService
+                    .GetActiveSubscriptionAsync(
+                        user.Id);
 
+            var isWelcomeTrial =
+                activeSubscription != null
+                && SellerSubscriptionService.IsWelcomeTrial(
+                    activeSubscription);
 
-            // --------------------------------------------------------
-            // SEND INFORMATION TO VIEW
-            // --------------------------------------------------------
 
             ViewBag.ActiveSubscription =
                 activeSubscription;
+
+            ViewBag.IsWelcomeTrialActive =
+                isWelcomeTrial;
+
+            ViewBag.TrialDaysRemaining =
+                activeSubscription != null
+                    ? SellerSubscriptionService.GetDaysRemaining(
+                        activeSubscription,
+                        DateTime.UtcNow)
+                    : 0;
 
             ViewBag.DurationMonths =
                 SubscriptionDurationMonths;
@@ -250,18 +259,13 @@ namespace ThriftHub.Controllers
             // CHECK EXISTING ACTIVE SUBSCRIPTION
             // ========================================================
 
-            var existingSubscription =
-                await _context.SellerSubscriptions
-                    .Where(s =>
-                        s.SellerId == user.Id &&
-                        s.Status == "Active" &&
-                        s.EndDate > DateTime.UtcNow
-                    )
-                    .OrderByDescending(s => s.EndDate)
-                    .FirstOrDefaultAsync();
+            var existingPaidSubscription =
+                await _subscriptionService
+                    .HasPaidActiveSubscriptionAsync(
+                        user.Id);
 
 
-            if (existingSubscription != null)
+            if (existingPaidSubscription)
             {
                 TempData["SuccessMessage"] =
                     "You already have an active seller subscription.";
@@ -772,6 +776,11 @@ namespace ThriftHub.Controllers
 
                 subscription.PaymentReference =
                     reference;
+
+
+                await _subscriptionService
+                    .EndWelcomeTrialsAsync(
+                        subscription.SellerId);
 
 
                 await _context.SaveChangesAsync();

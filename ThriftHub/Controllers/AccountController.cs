@@ -19,6 +19,7 @@ namespace ThriftHub.Controllers
         private readonly IEmailSender _emailSender;
         private readonly ILogger<AccountController> _logger;
         private readonly AppStorageService _storage;
+        private readonly SellerSubscriptionService _subscriptionService;
 
         // ============================================================
         // ADMIN EMAIL
@@ -39,7 +40,8 @@ namespace ThriftHub.Controllers
             ApplicationDbContext context,
             IEmailSender emailSender,
             ILogger<AccountController> logger,
-            AppStorageService storage)
+            AppStorageService storage,
+            SellerSubscriptionService subscriptionService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -48,6 +50,7 @@ namespace ThriftHub.Controllers
             _emailSender = emailSender;
             _logger = logger;
             _storage = storage;
+            _subscriptionService = subscriptionService;
         }
 
 
@@ -582,6 +585,14 @@ namespace ThriftHub.Controllers
 
                 return View(model);
             }
+
+
+            // ========================================================
+            // FREE FIRST MONTH FOR NEW ACCOUNTS
+            // ========================================================
+
+            await _subscriptionService.GrantWelcomeTrialAsync(
+                user.Id);
 
 
             // ========================================================
@@ -1661,15 +1672,9 @@ namespace ThriftHub.Controllers
 
 
             var activeSubscription =
-                await _context.SellerSubscriptions
-                    .Where(s =>
-                        s.SellerId == user.Id &&
-                        s.Status == "Active" &&
-                        s.PaymentStatus == "Paid" &&
-                        s.EndDate > DateTime.UtcNow)
-                    .OrderByDescending(
-                        s => s.EndDate)
-                    .FirstOrDefaultAsync();
+                await _subscriptionService
+                    .GetActiveSubscriptionAsync(
+                        user.Id);
 
 
             ViewBag.ActiveSubscription =
@@ -1678,6 +1683,19 @@ namespace ThriftHub.Controllers
 
             ViewBag.HasActiveSubscription =
                 activeSubscription != null;
+
+            ViewBag.IsWelcomeTrialActive =
+                activeSubscription != null
+                && SellerSubscriptionService.IsWelcomeTrial(
+                    activeSubscription);
+
+            if (activeSubscription != null)
+            {
+                ViewBag.TrialDaysRemaining =
+                    SellerSubscriptionService.GetDaysRemaining(
+                        activeSubscription,
+                        DateTime.UtcNow);
+            }
 
 
             return View(user);

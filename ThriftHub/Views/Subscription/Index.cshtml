@@ -7,6 +7,19 @@
 
     var durationMonths =
         ViewBag.DurationMonths ?? 4;
+
+    var isWelcomeTrial =
+        ViewBag.IsWelcomeTrialActive is bool trialActive &&
+        trialActive;
+
+    var trialDaysRemaining =
+        ViewBag.TrialDaysRemaining is int days
+            ? days
+            : 0;
+
+    var isPaidActive =
+        activeSubscription != null &&
+        !isWelcomeTrial;
 }
 
 <div class="subscription-page">
@@ -30,8 +43,20 @@
                 </h1>
 
                 <p>
-                    Choose a subscription plan to keep your ThriftHub
-                    seller account active.
+                    @if (isWelcomeTrial)
+                    {
+                        <text>
+                            Your first month is free. After that, choose a plan
+                            to keep selling on ThriftHub.
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                            Choose a subscription plan to keep your ThriftHub
+                            seller account active.
+                        </text>
+                    }
                 </p>
 
             </div>
@@ -86,7 +111,7 @@
         <!-- ============================================================
              ACTIVE SUBSCRIPTION
              ============================================================ -->
-        @if (activeSubscription != null)
+        @if (isPaidActive)
         {
             <div class="active-subscription-card">
 
@@ -115,7 +140,7 @@
                         </span>
 
                         <strong class="detail-value">
-                            @activeSubscription.PlanName
+                            @activeSubscription!.PlanName
                         </strong>
 
                     </div>
@@ -199,12 +224,71 @@
 
             </div>
         }
-        else
+        else if (isWelcomeTrial && activeSubscription != null)
         {
+            <div class="active-subscription-card trial-subscription-card">
 
-            <!-- ========================================================
-                 SUBSCRIPTION PLANS
-                 ======================================================== -->
+                <div class="active-icon">
+                    🎁
+                </div>
+
+                <div class="active-content">
+
+                    <h2>
+                        Your First Month Is Free
+                    </h2>
+
+                    <div class="subscription-detail">
+                        <span class="detail-label">
+                            Plan
+                        </span>
+                        <strong class="detail-value">
+                            Welcome Trial
+                        </strong>
+                    </div>
+
+                    <div class="subscription-detail">
+                        <span class="detail-label">
+                            Amount
+                        </span>
+                        <strong class="detail-value">
+                            Free
+                        </strong>
+                    </div>
+
+                    <div class="subscription-detail">
+                        <span class="detail-label">
+                            Days left
+                        </span>
+                        <strong class="detail-value expiry-date">
+                            @trialDaysRemaining day@(trialDaysRemaining == 1 ? "" : "s")
+                        </strong>
+                    </div>
+
+                    <div class="subscription-detail">
+                        <span class="detail-label">
+                            Free period ends
+                        </span>
+                        <strong class="detail-value expiry-date">
+                            @(activeSubscription.EndDate
+                                .ToLocalTime()
+                                .ToString("dd MMMM yyyy"))
+                        </strong>
+                    </div>
+
+                    <div class="active-message">
+                        Every new ThriftHub account gets 1 free month to sell.
+                        When your trial ends, you'll need to choose a paid plan
+                        below to keep posting items.
+                    </div>
+
+                </div>
+
+            </div>
+        }
+
+        @if (activeSubscription == null || isWelcomeTrial)
+        {
 
             <div class="plans-grid">
 

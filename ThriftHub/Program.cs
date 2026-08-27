@@ -249,6 +249,8 @@ builder.Services.AddScoped<IdentityDocumentArchiveService>();
 
 builder.Services.AddScoped<NotificationService>();
 
+builder.Services.AddScoped<SellerSubscriptionService>();
+
 
 // ============================================================
 // RENDER / REVERSE PROXY

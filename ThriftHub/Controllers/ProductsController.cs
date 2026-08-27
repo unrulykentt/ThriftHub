@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -17,6 +18,7 @@ namespace ThriftHub.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _environment;
+        private readonly SellerSubscriptionService _subscriptionService;
 
 
         // ============================================================
@@ -26,11 +28,13 @@ namespace ThriftHub.Controllers
         public ProductsController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            SellerSubscriptionService subscriptionService)
         {
             _context = context;
             _userManager = userManager;
             _environment = environment;
+            _subscriptionService = subscriptionService;
         }
 
 
@@ -120,48 +124,9 @@ namespace ThriftHub.Controllers
             // ACTIVE SUBSCRIPTION
             // --------------------------------------------------------
 
-            var now =
-                DateTime.UtcNow;
-
-
-            var subscription =
-                await _context.SellerSubscriptions
-                    .Where(s =>
-                        s.SellerId == user.Id &&
-                        s.Status == "Active" &&
-                        s.EndDate > now
-                    )
-                    .OrderByDescending(
-                        s => s.EndDate
-                    )
-                    .FirstOrDefaultAsync();
-
-
-            if (subscription == null)
-            {
-                return false;
-            }
-
-
-            // --------------------------------------------------------
-            // ADMIN-GRANTED SUBSCRIPTION
-            // --------------------------------------------------------
-
-            if (subscription.IsAdminGranted)
-            {
-                return true;
-            }
-
-
-            // --------------------------------------------------------
-            // PAID SUBSCRIPTION
-            // --------------------------------------------------------
-
-            return string.Equals(
-                subscription.PaymentStatus,
-                "Paid",
-                StringComparison.OrdinalIgnoreCase
-            );
+            return await _subscriptionService
+                .HasActiveSubscriptionAsync(
+                    user.Id);
         }
 
 

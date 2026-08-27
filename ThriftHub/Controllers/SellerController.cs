@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -12,13 +13,16 @@ namespace ThriftHub.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SellerSubscriptionService _subscriptionService;
 
         public SellerController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            SellerSubscriptionService subscriptionService)
         {
             _context = context;
             _userManager = userManager;
+            _subscriptionService = subscriptionService;
         }
 
 
@@ -368,56 +372,9 @@ namespace ThriftHub.Controllers
         private async Task<bool> HasActiveSubscription(
             string sellerId)
         {
-            var now =
-                DateTime.UtcNow;
-
-
-            var subscriptions =
-                await _context.Set<SellerSubscription>()
-                    .Where(s =>
-                        s.SellerId == sellerId &&
-                        s.EndDate > now)
-                    .OrderByDescending(
-                        s => s.EndDate)
-                    .ToListAsync();
-
-
-            foreach (var subscription in subscriptions)
-            {
-                if (!string.Equals(
-                    subscription.Status,
-                    "Active",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-
-                // ----------------------------------------------------
-                // ADMIN-GRANTED SUBSCRIPTION
-                // ----------------------------------------------------
-
-                if (subscription.IsAdminGranted)
-                {
-                    return true;
-                }
-
-
-                // ----------------------------------------------------
-                // NORMAL PAID SUBSCRIPTION
-                // ----------------------------------------------------
-
-                if (string.Equals(
-                    subscription.PaymentStatus,
-                    "Paid",
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-
-            return false;
+            return await _subscriptionService
+                .HasActiveSubscriptionAsync(
+                    sellerId);
         }
 
 

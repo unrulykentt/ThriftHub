@@ -36,6 +36,15 @@
         ViewBag.HasActiveSubscription is bool activeSubscription &&
         activeSubscription;
 
+    var isWelcomeTrial =
+        ViewBag.IsWelcomeTrialActive is bool welcomeTrial &&
+        welcomeTrial;
+
+    var trialDaysRemaining =
+        ViewBag.TrialDaysRemaining is int days
+            ? days
+            : 0;
+
     // ============================================================
     // ADMINISTRATOR
     // ============================================================
@@ -413,11 +422,22 @@
                             Sell an Item
                         </h3>
 
-                        <p>
-                            Your subscription is active.
-                            You can now post clothes, shoes, bags
-                            and other fashion items.
-                        </p>
+                        @if (isWelcomeTrial)
+                        {
+                            <p>
+                                Your free first month is active
+                                (@trialDaysRemaining day@(trialDaysRemaining == 1 ? "" : "s") left).
+                                Post clothes, shoes, bags and more while your trial runs.
+                            </p>
+                        }
+                        else
+                        {
+                            <p>
+                                Your subscription is active.
+                                You can now post clothes, shoes, bags
+                                and other fashion items.
+                            </p>
+                        }
 
 
                         <a asp-controller="Seller"
@@ -969,9 +989,8 @@
                 </h3>
 
                 <p>
-                    Seller verification does not automatically allow
-                    you to post products. You need an active seller
-                    subscription before you can post an item.
+                    Your free first month has ended. Choose a paid
+                    seller subscription before you can post new items.
                 </p>
 
                 <a asp-controller="Subscription"
