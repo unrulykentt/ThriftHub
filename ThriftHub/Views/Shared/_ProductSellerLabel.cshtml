@@ -1,0 +1,37 @@
+@model ThriftHub.Models.Product
+@using ThriftHub.Services
+
+@{
+    var sellerDisplayNames =
+        ViewData["SellerDisplayNames"]
+            as IReadOnlyDictionary<string, string>;
+
+    var sellerName =
+        UserPresentationHelper.GetSellerDisplayName(
+            Model,
+            sellerDisplayNames);
+
+    var cssClass =
+        ViewData["SellerLabelClass"] as string
+        ?? "th-product-seller";
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.SellerId))
+{
+    <a asp-controller="Seller"
+       asp-action="Profile"
+       asp-route-id="@Model.SellerId"
+       class="@cssClass">
+
+        Posted by @sellerName
+
+    </a>
+}
+else
+{
+    <span class="@cssClass">
+
+        Posted by @sellerName
+
+    </span>
+}

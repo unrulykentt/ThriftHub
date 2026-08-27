@@ -35,6 +35,11 @@ namespace ThriftHub.Controllers
                 .OrderByDescending(p => p.Id)
                 .ToListAsync();
 
+            ViewBag.SellerDisplayNames =
+                await UserPresentationHelper.LoadSellerDisplayNamesAsync(
+                    _context,
+                    products);
+
             return View(products);
         }
 

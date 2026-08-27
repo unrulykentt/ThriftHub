@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
 
+using ThriftHub.Services;
+
 namespace ThriftHub.Controllers
 {
     [Authorize]
@@ -50,6 +52,11 @@ namespace ThriftHub.Controllers
                 .ToListAsync();
 
             ViewBag.WishlistCount = products.Count;
+
+            ViewBag.SellerDisplayNames =
+                await UserPresentationHelper.LoadSellerDisplayNamesAsync(
+                    _context,
+                    products);
 
             return View("Wishlist", products);
         }

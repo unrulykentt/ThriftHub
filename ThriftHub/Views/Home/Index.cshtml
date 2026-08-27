@@ -80,6 +80,13 @@
 
                         <div class="product-information">
 
+                            <partial name="_ProductSellerLabel"
+                                     model="product"
+                                     view-data="@(new ViewDataDictionary(ViewData)
+                                     {
+                                         { "SellerLabelClass", "product-seller" }
+                                     })" />
+
                             <span class="product-category">
                                 @product.Category
                             </span>
@@ -324,6 +331,20 @@
 
     .product-information {
         padding: 18px;
+    }
+
+    .product-seller {
+        display: inline-block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #7650e8;
+        text-decoration: none;
+    }
+
+    .product-seller:hover {
+        color: #5b35c8;
+        text-decoration: underline;
     }
 
     .product-category {

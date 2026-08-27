@@ -148,7 +148,11 @@
 
                     <div class="th-overlay-meta">
 
-                        <span>@Model.Category</span>
+                        <span class="th-overlay-seller">
+                            @sellerName
+                        </span>
+
+                        <span> · @Model.Category</span>
 
                         @if (!string.IsNullOrWhiteSpace(Model.Subcategory))
                         {
@@ -217,6 +221,26 @@
 
 
             <!-- PRODUCT NAME -->
+
+            @if (seller != null)
+            {
+                <div class="th-product-seller-summary">
+
+                    <span class="th-product-seller-label">
+                        Posted by
+                    </span>
+
+                    <a asp-controller="Seller"
+                       asp-action="Profile"
+                       asp-route-id="@seller.Id"
+                       class="th-product-seller-link">
+
+                        @sellerName
+
+                    </a>
+
+                </div>
+            }
 
             <h1 class="th-product-title">
 
@@ -1066,6 +1090,28 @@
         font-size: clamp(30px, 4vw, 42px);
         line-height: 1.15;
         color: var(--th-text);
+    }
+
+    .th-product-seller-summary {
+        margin-bottom: 10px;
+        font-size: 14px;
+        color: #777386;
+    }
+
+    .th-product-seller-label {
+        margin-right: 6px;
+        font-weight: 700;
+    }
+
+    .th-product-seller-link {
+        color: #6f3cc3;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    .th-product-seller-link:hover {
+        color: #54249c;
+        text-decoration: underline;
     }
 
 

@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
 using ThriftHub.Models;
 
+using ThriftHub.Services;
+
 namespace ThriftHub.Controllers
 {
     public class MarketPlaceController : Controller
@@ -196,6 +198,11 @@ namespace ThriftHub.Controllers
 
             ViewBag.FavoriteProductIds =
                 favoriteProductIds;
+
+            ViewBag.SellerDisplayNames =
+                await UserPresentationHelper.LoadSellerDisplayNamesAsync(
+                    _context,
+                    result);
 
 
             // =====================================================

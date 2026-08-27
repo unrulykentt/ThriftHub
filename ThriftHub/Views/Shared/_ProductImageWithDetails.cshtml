@@ -1,4 +1,5 @@
 @model ThriftHub.Models.Product
+@using ThriftHub.Services
 
 @{
     var showStatus =
@@ -8,6 +9,15 @@
     var placeholderIcon =
         ViewData["PlaceholderIcon"] as string
         ?? "🛍️";
+
+    var sellerDisplayNames =
+        ViewData["SellerDisplayNames"]
+            as IReadOnlyDictionary<string, string>;
+
+    var sellerName =
+        UserPresentationHelper.GetSellerDisplayName(
+            Model,
+            sellerDisplayNames);
 
     var descriptionPreview =
         string.IsNullOrWhiteSpace(Model.Description)
@@ -54,7 +64,11 @@
 
         <div class="th-overlay-meta">
 
-            <span>@Model.Category</span>
+            <span class="th-overlay-seller">
+                @sellerName
+            </span>
+
+            <span> · @Model.Category</span>
 
             @if (!string.IsNullOrWhiteSpace(Model.Condition))
             {
