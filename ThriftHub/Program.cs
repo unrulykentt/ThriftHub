@@ -1,4 +1,5 @@
 using System.Text;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -12,6 +13,48 @@ using ThriftHub.Models;
 using ThriftHub.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+static void ConfigureRemoteAuthOptions(
+    RemoteAuthenticationOptions options)
+{
+    options.SignInScheme =
+        IdentityConstants.ExternalScheme;
+
+    options.SaveTokens = true;
+
+    options.CorrelationCookie.SameSite =
+        SameSiteMode.None;
+
+    options.CorrelationCookie.SecurePolicy =
+        CookieSecurePolicy.Always;
+
+    options.CorrelationCookie.IsEssential =
+        true;
+
+    options.CorrelationCookie.Path =
+        "/";
+
+    options.Events.OnRemoteFailure =
+        context =>
+        {
+            var logger =
+                context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+
+            logger.LogWarning(
+                context.Failure,
+                "External login remote failure for {CallbackPath}.",
+                options.CallbackPath);
+
+            context.Response.Redirect(
+                "/Account/ExternalLoginCallback?remoteError=signin_failed");
+
+            context.HandleResponse();
+
+            return Task.CompletedTask;
+        };
+}
 
 
 // ============================================================
@@ -123,16 +166,7 @@ if (
             options.ClientSecret =
                 googleClientSecret;
 
-            options.SaveTokens = true;
-
-            options.SignInScheme =
-                IdentityConstants.ExternalScheme;
-
-            options.CorrelationCookie.SameSite =
-                SameSiteMode.None;
-
-            options.CorrelationCookie.SecurePolicy =
-                CookieSecurePolicy.Always;
+            ConfigureRemoteAuthOptions(options);
         });
 }
 
@@ -174,16 +208,7 @@ if (
                             .Replace("\\n", "\n")
                             .AsMemory());
 
-            options.SaveTokens = true;
-
-            options.SignInScheme =
-                IdentityConstants.ExternalScheme;
-
-            options.CorrelationCookie.SameSite =
-                SameSiteMode.None;
-
-            options.CorrelationCookie.SecurePolicy =
-                CookieSecurePolicy.Always;
+            ConfigureRemoteAuthOptions(options);
         });
 }
 
@@ -225,8 +250,23 @@ builder.Services.ConfigureExternalCookie(options =>
     options.Cookie.SecurePolicy =
         CookieSecurePolicy.Always;
 
+    options.Cookie.IsEssential =
+        true;
+
+    options.Cookie.Path =
+        "/";
+
     options.ExpireTimeSpan =
         TimeSpan.FromMinutes(15);
+});
+
+builder.Services.Configure<CookiePolicyOptions>(options =>
+{
+    options.MinimumSameSitePolicy =
+        SameSiteMode.Unspecified;
+
+    options.Secure =
+        CookieSecurePolicy.Always;
 });
 
 
@@ -325,6 +365,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
     options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor |
         ForwardedHeaders.XForwardedProto;
+
+    options.ForwardLimit = null;
 
     options.KnownNetworks.Clear();
     options.KnownProxies.Clear();
@@ -447,6 +489,9 @@ var app = builder.Build();
 
 
 app.UseForwardedHeaders();
+
+
+app.UseCookiePolicy();
 
 
 app.Use(async (context, next) =>
