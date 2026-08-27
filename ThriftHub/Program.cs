@@ -399,6 +399,8 @@ builder.Services.AddScoped<IdentityDocumentArchiveService>();
 
 builder.Services.AddScoped<AccountDeletionService>();
 
+builder.Services.AddSingleton<QrCodeService>();
+
 
 // ------------------------------------------------------------
 // Notifications

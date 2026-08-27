@@ -33,6 +33,7 @@
 		<!-- Sign in with Google / Apple -->
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="9.0.9" />
 		<PackageReference Include="AspNet.Security.OAuth.Apple" Version="9.0.0" />
+		<PackageReference Include="QRCoder" Version="1.8.0" />
 
 	</ItemGroup>
 

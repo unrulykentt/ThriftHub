@@ -77,6 +77,44 @@
             position: relative;
         }
 
+        .hero-grid {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 28px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-copy {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .hero-qr {
+            flex-shrink: 0;
+            text-align: center;
+        }
+
+        .hero-qr img {
+            display: block;
+            width: 132px;
+            height: 132px;
+            background: #fff;
+            border-radius: 16px;
+            padding: 10px;
+        }
+
+        .hero-qr span {
+            display: block;
+            margin-top: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.78);
+        }
+
         .hero::after {
             content: "";
             position: absolute;
@@ -391,17 +429,28 @@
     <div class="flyer-wrap">
         <div id="flyer">
             <div class="hero">
-                <div class="badge-row">
-                    <span class="badge accent">Student Thrift Marketplace</span>
-                    <span class="badge">Ghana · GH₵</span>
-                    <span class="badge">Fashion · Tech · Books</span>
+                <div class="hero-grid">
+                    <div class="hero-copy">
+                        <div class="badge-row">
+                            <span class="badge accent">Student Thrift Marketplace</span>
+                            <span class="badge">Ghana · GH₵</span>
+                            <span class="badge">Fashion · Tech · Books</span>
+                        </div>
+                        <h2>ThriftHub</h2>
+                        <p class="tagline">
+                            Buy and sell pre-loved fashion, textbooks, electronics, and hostel essentials.
+                            Built for Ghanaian students — from sign-up to your first chat.
+                        </p>
+                        <div class="url">thrifthubgh.com</div>
+                    </div>
+                    <div class="hero-qr">
+                        <img src="https://thrifthubgh.com/Home/QrCode"
+                             alt="Scan to visit ThriftHub"
+                             width="132"
+                             height="132" />
+                        <span>Scan to visit</span>
+                    </div>
                 </div>
-                <h2>ThriftHub</h2>
-                <p class="tagline">
-                    Buy and sell pre-loved fashion, textbooks, electronics, and hostel essentials.
-                    Built for Ghanaian students — from sign-up to your first chat.
-                </p>
-                <div class="url">thrifthubgh.com</div>
             </div>
 
             <div class="section">
