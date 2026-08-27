@@ -314,21 +314,9 @@ using (var scope = app.Services.CreateScope())
         var persistence =
             services.GetRequiredService<DatabasePersistenceService>();
 
-        persistence.PrepareStorageDirectories();
-
-        persistence.BackupDatabaseIfExists();
-
-        await context.Database.MigrateAsync();
-
-        await context.Database.ExecuteSqlRawAsync(
-            "PRAGMA journal_mode=WAL;");
-
         await persistence
-            .RestoreLatestBackupIfDatabaseEmptyAsync(
+            .EnsureBestDatabaseAvailableAsync(
                 context);
-
-        await persistence.LogDatabaseHealthAsync(
-            context);
     }
     catch (Exception ex)
     {

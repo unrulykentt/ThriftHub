@@ -1112,6 +1112,18 @@ namespace ThriftHub.Controllers
             var user =
                 await _userManager.FindByEmailAsync(email);
 
+            if (user == null)
+            {
+                user =
+                    await _userManager.Users
+                        .FirstOrDefaultAsync(
+                            u =>
+                                u.Email != null &&
+                                u.Email.Trim()
+                                    .ToLowerInvariant() ==
+                                email);
+            }
+
 
             if (user == null)
             {

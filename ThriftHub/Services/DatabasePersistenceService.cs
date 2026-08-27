@@ -221,7 +221,7 @@ namespace ThriftHub.Services
                 backupPath,
                 overwrite: false);
 
-            _logger?.LogInformation(
+            _logger.LogInformation(
                 "Database backup saved to {BackupPath}.",
                 backupPath);
 
@@ -229,21 +229,85 @@ namespace ThriftHub.Services
                 backupsDirectory);
         }
 
+        public async Task EnsureBestDatabaseAvailableAsync(
+            ApplicationDbContext context)
+        {
+            PrepareStorageDirectories();
+
+            BackupDatabaseIfExists();
+
+            var primaryPath =
+                GetDatabasePath();
+
+            var bestCandidate =
+                FindBestDatabaseCandidate();
+
+            if (
+                bestCandidate != null &&
+                !string.Equals(
+                    bestCandidate.Path,
+                    primaryPath,
+                    StringComparison.OrdinalIgnoreCase) &&
+                bestCandidate.UserCount >
+                CountUsersInDatabase(primaryPath))
+            {
+                _logger.LogWarning(
+                    "Recovering {UserCount} accounts from {SourcePath} into {TargetPath}.",
+                    bestCandidate.UserCount,
+                    bestCandidate.Path,
+                    primaryPath);
+
+                await context.Database.CloseConnectionAsync();
+
+                var primaryDirectory =
+                    Path.GetDirectoryName(primaryPath);
+
+                if (!string.IsNullOrWhiteSpace(primaryDirectory))
+                {
+                    Directory.CreateDirectory(primaryDirectory);
+                }
+
+                File.Copy(
+                    bestCandidate.Path,
+                    primaryPath,
+                    overwrite: true);
+            }
+
+            await context.Database.MigrateAsync();
+
+            await context.Database.ExecuteSqlRawAsync(
+                "PRAGMA journal_mode=WAL;");
+
+            await RestoreIfDatabaseDegradedAsync(
+                context);
+
+            await LogDatabaseHealthAsync(context);
+
+            ValidateRenderDiskMount();
+        }
+
         public async Task RestoreLatestBackupIfDatabaseEmptyAsync(
             ApplicationDbContext context)
+        {
+            await RestoreIfDatabaseDegradedAsync(
+                context,
+                onlyWhenEmpty: true);
+        }
+
+        private async Task RestoreIfDatabaseDegradedAsync(
+            ApplicationDbContext context,
+            bool onlyWhenEmpty = false)
         {
             var databasePath =
                 GetDatabasePath();
 
-            var userCount =
+            var currentUserCount =
                 await context.Users.CountAsync();
 
-            if (userCount > 0)
+            if (
+                onlyWhenEmpty &&
+                currentUserCount > 0)
             {
-                _logger?.LogInformation(
-                    "Database contains {UserCount} accounts — no restore needed.",
-                    userCount);
-
                 return;
             }
 
@@ -252,6 +316,12 @@ namespace ThriftHub.Services
 
             if (!Directory.Exists(backupsDirectory))
             {
+                if (currentUserCount == 0)
+                {
+                    _logger.LogWarning(
+                        "Database has no accounts and no backup directory was found.");
+                }
+
                 return;
             }
 
@@ -262,6 +332,9 @@ namespace ThriftHub.Services
                     .OrderByDescending(
                         path => path)
                     .ToList();
+
+            DatabaseCandidate? bestBackup =
+                null;
 
             foreach (var backupPath in backupFiles)
             {
@@ -274,32 +347,60 @@ namespace ThriftHub.Services
                     continue;
                 }
 
-                _logger?.LogWarning(
-                    "Empty database detected. Restoring {UserCount} accounts from backup {BackupPath}.",
-                    backupUserCount,
-                    backupPath);
+                if (
+                    bestBackup == null ||
+                    backupUserCount > bestBackup.UserCount)
+                {
+                    bestBackup =
+                        new DatabaseCandidate
+                        {
+                            Path = backupPath,
+                            UserCount = backupUserCount,
+                            MessageCount =
+                                CountMessagesInDatabase(
+                                    backupPath)
+                        };
+                }
+            }
 
-                await context.Database.CloseConnectionAsync();
-
-                File.Copy(
-                    backupPath,
-                    databasePath,
-                    overwrite: true);
-
-                await context.Database.MigrateAsync();
-
-                var restoredCount =
-                    await context.Users.CountAsync();
-
-                _logger?.LogWarning(
-                    "Database restore complete. {UserCount} accounts are available again.",
-                    restoredCount);
+            if (bestBackup == null)
+            {
+                if (currentUserCount == 0)
+                {
+                    _logger.LogWarning(
+                        "Database has no accounts and no usable backup was found.");
+                }
 
                 return;
             }
 
-            _logger?.LogWarning(
-                "Database has no accounts and no usable backup was found.");
+            if (
+                !onlyWhenEmpty &&
+                currentUserCount >= bestBackup.UserCount)
+            {
+                return;
+            }
+
+            _logger.LogWarning(
+                "Restoring {UserCount} accounts from backup {BackupPath}.",
+                bestBackup.UserCount,
+                bestBackup.Path);
+
+            await context.Database.CloseConnectionAsync();
+
+            File.Copy(
+                bestBackup.Path,
+                databasePath,
+                overwrite: true);
+
+            await context.Database.MigrateAsync();
+
+            var restoredCount =
+                await context.Users.CountAsync();
+
+            _logger.LogWarning(
+                "Database restore complete. {UserCount} accounts are available again.",
+                restoredCount);
         }
 
         public async Task LogDatabaseHealthAsync(
@@ -311,12 +412,196 @@ namespace ThriftHub.Services
             var messageCount =
                 await context.Messages.CountAsync();
 
-            _logger?.LogInformation(
+            _logger.LogInformation(
                 "Database health: {UserCount} accounts, {MessageCount} messages stored at {DatabasePath}. Persistent storage: {UsesPersistentStorage}.",
                 userCount,
                 messageCount,
                 GetDatabasePath(),
                 UsesPersistentStorage);
+        }
+
+        public void ValidateRenderDiskMount()
+        {
+            if (!UsesPersistentStorage)
+            {
+                return;
+            }
+
+            var runningOnRender =
+                !string.IsNullOrWhiteSpace(
+                    Environment.GetEnvironmentVariable("RENDER"));
+
+            if (!runningOnRender)
+            {
+                return;
+            }
+
+            if (IsPathMounted(_dataRoot!))
+            {
+                _logger.LogInformation(
+                    "Render persistent disk is mounted at {DataPath}.",
+                    _dataRoot);
+
+                return;
+            }
+
+            _logger.LogCritical(
+                "RENDER DISK NOT MOUNTED at {DataPath}. " +
+                "Accounts and messages WILL BE LOST on every deploy until you add a persistent disk in the Render dashboard.",
+                _dataRoot);
+        }
+
+        private DatabaseCandidate? FindBestDatabaseCandidate()
+        {
+            DatabaseCandidate? best =
+                null;
+
+            foreach (var candidatePath in DiscoverDatabaseCandidates())
+            {
+                if (!File.Exists(candidatePath))
+                {
+                    continue;
+                }
+
+                var userCount =
+                    CountUsersInDatabase(
+                        candidatePath);
+
+                if (userCount <= 0)
+                {
+                    continue;
+                }
+
+                var messageCount =
+                    CountMessagesInDatabase(
+                        candidatePath);
+
+                if (
+                    best == null ||
+                    userCount > best.UserCount ||
+                    (
+                        userCount == best.UserCount &&
+                        messageCount > best.MessageCount))
+                {
+                    best =
+                        new DatabaseCandidate
+                        {
+                            Path = candidatePath,
+                            UserCount = userCount,
+                            MessageCount = messageCount
+                        };
+                }
+            }
+
+            return best;
+        }
+
+        private IEnumerable<string> DiscoverDatabaseCandidates()
+        {
+            var seen =
+                new HashSet<string>(
+                    StringComparer.OrdinalIgnoreCase);
+
+            foreach (var path in new[]
+            {
+                GetDatabasePath(),
+                Path.Combine(
+                    _contentRootPath,
+                    "thrifthub.db"),
+                Path.Combine(
+                    _contentRootPath,
+                    "out",
+                    "thrifthub.db"),
+                "/opt/render/project/src/thrifthub.db"
+            })
+            {
+                if (
+                    string.IsNullOrWhiteSpace(path) ||
+                    !seen.Add(path))
+                {
+                    continue;
+                }
+
+                yield return path;
+            }
+
+            foreach (var backupsDirectory in new[]
+            {
+                GetBackupsDirectory(),
+                Path.Combine(
+                    _contentRootPath,
+                    "backups")
+            })
+            {
+                if (!Directory.Exists(backupsDirectory))
+                {
+                    continue;
+                }
+
+                foreach (var backupPath in Directory.GetFiles(
+                    backupsDirectory,
+                    "thrifthub-*.db"))
+                {
+                    if (!seen.Add(backupPath))
+                    {
+                        continue;
+                    }
+
+                    yield return backupPath;
+                }
+            }
+        }
+
+        private static bool IsPathMounted(
+            string path)
+        {
+            if (!OperatingSystem.IsLinux())
+            {
+                return true;
+            }
+
+            try
+            {
+                var normalizedPath =
+                    path.Replace('\\', '/').TrimEnd('/');
+
+                foreach (var line in File.ReadLines("/proc/mounts"))
+                {
+                    var parts =
+                        line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+                    if (parts.Length < 2)
+                    {
+                        continue;
+                    }
+
+                    var mountPoint =
+                        parts[1].TrimEnd('/');
+
+                    if (
+                        string.Equals(
+                            mountPoint,
+                            normalizedPath,
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            return false;
+        }
+
+        private sealed class DatabaseCandidate
+        {
+            public string Path { get; set; } = string.Empty;
+
+            public int UserCount { get; set; }
+
+            public int MessageCount { get; set; }
         }
 
         public void LogPersistenceWarnings()
@@ -354,6 +639,34 @@ namespace ThriftHub.Services
 
                 command.CommandText =
                     "SELECT COUNT(*) FROM AspNetUsers;";
+
+                var result =
+                    command.ExecuteScalar();
+
+                return Convert.ToInt32(result);
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private static int CountMessagesInDatabase(
+            string databasePath)
+        {
+            try
+            {
+                using var connection =
+                    new SqliteConnection(
+                        $"Data Source={databasePath};Mode=ReadOnly;Cache=Shared");
+
+                connection.Open();
+
+                using var command =
+                    connection.CreateCommand();
+
+                command.CommandText =
+                    "SELECT COUNT(*) FROM Messages;";
 
                 var result =
                     command.ExecuteScalar();
