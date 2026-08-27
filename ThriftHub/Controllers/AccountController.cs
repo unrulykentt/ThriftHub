@@ -1910,11 +1910,21 @@ namespace ThriftHub.Controllers
             string provider,
             string? returnUrl = null)
         {
+            var callbackScheme =
+                Request.IsHttps ||
+                string.Equals(
+                    Request.Headers["X-Forwarded-Proto"],
+                    "https",
+                    StringComparison.OrdinalIgnoreCase)
+                    ? "https"
+                    : Request.Scheme;
+
             var redirectUrl =
                 Url.Action(
                     nameof(ExternalLoginCallback),
                     "Account",
-                    new { returnUrl });
+                    new { returnUrl },
+                    callbackScheme);
 
             var properties =
                 _signInManager.ConfigureExternalAuthenticationProperties(

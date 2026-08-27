@@ -1,3 +1,4 @@
+using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -358,18 +359,28 @@ builder.Services.AddScoped<SellerSubscriptionService>();
 // ============================================================
 // RENDER / REVERSE PROXY
 // ============================================================
-// Ensures password reset links in emails use https on Render.
+// Render terminates HTTPS and forwards X-Forwarded-* headers.
+// ASP.NET Core 8.0.17+ ignores those headers unless the proxy
+// is trusted — without that, OAuth sees http:// and sign-in fails.
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders =
         ForwardedHeaders.XForwardedFor |
-        ForwardedHeaders.XForwardedProto;
+        ForwardedHeaders.XForwardedProto |
+        ForwardedHeaders.XForwardedHost;
 
     options.ForwardLimit = null;
 
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
+    options.KnownNetworks.Add(
+        new Microsoft.AspNetCore.HttpOverrides.IPNetwork(
+            IPAddress.Any,
+            0));
+
+    options.KnownNetworks.Add(
+        new Microsoft.AspNetCore.HttpOverrides.IPNetwork(
+            IPAddress.IPv6Any,
+            0));
 });
 
 
@@ -489,6 +500,17 @@ var app = builder.Build();
 
 
 app.UseForwardedHeaders();
+
+
+if (!app.Environment.IsDevelopment())
+{
+    app.Use((context, next) =>
+    {
+        context.Request.Scheme = "https";
+
+        return next();
+    });
+}
 
 
 app.UseCookiePolicy();
