@@ -1,0 +1,95 @@
+@using ThriftHub.Services
+@inject ThriftHub.Services.SiteSeoService Seo
+
+@{
+    var controller =
+        ViewContext.RouteData.Values["controller"]?.ToString();
+
+    var action =
+        ViewContext.RouteData.Values["action"]?.ToString();
+
+    var pageTitle =
+        ViewData["Title"]?.ToString()
+        ?? Seo.SiteName;
+
+    var metaDescription =
+        ViewData["MetaDescription"] as string
+        ?? SiteSeoService.DefaultDescription;
+
+    var metaKeywords =
+        ViewData["MetaKeywords"] as string
+        ?? SiteSeoService.DefaultKeywords;
+
+    var canonicalUrl =
+        ViewData["CanonicalUrl"] as string
+        ?? Seo.GetCanonicalUrl();
+
+    var allowIndexing =
+        ViewData["AllowIndexing"] as bool?
+        ?? Seo.ShouldAllowIndexing(
+            controller,
+            action);
+
+    var ogImage =
+        ViewData["OgImage"] as string
+        ?? $"{Seo.PublicUrl}/favicon.svg";
+}
+
+<meta name="description" content="@metaDescription" />
+<meta name="keywords" content="@metaKeywords" />
+<meta name="author" content="ThriftHub" />
+<link rel="canonical" href="@canonicalUrl" />
+
+@if (!allowIndexing)
+{
+    <meta name="robots" content="noindex, nofollow" />
+}
+else
+{
+    <meta name="robots" content="index, follow" />
+}
+
+@if (!string.IsNullOrWhiteSpace(Seo.GoogleSiteVerification))
+{
+    <meta name="google-site-verification"
+          content="@Seo.GoogleSiteVerification" />
+}
+
+<meta property="og:site_name" content="@Seo.SiteName" />
+<meta property="og:title" content="@pageTitle - @Seo.SiteName" />
+<meta property="og:description" content="@metaDescription" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="@canonicalUrl" />
+<meta property="og:image" content="@ogImage" />
+<meta property="og:locale" content="en_GH" />
+
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="@pageTitle - @Seo.SiteName" />
+<meta name="twitter:description" content="@metaDescription" />
+<meta name="twitter:image" content="@ogImage" />
+
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "WebSite",
+        "name": "@Seo.SiteName",
+        "url": "@Seo.PublicUrl",
+        "description": @Html.Raw(System.Text.Json.JsonSerializer.Serialize(metaDescription)),
+        "potentialAction": {
+            "@@type": "SearchAction",
+            "target": "@Seo.PublicUrl/MarketPlace?search={search_term_string}",
+            "query-input": "required name=search_term_string"
+        }
+    }
+</script>
+
+<script type="application/ld+json">
+    {
+        "@@context": "https://schema.org",
+        "@@type": "Organization",
+        "name": "@Seo.SiteName",
+        "url": "@Seo.PublicUrl",
+        "logo": "@($"{Seo.PublicUrl}/favicon.svg")",
+        "description": @Html.Raw(System.Text.Json.JsonSerializer.Serialize(metaDescription))
+    }
+</script>

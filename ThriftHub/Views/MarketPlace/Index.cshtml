@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Marketplace";
+    ViewData["MetaDescription"] =
+        "Browse thrift fashion, books, laptops, phones, smartwatches, electronics, and hostel essentials from Ghanaian student sellers on ThriftHub.";
+    ViewData["AllowIndexing"] = true;
 
     var products = Model?.ToList()
         ?? new List<ThriftHub.Models.Product>();

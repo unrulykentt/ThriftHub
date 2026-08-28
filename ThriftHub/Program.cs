@@ -401,6 +401,10 @@ builder.Services.AddScoped<AccountDeletionService>();
 
 builder.Services.AddSingleton<QrCodeService>();
 
+builder.Services.AddHttpContextAccessor();
+
+builder.Services.AddSingleton<SiteSeoService>();
+
 
 // ------------------------------------------------------------
 // Notifications

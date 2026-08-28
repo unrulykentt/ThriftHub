@@ -18,6 +18,10 @@ services:
         value: "true"
       - key: ThriftHub__DataPath
         value: /data
+      - key: ThriftHub__PublicUrl
+        value: https://thrifthubgh.com
+      - key: ThriftHub__GoogleSiteVerification
+        sync: false
       - key: Authentication__Google__ClientId
         sync: false
       - key: Authentication__Google__ClientSecret

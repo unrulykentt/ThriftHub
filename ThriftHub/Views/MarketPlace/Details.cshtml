@@ -11,6 +11,15 @@
     var sellerName =
         UserPresentationHelper.GetDisplayName(seller);
 
+    ViewData["MetaDescription"] =
+        $"Buy {Model.Name} for GH₵ {Model.Price:N2} on ThriftHub. {Model.Category} listed by {sellerName}.";
+    ViewData["AllowIndexing"] = true;
+
+    if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+    {
+        ViewData["OgImage"] = Model.ImageUrl;
+    }
+
     var sellerEmail =
         seller?.Email ?? "";
 
