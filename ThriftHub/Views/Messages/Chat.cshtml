@@ -644,6 +644,147 @@
             document.getElementById(
                 "messageInput");
 
+        const chatCard =
+            document.querySelector(".chat-card");
+
+        let pinnedScrollTop = null;
+
+
+        /* =========================================================
+           MOBILE KEYBOARD / VIEWPORT
+           ========================================================= */
+
+        function isNearBottom(threshold) {
+
+            if (!messagesContainer) {
+                return true;
+            }
+
+            const gap =
+                messagesContainer.scrollHeight -
+                messagesContainer.clientHeight -
+                messagesContainer.scrollTop;
+
+            return gap <= (threshold || 120);
+
+        }
+
+
+        function pinMessageScroll() {
+
+            if (!messagesContainer) {
+                return;
+            }
+
+            pinnedScrollTop =
+                messagesContainer.scrollTop;
+
+        }
+
+
+        function restorePinnedScroll() {
+
+            if (
+                !messagesContainer ||
+                pinnedScrollTop === null
+            ) {
+                return;
+            }
+
+            if (!isNearBottom(160)) {
+                messagesContainer.scrollTop =
+                    pinnedScrollTop;
+            }
+
+        }
+
+
+        function syncMobileChatViewport() {
+
+            if (
+                window.innerWidth > 768 ||
+                !chatCard
+            ) {
+                return;
+            }
+
+            const viewport =
+                window.visualViewport;
+
+            if (!viewport) {
+                return;
+            }
+
+            chatCard.style.top =
+                viewport.offsetTop + "px";
+
+            chatCard.style.height =
+                viewport.height + "px";
+
+            restorePinnedScroll();
+
+        }
+
+
+        if (window.visualViewport) {
+
+            window.visualViewport.addEventListener(
+                "resize",
+                function () {
+
+                    pinMessageScroll();
+                    syncMobileChatViewport();
+
+                }
+            );
+
+            window.visualViewport.addEventListener(
+                "scroll",
+                syncMobileChatViewport
+            );
+
+        }
+
+
+        window.addEventListener(
+            "orientationchange",
+            function () {
+
+                setTimeout(
+                    syncMobileChatViewport,
+                    150
+                );
+
+            }
+        );
+
+
+        if (messageInput) {
+
+            messageInput.addEventListener(
+                "focus",
+                function () {
+
+                    pinMessageScroll();
+
+                    requestAnimationFrame(
+                        function () {
+
+                            syncMobileChatViewport();
+
+                            restorePinnedScroll();
+
+                        }
+                    );
+
+                }
+            );
+
+        }
+
+
+        syncMobileChatViewport();
+
         const sendButton =
             document.getElementById(
                 "sendButton");
@@ -1563,7 +1704,7 @@
             row.appendChild(stack);
             messagesList.appendChild(row);
 
-            scrollToBottom();
+            scrollToBottom(isSent);
 
         }
 
@@ -4259,7 +4400,7 @@
            SCROLL
            ========================================================= */
 
-        function scrollToBottom() {
+        function scrollToBottom(force) {
 
             if (!messagesContainer) {
 
@@ -4268,8 +4409,24 @@
             }
 
 
-            messagesContainer.scrollTop =
-                messagesContainer.scrollHeight;
+            if (
+                !force &&
+                !isNearBottom()
+            ) {
+
+                return;
+
+            }
+
+
+            requestAnimationFrame(
+                function () {
+
+                    messagesContainer.scrollTop =
+                        messagesContainer.scrollHeight;
+
+                }
+            );
 
         }
 
@@ -4278,7 +4435,7 @@
             "load",
             function() {
 
-                scrollToBottom();
+                scrollToBottom(true);
 
                 resizeMessageBox();
 

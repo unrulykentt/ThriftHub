@@ -63,9 +63,11 @@
            asp-action="Index"
            class="th-app-nav-item @(homeActive ? "active" : "")">
 
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"></path>
-            </svg>
+            <span class="th-app-nav-icon-wrap">
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"></path>
+                </svg>
+            </span>
 
             <span>Home</span>
 
@@ -77,12 +79,14 @@
                asp-action="Index"
                class="th-app-nav-item @(dashboardActive ? "active" : "")">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="3" width="8" height="8" rx="2"></rect>
-                    <rect x="13" y="3" width="8" height="5" rx="2"></rect>
-                    <rect x="13" y="10" width="8" height="11" rx="2"></rect>
-                    <rect x="3" y="13" width="8" height="8" rx="2"></rect>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                        <rect x="13" y="3" width="8" height="5" rx="2"></rect>
+                        <rect x="13" y="10" width="8" height="11" rx="2"></rect>
+                        <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                    </svg>
+                </span>
 
                 <span>Dashboard</span>
 
@@ -95,12 +99,14 @@
                asp-route-returnUrl="@Url.Action("Index", "Dashboard")"
                class="th-app-nav-item">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <rect x="3" y="3" width="8" height="8" rx="2"></rect>
-                    <rect x="13" y="3" width="8" height="5" rx="2"></rect>
-                    <rect x="13" y="10" width="8" height="11" rx="2"></rect>
-                    <rect x="3" y="13" width="8" height="8" rx="2"></rect>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                        <rect x="13" y="3" width="8" height="5" rx="2"></rect>
+                        <rect x="13" y="10" width="8" height="11" rx="2"></rect>
+                        <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                    </svg>
+                </span>
 
                 <span>Dashboard</span>
 
@@ -113,9 +119,14 @@
                asp-action="Index"
                class="th-app-nav-item @(messagesActive ? "active" : "")">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 4V6a1 1 0 0 1 1-1z"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 6h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3V8a2 2 0 0 1 2-2z"></path>
+                        <circle cx="9" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                        <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                        <circle cx="15" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                </span>
 
                 <span>Messages</span>
 
@@ -128,9 +139,14 @@
                asp-route-returnUrl="@Url.Action("Index", "Messages")"
                class="th-app-nav-item">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 4V6a1 1 0 0 1 1-1z"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 6h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3V8a2 2 0 0 1 2-2z"></path>
+                        <circle cx="9" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                        <circle cx="12" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                        <circle cx="15" cy="12" r="0.8" fill="currentColor" stroke="none"></circle>
+                    </svg>
+                </span>
 
                 <span>Messages</span>
 
@@ -143,10 +159,12 @@
                asp-action="Profile"
                class="th-app-nav-item @(meActive ? "active" : "")">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M5 20a7 7 0 0 1 14 0"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M5 20a7 7 0 0 1 14 0"></path>
+                    </svg>
+                </span>
 
                 <span>Me</span>
 
@@ -158,10 +176,12 @@
                asp-action="Login"
                class="th-app-nav-item">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4"></circle>
-                    <path d="M5 20a7 7 0 0 1 14 0"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4"></circle>
+                        <path d="M5 20a7 7 0 0 1 14 0"></path>
+                    </svg>
+                </span>
 
                 <span>Me</span>
 
@@ -174,9 +194,11 @@
                asp-action="Index"
                class="th-app-nav-item @(wishlistActive ? "active" : "")">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
+                    </svg>
+                </span>
 
                 <span>Wishlist</span>
 
@@ -194,9 +216,11 @@
                asp-route-returnUrl="@Url.Action("Index", "Favorites")"
                class="th-app-nav-item">
 
-                <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
-                </svg>
+                <span class="th-app-nav-icon-wrap">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
+                    </svg>
+                </span>
 
                 <span>Wishlist</span>
 

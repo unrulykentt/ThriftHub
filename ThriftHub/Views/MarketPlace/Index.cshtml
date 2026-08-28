@@ -207,9 +207,9 @@
 <style>
 
     :root {
-        --th-purple: #6f3cc3;
-        --th-purple-dark: #54249c;
-        --th-purple-light: #f1e9ff;
+        --th-purple: #6C3DD9;
+        --th-purple-dark: #5424b8;
+        --th-purple-light: #EDE6FF;
         --th-background: #fcfbfe;
         --th-text: #252238;
         --th-muted: #777386;
@@ -281,10 +281,26 @@
 
     .th-search-icon {
         position: absolute;
-        left: 15px;
+        left: 14px;
         top: 50%;
         transform: translateY(-50%);
         pointer-events: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        color: var(--th-purple);
+    }
+
+    .th-search-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
     .th-search-input {
@@ -974,8 +990,11 @@
 
                 <div class="th-search-box">
 
-                    <span class="th-search-icon">
-                        🔎
+                    <span class="th-search-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="7"></circle>
+                            <path d="M20 20l-4.2-4.2"></path>
+                        </svg>
                     </span>
 
                     <input type="text"

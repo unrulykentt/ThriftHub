@@ -1,10 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="ThriftHub">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1a1a1a"/>
-      <stop offset="100%" stop-color="#000000"/>
+      <stop offset="0%" stop-color="#8A5CF6"/>
+      <stop offset="100%" stop-color="#6C3DD9"/>
     </linearGradient>
   </defs>
   <rect width="128" height="128" rx="32" fill="url(#bg)"/>
-  <path d="M34 36h24v56H34V36zm36 0h24v22H70V36zm0 34h24v22H70V70z" fill="#ffffff"/>
+  <path d="M40 46c0-4 3-7 7-7h34c4 0 7 3 7 7v6h10c3 0 5 2 5 5v34c0 8-6 14-14 14H39c-8 0-14-6-14-14V57c0-3 2-5 5-5h10v-6z" fill="#ffffff" opacity="0.96"/>
+  <path d="M52 40h24v8H52V40z" fill="none" stroke="#6C3DD9" stroke-width="4" stroke-linecap="round"/>
+  <path d="M64 58v18M55 67h18" stroke="#6C3DD9" stroke-width="4" stroke-linecap="round"/>
+  <text x="64" y="98" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="800" fill="#ffffff">TH</text>
 </svg>

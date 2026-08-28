@@ -1,10 +1,10 @@
 /* ThriftHub Snapchat-style chat */
 
 :root {
-    --snap-bg: #f2f2f7;
+    --snap-bg: #f5f3ff;
     --snap-panel: #ffffff;
-    --snap-sent: #0096ff;
-    --snap-sent-dark: #0084e0;
+    --snap-sent: #6C3DD9;
+    --snap-sent-dark: #5424b8;
     --snap-received: #e9e9eb;
     --snap-text: #111111;
     --snap-muted: #8e8e93;
@@ -931,16 +931,25 @@ body.snap-chat-body {
 
 @media (max-width: 768px) {
     .th-chat-page {
+        position: fixed;
+        inset: 0;
         margin: 0;
-        height: 100dvh;
-        max-height: 100dvh;
+        padding: 0;
+        height: auto;
+        max-height: none;
     }
 
     .chat-card {
-        height: 100dvh;
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
         min-height: 0;
-        max-height: 100dvh;
+        max-height: none;
         border: none;
+        z-index: 100;
     }
 
     .messages-container {
@@ -949,7 +958,7 @@ body.snap-chat-body {
         overflow-x: hidden;
         -webkit-overflow-scrolling: touch;
         overscroll-behavior-y: contain;
-        scroll-behavior: smooth;
+        touch-action: pan-y;
     }
 
     .message-stack {
