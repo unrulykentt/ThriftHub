@@ -1,0 +1,313 @@
+:root {
+    --th-app-bg: #f5f5f7;
+    --th-app-surface: #ffffff;
+    --th-app-text: #111111;
+    --th-app-muted: #8e8e93;
+    --th-app-accent: #111111;
+    --th-app-accent-soft: #6f3cc3;
+    --th-app-border: rgba(0, 0, 0, 0.08);
+    --th-app-nav-height: 64px;
+    --th-app-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (max-width: 768px) {
+    body.th-mobile-shell {
+        background: var(--th-app-bg);
+        padding-bottom: calc(var(--th-app-nav-height) + var(--th-app-safe-bottom));
+    }
+
+    body.th-body-chat {
+        padding-bottom: 0;
+    }
+
+    body.th-mobile-shell .th-footer {
+        display: none;
+    }
+
+    body.th-mobile-shell .th-main {
+        min-height: calc(100dvh - 70px);
+    }
+
+    body.th-mobile-shell .th-navbar {
+        min-height: 58px;
+        box-shadow: none;
+        border-bottom: 1px solid var(--th-app-border);
+    }
+
+    body.th-mobile-shell .th-nav-links,
+    body.th-mobile-shell .th-sell-button,
+    body.th-mobile-shell .th-dashboard-button,
+    body.th-mobile-shell .th-logout-button {
+        display: none !important;
+    }
+
+    body.th-mobile-shell .th-logo {
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+
+    body.th-mobile-shell .th-logo-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #111 0%, #333 100%);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 900;
+    }
+}
+
+.th-app-bottom-nav {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .th-app-bottom-nav {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        display: flex;
+        align-items: stretch;
+        justify-content: space-around;
+        min-height: var(--th-app-nav-height);
+        padding: 6px 8px calc(8px + var(--th-app-safe-bottom));
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid var(--th-app-border);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .th-app-nav-item {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        text-decoration: none;
+        color: var(--th-app-muted);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        position: relative;
+    }
+
+    .th-app-nav-item svg {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 1.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .th-app-nav-item.active {
+        color: var(--th-app-accent);
+    }
+
+    .th-app-nav-item.active svg {
+        stroke-width: 2.2;
+    }
+
+    .th-app-nav-badge {
+        position: absolute;
+        top: 2px;
+        right: calc(50% - 24px);
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: #111;
+        color: #fff;
+        font-size: 9px;
+        font-weight: 800;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-page {
+        padding: 18px 14px 24px !important;
+        max-width: 100% !important;
+    }
+
+    .dashboard-header {
+        flex-direction: column;
+        align-items: flex-start !important;
+        margin-bottom: 18px !important;
+        gap: 10px !important;
+    }
+
+    .dashboard-header h1 {
+        font-size: 28px !important;
+        letter-spacing: -0.03em;
+    }
+
+    .dashboard-header p {
+        font-size: 14px !important;
+    }
+
+    .profile-card {
+        border-radius: 22px !important;
+        padding: 18px !important;
+        border: 1px solid var(--th-app-border) !important;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+        background: var(--th-app-surface) !important;
+    }
+
+    .profile-left {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 14px !important;
+    }
+
+    .profile-picture,
+    .default-profile-picture {
+        width: 72px !important;
+        height: 72px !important;
+    }
+
+    .dashboard-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 12px !important;
+    }
+
+    .dashboard-card {
+        border-radius: 20px !important;
+        padding: 16px 14px !important;
+        min-height: 148px;
+        border: 1px solid var(--th-app-border) !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+        background: var(--th-app-surface) !important;
+    }
+
+    .dashboard-card h3 {
+        font-size: 15px !important;
+    }
+
+    .dashboard-card p {
+        font-size: 12px !important;
+        line-height: 1.45 !important;
+    }
+
+    .card-icon {
+        width: 42px !important;
+        height: 42px !important;
+        border-radius: 14px !important;
+        font-size: 18px !important;
+    }
+
+    .edit-profile-button {
+        width: 100%;
+        text-align: center;
+        border-radius: 14px !important;
+    }
+
+    .messages-page {
+        margin: 0 auto !important;
+        padding: 16px 14px 24px !important;
+        max-width: 100% !important;
+    }
+
+    .messages-header h1 {
+        font-size: 28px !important;
+        letter-spacing: -0.03em;
+    }
+
+    .conversation-card {
+        border-radius: 18px !important;
+        border: 1px solid var(--th-app-border) !important;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.03) !important;
+    }
+
+    .home-page,
+    .th-marketplace {
+        background: var(--th-app-bg);
+    }
+
+    .home-page {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 12px 14px 24px;
+    }
+
+    .home-page .hero-section {
+        margin-top: 8px;
+        margin-bottom: 24px;
+        padding: 36px 18px;
+        border-radius: 24px;
+        background: linear-gradient(160deg, #ffffff 0%, #f0f0f2 100%);
+        border: 1px solid var(--th-app-border);
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+    }
+
+    .home-page .hero-section h1 {
+        font-size: 30px !important;
+        letter-spacing: -0.03em;
+    }
+
+    .home-page .hero-section p {
+        font-size: 14px !important;
+    }
+
+    .home-page .primary-button,
+    .home-page .secondary-button {
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+    }
+
+    .home-page .primary-button {
+        background: #111 !important;
+        border-color: #111 !important;
+    }
+
+    .home-page .products-section {
+        margin-bottom: 8px;
+    }
+
+    .home-page .section-header h2 {
+        font-size: 22px !important;
+        letter-spacing: -0.02em;
+    }
+
+    .home-page .product-card {
+        border-radius: 18px !important;
+        border: 1px solid var(--th-app-border) !important;
+        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.04) !important;
+        overflow: hidden;
+    }
+
+    .home-page .products-grid {
+        gap: 12px !important;
+    }
+
+    body.th-body-chat {
+        background: var(--snap-bg, #f2f2f7);
+        overflow: hidden;
+    }
+
+    body.th-body-chat .th-navbar,
+    body.th-body-chat .th-footer {
+        display: none !important;
+    }
+
+    body.th-body-chat .th-main,
+    body.th-body-chat .th-main-content {
+        padding: 0 !important;
+        margin: 0 !important;
+        max-width: 100% !important;
+    }
+
+    body.th-body-chat .th-pwa-install-banner {
+        display: none !important;
+    }
+}

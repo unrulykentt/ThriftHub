@@ -1,0 +1,246 @@
+@{
+    var controller =
+        ViewContext.RouteData.Values["controller"]?.ToString()
+        ?? string.Empty;
+
+    var action =
+        ViewContext.RouteData.Values["action"]?.ToString()
+        ?? string.Empty;
+
+    var hideNav =
+        ViewData["HideMobileNav"] as bool?
+        ?? false;
+
+    var isAuthenticated =
+        User.Identity?.IsAuthenticated == true;
+
+    bool IsActive(params string[] keys)
+    {
+        foreach (var key in keys)
+        {
+            if (key.Contains('/'))
+            {
+                var parts = key.Split('/', 2);
+                if (
+                    controller.Equals(parts[0], StringComparison.OrdinalIgnoreCase) &&
+                    action.Equals(parts[1], StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+            else if (controller.Equals(key, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    var homeActive =
+        IsActive("Home");
+
+    var dashboardActive =
+        IsActive("Dashboard");
+
+    var messagesActive =
+        IsActive("Messages");
+
+    var meActive =
+        IsActive("Account") &&
+        action.Equals("Profile", StringComparison.OrdinalIgnoreCase);
+
+    var wishlistActive =
+        IsActive("Favorites");
+}
+
+@if (!hideNav)
+{
+    <nav class="th-app-bottom-nav"
+         aria-label="Main navigation">
+
+        <a asp-controller="Home"
+           asp-action="Index"
+           class="th-app-nav-item @(homeActive ? "active" : "")">
+
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"></path>
+            </svg>
+
+            <span>Home</span>
+
+        </a>
+
+        @if (isAuthenticated)
+        {
+            <a asp-controller="Dashboard"
+               asp-action="Index"
+               class="th-app-nav-item @(dashboardActive ? "active" : "")">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                    <rect x="13" y="3" width="8" height="5" rx="2"></rect>
+                    <rect x="13" y="10" width="8" height="11" rx="2"></rect>
+                    <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                </svg>
+
+                <span>Dashboard</span>
+
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account"
+               asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Index", "Dashboard")"
+               class="th-app-nav-item">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <rect x="3" y="3" width="8" height="8" rx="2"></rect>
+                    <rect x="13" y="3" width="8" height="5" rx="2"></rect>
+                    <rect x="13" y="10" width="8" height="11" rx="2"></rect>
+                    <rect x="3" y="13" width="8" height="8" rx="2"></rect>
+                </svg>
+
+                <span>Dashboard</span>
+
+            </a>
+        }
+
+        @if (isAuthenticated)
+        {
+            <a asp-controller="Messages"
+               asp-action="Index"
+               class="th-app-nav-item @(messagesActive ? "active" : "")">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 4V6a1 1 0 0 1 1-1z"></path>
+                </svg>
+
+                <span>Messages</span>
+
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account"
+               asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Index", "Messages")"
+               class="th-app-nav-item">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H8l-4 4V6a1 1 0 0 1 1-1z"></path>
+                </svg>
+
+                <span>Messages</span>
+
+            </a>
+        }
+
+        @if (isAuthenticated)
+        {
+            <a asp-controller="Account"
+               asp-action="Profile"
+               class="th-app-nav-item @(meActive ? "active" : "")">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M5 20a7 7 0 0 1 14 0"></path>
+                </svg>
+
+                <span>Me</span>
+
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account"
+               asp-action="Login"
+               class="th-app-nav-item">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M5 20a7 7 0 0 1 14 0"></path>
+                </svg>
+
+                <span>Me</span>
+
+            </a>
+        }
+
+        @if (isAuthenticated)
+        {
+            <a asp-controller="Favorites"
+               asp-action="Index"
+               class="th-app-nav-item @(wishlistActive ? "active" : "")">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
+                </svg>
+
+                <span>Wishlist</span>
+
+                <span id="thWishlistCount"
+                      class="th-app-nav-badge">
+                    0
+                </span>
+
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account"
+               asp-action="Login"
+               asp-route-returnUrl="@Url.Action("Index", "Favorites")"
+               class="th-app-nav-item">
+
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path d="M12 20s-7-4.6-9-8.5C1.7 8.8 3.4 6 6.4 6c1.7 0 3.1.9 3.9 2.1C11.1 6.9 12.5 6 14.2 6c3 0 4.7 2.8 3.4 5.5C19 15.4 12 20 12 20z"></path>
+                </svg>
+
+                <span>Wishlist</span>
+
+            </a>
+        }
+
+    </nav>
+
+    @if (isAuthenticated)
+    {
+        <script>
+            async function updateWishlistCount() {
+                try {
+                    const response = await fetch('/Favorites/Count', {
+                        method: 'GET',
+                        credentials: 'same-origin'
+                    });
+
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const data = await response.json();
+                    const badge = document.getElementById('thWishlistCount');
+
+                    if (!badge) {
+                        return;
+                    }
+
+                    const count = Number(data.count || 0);
+
+                    if (count > 0) {
+                        badge.textContent = count > 99 ? '99+' : count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.log('Unable to load wishlist count.');
+                }
+            }
+
+            window.updateWishlistCount = updateWishlistCount;
+            updateWishlistCount();
+        </script>
+    }
+}

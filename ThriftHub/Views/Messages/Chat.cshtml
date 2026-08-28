@@ -5,6 +5,8 @@
 
 @{
     ViewData["Title"] = "Chat";
+    ViewData["HideMobileNav"] = true;
+    ViewData["BodyClass"] = "th-body-chat";
 
     var currentUserId =
         User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";

@@ -36,13 +36,17 @@
           content="yes" />
 
     <meta name="theme-color"
-          content="#6f3cc3" />
+          content="#111111" />
 
     <link rel="stylesheet"
           href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
     <link rel="stylesheet"
           href="~/css/site.css"
+          asp-append-version="true" />
+
+    <link rel="stylesheet"
+          href="~/css/mobile-app.css"
           asp-append-version="true" />
 
     <style>
@@ -131,13 +135,14 @@
             align-items: center;
             justify-content: center;
 
-            background: linear-gradient(135deg, #8b5cf6, #6f3cc3);
+            background: linear-gradient(135deg, #1a1a1a, #000000);
             color: white;
 
-            border-radius: 9px;
+            border-radius: 10px;
 
-            font-size: 16px;
-            font-weight: 800;
+            font-size: 11px;
+            font-weight: 900;
+            letter-spacing: -0.04em;
             flex-shrink: 0;
         }
 
@@ -761,7 +766,22 @@
 </head>
 
 
-<body>
+@{
+    var bodyClass =
+        ViewData["BodyClass"] as string
+        ?? string.Empty;
+
+    if (string.IsNullOrWhiteSpace(bodyClass))
+    {
+        bodyClass = "th-mobile-shell";
+    }
+    else
+    {
+        bodyClass = $"th-mobile-shell {bodyClass}";
+    }
+}
+
+<body class="@bodyClass">
 
 
     <!-- ============================================================
@@ -782,7 +802,7 @@
                class="th-logo">
 
                 <span class="th-logo-icon">
-                    T
+                    TH
                 </span>
 
                 <span>
@@ -1159,6 +1179,9 @@
         </div>
 
     </footer>
+
+
+    <partial name="_MobileBottomNav" />
 
 
     <!-- ============================================================

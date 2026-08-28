@@ -748,15 +748,6 @@
 
 
     /* =========================================================
-           MOBILE BOTTOM NAVIGATION
-           ========================================================= */
-
-    .th-mobile-bottom-nav {
-        display: none;
-    }
-
-
-    /* =========================================================
            TABLET
            ========================================================= */
 
@@ -777,10 +768,6 @@
            ========================================================= */
 
     @@media (max-width: 700px) {
-
-        body {
-            padding-bottom: 76px;
-        }
 
         .th-marketplace {
             padding: 20px 14px 40px;
@@ -924,72 +911,6 @@
             width: 34px;
             height: 34px;
             font-size: 19px;
-        }
-        /* =====================================================
-               MOBILE BOTTOM BAR
-               ===================================================== */
-
-        .th-mobile-bottom-nav {
-            position: fixed;
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            left: 0;
-            right: 0;
-            bottom: 0;
-            height: 68px;
-            background: rgba(255,255,255,.98);
-            border-top: 1px solid var(--th-border);
-            box-shadow: 0 -5px 20px rgba(50,30,80,.08);
-            z-index: 9999;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-
-        .th-mobile-nav-item {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            text-decoration: none;
-            color: #aaa7b2;
-            font-size: 10px;
-            font-weight: 700;
-        }
-
-        .th-mobile-nav-icon {
-            font-size: 21px;
-            line-height: 1;
-        }
-
-        .th-mobile-nav-item.active {
-            color: var(--th-text);
-        }
-
-            .th-mobile-nav-item.active .th-mobile-nav-icon {
-                color: var(--th-purple);
-            }
-        /* =====================================================
-               WISHLIST COUNT
-               ===================================================== */
-
-        .th-wishlist-count {
-            position: absolute;
-            top: 5px;
-            right: calc(50% - 25px);
-            min-width: 17px;
-            height: 17px;
-            padding: 0 4px;
-            border-radius: 20px;
-            background: var(--th-danger);
-            color: white;
-            border: 2px solid white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 8px;
-            font-weight: 900;
-            line-height: 1;
         }
 
         .th-category-section {
@@ -1414,250 +1335,11 @@
 
 
 <!-- =========================================================
-     MOBILE BOTTOM NAVIGATION
-     ========================================================= -->
-
-<nav class="th-mobile-bottom-nav">
-
-
-    <!-- HOME -->
-
-    <a asp-controller="Home"
-       asp-action="Index"
-       class="th-mobile-nav-item">
-
-        <span class="th-mobile-nav-icon">
-            ⌂
-        </span>
-
-        <span>
-            Home
-        </span>
-
-    </a>
-
-
-    <!-- SEARCH -->
-
-    <a asp-controller="MarketPlace"
-       asp-action="Index"
-       class="th-mobile-nav-item active">
-
-        <span class="th-mobile-nav-icon">
-            ⌕
-        </span>
-
-        <span>
-            Search
-        </span>
-
-    </a>
-
-
-    <!-- CATEGORIES -->
-
-    <a asp-controller="MarketPlace"
-       asp-action="Index"
-       class="th-mobile-nav-item">
-
-        <span class="th-mobile-nav-icon">
-            🏷️
-        </span>
-
-        <span>
-            Categories
-        </span>
-
-    </a>
-
-
-    <!-- =====================================================
-         WISHLIST
-         FIXED: Index instead of Wishlist
-         ===================================================== -->
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-
-        <a asp-controller="Favorites"
-           asp-action="Index"
-           class="th-mobile-nav-item">
-
-            <span class="th-mobile-nav-icon">
-
-                ♡
-
-            </span>
-
-            <span>
-
-                Wishlist
-
-            </span>
-
-            <span id="thWishlistCount"
-                  class="th-wishlist-count"
-                  style="display:none;">
-
-                0
-
-            </span>
-
-        </a>
-
-    }
-    else
-    {
-
-        <a asp-controller="Account"
-           asp-action="Login"
-           class="th-mobile-nav-item">
-
-            <span class="th-mobile-nav-icon">
-
-                ♡
-
-            </span>
-
-            <span>
-
-                Wishlist
-
-            </span>
-
-        </a>
-
-    }
-
-
-    <!-- ACCOUNT -->
-    @if (User.Identity?.IsAuthenticated == true)
-    {
-
-        <a asp-controller="Dashboard"
-           asp-action="Index"
-           class="th-mobile-nav-item">
-
-            <span class="th-mobile-nav-icon">
-
-                ♙
-
-            </span>
-
-            <span>
-
-                Me
-
-            </span>
-
-        </a>
-
-    }
-    else
-    {
-
-        <a asp-controller="Account"
-           asp-action="Login"
-           class="th-mobile-nav-item">
-
-            <span class="th-mobile-nav-icon">
-
-                ♙
-
-            </span>
-
-            <span>
-
-                Me
-
-            </span>
-
-        </a>
-
-    }
-
-</nav>
-
-
-<!-- =========================================================
-     WISHLIST COUNT
+     WISHLIST TOGGLE
      ========================================================= -->
 @if (User.Identity?.IsAuthenticated == true)
 {
     <script>
-
-        async function updateWishlistCount() {
-
-            try {
-
-                const response =
-                    await fetch(
-                        '/Favorites/Count',
-                        {
-                            method: 'GET',
-                            credentials: 'same-origin'
-                        }
-                    );
-
-
-                if (!response.ok) {
-                    return;
-                }
-
-
-                const data =
-                    await response.json();
-
-
-                const badge =
-                    document.getElementById(
-                        'thWishlistCount'
-                    );
-
-
-                if (!badge) {
-                    return;
-                }
-
-
-                const count =
-                    Number(data.count || 0);
-
-
-                if (count > 0) {
-
-                    badge.textContent =
-                        count > 99
-                            ? '99+'
-                            : count;
-
-                    badge.style.display =
-                        'flex';
-
-                }
-                else {
-
-                    badge.textContent =
-                        '0';
-
-                    badge.style.display =
-                        'none';
-
-                }
-
-            }
-            catch (error) {
-
-                console.log(
-                    'Unable to load wishlist count.'
-                );
-
-            }
-
-        }
-
-
-        updateWishlistCount();
-
 
         document
             .querySelectorAll(
@@ -1789,7 +1471,9 @@
                                 );
 
 
-                                updateWishlistCount();
+                                if (typeof window.updateWishlistCount === "function") {
+                                    window.updateWishlistCount();
+                                }
 
                             }
                             catch (error) {
