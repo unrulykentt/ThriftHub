@@ -12,14 +12,28 @@
 
     <partial name="_SeoMeta" />
 
+    <link rel="manifest" href="~/manifest.webmanifest" />
+
     <link rel="icon"
           type="image/svg+xml"
           href="~/favicon.svg"
           asp-append-version="true" />
 
     <link rel="apple-touch-icon"
-          href="~/favicon.svg"
+          href="~/icons/apple-touch-icon.png"
           asp-append-version="true" />
+
+    <meta name="apple-mobile-web-app-capable"
+          content="yes" />
+
+    <meta name="apple-mobile-web-app-title"
+          content="ThriftHub" />
+
+    <meta name="apple-mobile-web-app-status-bar-style"
+          content="default" />
+
+    <meta name="mobile-web-app-capable"
+          content="yes" />
 
     <meta name="theme-color"
           content="#6f3cc3" />
@@ -1087,6 +1101,9 @@
     </header>
 
 
+    <partial name="_PwaInstallBanner" />
+
+
     <!-- ============================================================
          PAGE CONTENT
          ============================================================ -->
@@ -1127,6 +1144,15 @@
                asp-action="Qr">
 
                 Scan QR Code
+
+            </a>
+
+            &nbsp; | &nbsp;
+
+            <a asp-controller="Home"
+               asp-action="InstallApp">
+
+                Install App
 
             </a>
 

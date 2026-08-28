@@ -1,0 +1,144 @@
+<div id="thPwaInstallBanner"
+     class="th-pwa-banner"
+     data-ios-guide-url="@Url.Action("InstallApp", "Home")">
+
+    <div class="th-pwa-banner-inner">
+
+        <div class="th-pwa-banner-icon">
+            📲
+        </div>
+
+        <div class="th-pwa-banner-copy">
+
+            <strong>
+                Install ThriftHub on your phone
+            </strong>
+
+            <span data-pwa-android-hint hidden>
+                Get quick access from your home screen — free, no app store needed.
+            </span>
+
+            <span data-pwa-ios-hint hidden>
+                iPhone: open in Safari, tap Share, then Add to Home Screen.
+            </span>
+
+        </div>
+
+        <div class="th-pwa-banner-actions">
+
+            <button type="button"
+                    class="th-pwa-install"
+                    data-pwa-install
+                    hidden>
+                Install
+            </button>
+
+            <a class="th-pwa-guide"
+               data-pwa-guide
+               href="@Url.Action("InstallApp", "Home")"
+               hidden>
+                How to install
+            </a>
+
+            <button type="button"
+                    class="th-pwa-dismiss"
+                    data-pwa-dismiss
+                    aria-label="Dismiss install banner">
+                ×
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<style>
+    .th-pwa-banner {
+        position: sticky;
+        top: 0;
+        z-index: 1100;
+        background: linear-gradient(135deg, #6f3cc3 0%, #54249c 100%);
+        color: #ffffff;
+        box-shadow: 0 8px 24px rgba(60, 40, 90, 0.18);
+    }
+
+    .th-pwa-banner[hidden] {
+        display: none !important;
+    }
+
+    .th-pwa-banner-inner {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .th-pwa-banner-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+    }
+
+    .th-pwa-banner-copy {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 12px;
+        line-height: 1.45;
+    }
+
+    .th-pwa-banner-copy strong {
+        font-size: 14px;
+    }
+
+    .th-pwa-banner-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
+    .th-pwa-install,
+    .th-pwa-guide {
+        border: none;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #6f3cc3;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 8px 14px;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .th-pwa-dismiss {
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+    }
+
+    @@media (max-width: 700px) {
+        .th-pwa-banner-inner {
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+
+        .th-pwa-banner-actions {
+            width: 100%;
+            justify-content: flex-end;
+        }
+    }
+</style>
+
+<script src="~/js/pwa-install.js" asp-append-version="true"></script>

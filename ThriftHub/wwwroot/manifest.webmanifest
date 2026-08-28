@@ -1,0 +1,32 @@
+{
+  "name": "ThriftHub",
+  "short_name": "ThriftHub",
+  "description": "Ghana's student thrift marketplace — buy and sell fashion, textbooks, electronics, and more.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#fcfbfe",
+  "theme_color": "#6f3cc3",
+  "lang": "en-GH",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

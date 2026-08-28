@@ -69,6 +69,13 @@ namespace ThriftHub.Controllers
 
 
         [HttpGet]
+        public IActionResult InstallApp()
+        {
+            return View();
+        }
+
+
+        [HttpGet]
         [ResponseCache(Duration = 86400, Location = ResponseCacheLocation.Any)]
         public IActionResult QrCode(bool download = false)
         {

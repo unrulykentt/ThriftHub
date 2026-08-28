@@ -1,0 +1,289 @@
+@{
+    ViewData["Title"] = "Install ThriftHub App";
+    ViewData["MetaDescription"] =
+        "Install ThriftHub on your iPhone or Android phone for free. No app store payment required — add to your home screen in a few taps.";
+    ViewData["AllowIndexing"] = true;
+}
+
+<div class="th-install-page">
+
+    <div class="th-install-card">
+
+        <div class="th-install-badge">
+            Free · No app store fee
+        </div>
+
+        <h1>
+            Install ThriftHub on your phone
+        </h1>
+
+        <p class="th-install-lead">
+            Add ThriftHub to your home screen so it opens like an app.
+            Browse the marketplace, message sellers, and manage your account — all free.
+        </p>
+
+        <div class="th-install-preview">
+
+            <img src="~/icons/icon-192.png"
+                 alt="ThriftHub app icon"
+                 width="88"
+                 height="88" />
+
+            <div>
+                <strong>ThriftHub</strong>
+                <span>Student thrift marketplace</span>
+            </div>
+
+        </div>
+
+
+        <!-- IPHONE -->
+
+        <section class="th-install-section">
+
+            <h2>
+                iPhone (Safari)
+            </h2>
+
+            <p class="th-install-note">
+                Use <strong>Safari</strong> — this works best on iPhone.
+            </p>
+
+            <ol class="th-install-steps">
+
+                <li>
+                    Open
+                    <a href="https://thrifthubgh.com">thrifthubgh.com</a>
+                    in Safari.
+                </li>
+
+                <li>
+                    Tap the <strong>Share</strong> button
+                    (square with arrow pointing up) at the bottom of the screen.
+                </li>
+
+                <li>
+                    Scroll down and tap
+                    <strong>Add to Home Screen</strong>.
+                </li>
+
+                <li>
+                    Tap <strong>Add</strong> in the top-right corner.
+                </li>
+
+            </ol>
+
+            <div class="th-install-tip">
+                ThriftHub will appear on your home screen with the purple icon.
+                Open it from there anytime — no App Store needed.
+            </div>
+
+        </section>
+
+
+        <!-- ANDROID -->
+
+        <section class="th-install-section">
+
+            <h2>
+                Android (Chrome)
+            </h2>
+
+            <ol class="th-install-steps">
+
+                <li>
+                    Open
+                    <a href="https://thrifthubgh.com">thrifthubgh.com</a>
+                    in Chrome.
+                </li>
+
+                <li>
+                    Tap the browser menu
+                    (<strong>⋮</strong> three dots, top-right).
+                </li>
+
+                <li>
+                    Tap <strong>Install app</strong> or
+                    <strong>Add to Home screen</strong>.
+                </li>
+
+                <li>
+                    Confirm by tapping <strong>Install</strong>.
+                </li>
+
+            </ol>
+
+            <div class="th-install-tip">
+                Some phones show an automatic install banner when you visit the site.
+                If you see it, tap <strong>Install</strong>.
+            </div>
+
+        </section>
+
+
+        <div class="th-install-actions">
+
+            <a asp-controller="MarketPlace"
+               asp-action="Index"
+               class="th-install-primary">
+
+                Open Marketplace
+
+            </a>
+
+            <a asp-controller="Home"
+               asp-action="Qr"
+               class="th-install-secondary">
+
+                Get QR Code
+
+            </a>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<style>
+
+    .th-install-page {
+        min-height: calc(100vh - 180px);
+        padding: 32px 16px 60px;
+        background: linear-gradient(180deg, #f7f3ff 0%, #fafafa 100%);
+    }
+
+    .th-install-card {
+        width: min(100%, 720px);
+        margin: 0 auto;
+        background: #ffffff;
+        border: 1px solid #eee9f5;
+        border-radius: 24px;
+        padding: 32px 28px;
+        box-shadow: 0 18px 50px rgba(60, 40, 90, 0.10);
+    }
+
+    .th-install-badge {
+        display: inline-block;
+        background: #f1eaff;
+        color: #6f3cc3;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 7px 12px;
+        border-radius: 999px;
+        margin-bottom: 14px;
+    }
+
+    .th-install-card h1 {
+        margin: 0 0 10px;
+        font-size: clamp(28px, 5vw, 36px);
+        color: #252238;
+    }
+
+    .th-install-lead {
+        margin: 0 0 24px;
+        color: #777386;
+        line-height: 1.6;
+    }
+
+    .th-install-preview {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 18px;
+        background: #f7f3ff;
+        border: 1px solid #ece6f7;
+        margin-bottom: 28px;
+    }
+
+    .th-install-preview img {
+        border-radius: 18px;
+        display: block;
+    }
+
+    .th-install-preview div {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .th-install-preview strong {
+        font-size: 18px;
+        color: #252238;
+    }
+
+    .th-install-preview span {
+        font-size: 13px;
+        color: #777386;
+    }
+
+    .th-install-section {
+        margin-bottom: 28px;
+    }
+
+    .th-install-section h2 {
+        margin: 0 0 10px;
+        font-size: 22px;
+        color: #252238;
+    }
+
+    .th-install-note {
+        margin: 0 0 12px;
+        color: #777386;
+        font-size: 14px;
+    }
+
+    .th-install-steps {
+        margin: 0 0 12px;
+        padding-left: 22px;
+        color: #252238;
+        line-height: 1.7;
+    }
+
+    .th-install-steps a {
+        color: #6f3cc3;
+        font-weight: 700;
+    }
+
+    .th-install-tip {
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: #fcfbfe;
+        border: 1px dashed #ddd3ef;
+        color: #666;
+        font-size: 13px;
+        line-height: 1.55;
+    }
+
+    .th-install-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 8px;
+    }
+
+    .th-install-primary,
+    .th-install-secondary {
+        display: inline-block;
+        text-decoration: none;
+        padding: 13px 18px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .th-install-primary {
+        background: #6f3cc3;
+        color: #ffffff;
+    }
+
+    .th-install-secondary {
+        background: #f5f1fa;
+        color: #252238;
+    }
+
+</style>

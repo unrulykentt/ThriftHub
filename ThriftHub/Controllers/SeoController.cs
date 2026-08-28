@@ -66,6 +66,7 @@ namespace ThriftHub.Controllers
                     ("/", DateTime.UtcNow),
                     ("/MarketPlace", DateTime.UtcNow),
                     ("/Home/Qr", DateTime.UtcNow),
+                    ("/Home/InstallApp", DateTime.UtcNow),
                     ("/Home/Privacy", DateTime.UtcNow),
                     ("/Account/Register", DateTime.UtcNow),
                     ("/Account/Login", DateTime.UtcNow)
