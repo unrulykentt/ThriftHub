@@ -390,6 +390,10 @@ builder.Services.AddHttpClient("Resend");
 
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
+builder.Services.AddHttpClient("WhatsAppCloud");
+
+builder.Services.AddScoped<IWhatsAppOtpSender, WhatsAppCloudOtpSender>();
+
 
 builder.Services.AddSingleton<DatabasePersistenceService>();
 

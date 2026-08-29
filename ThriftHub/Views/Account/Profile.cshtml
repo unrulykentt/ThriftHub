@@ -59,6 +59,29 @@
 
                         <div class="row mb-3">
                             <div class="col-md-4">
+                                <strong>Phone:</strong>
+                            </div>
+
+                            <div class="col-md-8">
+                                @(user.PhoneNumber ?? "Not set")
+
+                                @if (user.PhoneNumberConfirmed)
+                                {
+                                    <span class="badge bg-success ms-2">
+                                        Verified
+                                    </span>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+                                {
+                                    <span class="badge bg-warning text-dark ms-2">
+                                        Not verified
+                                    </span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
                                 <strong>User Type:</strong>
                             </div>
 

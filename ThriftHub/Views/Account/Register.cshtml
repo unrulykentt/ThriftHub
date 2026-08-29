@@ -92,8 +92,9 @@
 
                             <input asp-for="PhoneNumber"
                                    class="form-control"
-                                   placeholder="Enter your phone number"
-                                   autocomplete="tel" />
+                                   placeholder="e.g. 0241234567"
+                                   autocomplete="tel"
+                                   inputmode="tel" />
 
                             <span asp-validation-for="PhoneNumber"
                                   class="text-danger">

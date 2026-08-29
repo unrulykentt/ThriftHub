@@ -135,6 +135,9 @@ namespace ThriftHub.Data
                 entity.Property(u => u.EmailVerificationCode)
                     .HasMaxLength(100);
 
+                entity.Property(u => u.SmsVerificationCode)
+                    .HasMaxLength(100);
+
                 entity.Property(u => u.SuspensionReason)
                     .HasMaxLength(1000);
             });
