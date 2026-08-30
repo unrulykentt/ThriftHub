@@ -1,4 +1,4 @@
-@if (ViewBag.GoogleEnabled == true || ViewBag.AppleEnabled == true)
+@if (ViewBag.AppleEnabled == true)
 {
     <div class="external-auth mb-4">
 
@@ -8,59 +8,29 @@
 
         <div class="d-grid gap-2">
 
-            @if (ViewBag.GoogleEnabled == true)
-            {
-                <form asp-controller="Account"
-                      asp-action="ExternalLogin"
-                      method="post">
+            <form asp-controller="Account"
+                  asp-action="ExternalLogin"
+                  method="post">
 
-                    @Html.AntiForgeryToken()
+                @Html.AntiForgeryToken()
 
-                    <input type="hidden"
-                           name="provider"
-                           value="Google" />
+                <input type="hidden"
+                       name="provider"
+                       value="Apple" />
 
-                    <input type="hidden"
-                           name="returnUrl"
-                           value="@ViewData["ReturnUrl"]" />
+                <input type="hidden"
+                       name="returnUrl"
+                       value="@ViewData["ReturnUrl"]" />
 
-                    <button type="submit"
-                            class="btn btn-outline-dark w-100 d-flex align-items-center justify-content-center gap-2">
+                <button type="submit"
+                        class="btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2">
 
-                        <span style="font-size:18px;">G</span>
-                        Continue with Google
+                    <span style="font-size:18px;"></span>
+                    Continue with Apple
 
-                    </button>
+                </button>
 
-                </form>
-            }
-
-            @if (ViewBag.AppleEnabled == true)
-            {
-                <form asp-controller="Account"
-                      asp-action="ExternalLogin"
-                      method="post">
-
-                    @Html.AntiForgeryToken()
-
-                    <input type="hidden"
-                           name="provider"
-                           value="Apple" />
-
-                    <input type="hidden"
-                           name="returnUrl"
-                           value="@ViewData["ReturnUrl"]" />
-
-                    <button type="submit"
-                            class="btn btn-dark w-100 d-flex align-items-center justify-content-center gap-2">
-
-                        <span style="font-size:18px;"></span>
-                        Continue with Apple
-
-                    </button>
-
-                </form>
-            }
+            </form>
 
         </div>
 

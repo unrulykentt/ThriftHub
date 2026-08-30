@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -195,32 +194,6 @@ builder.Services
 
 var externalAuth =
     builder.Services.AddAuthentication();
-
-var googleClientId =
-    builder.Configuration["Authentication:Google:ClientId"]
-        ?.Trim();
-
-var googleClientSecret =
-    builder.Configuration["Authentication:Google:ClientSecret"]
-        ?.Trim();
-
-if (
-    !string.IsNullOrWhiteSpace(googleClientId) &&
-    !string.IsNullOrWhiteSpace(googleClientSecret))
-{
-    externalAuth.AddGoogle(
-        GoogleDefaults.AuthenticationScheme,
-        options =>
-        {
-            options.ClientId =
-                googleClientId;
-
-            options.ClientSecret =
-                googleClientSecret;
-
-            ConfigureRemoteAuthOptions(options);
-        });
-}
 
 var appleClientId =
     builder.Configuration["Authentication:Apple:ClientId"];
@@ -535,40 +508,6 @@ var app = builder.Build();
             "SMTP fallback sender is configured as {SenderEmail}.",
             smtpSenderEmail
         );
-    }
-
-    var configuredGoogleClientId =
-        app.Configuration["Authentication:Google:ClientId"]
-            ?.Trim();
-
-    var configuredGoogleClientSecret =
-        app.Configuration["Authentication:Google:ClientSecret"]
-            ?.Trim();
-
-    if (
-        string.IsNullOrWhiteSpace(configuredGoogleClientId) ||
-        string.IsNullOrWhiteSpace(configuredGoogleClientSecret))
-    {
-        startupLogger.LogWarning(
-            "Google OAuth is not fully configured. " +
-            "Set Authentication__Google__ClientId and Authentication__Google__ClientSecret on Render."
-        );
-    }
-    else if (
-        !configuredGoogleClientId.EndsWith(
-            ".apps.googleusercontent.com",
-            StringComparison.OrdinalIgnoreCase))
-    {
-        startupLogger.LogWarning(
-            "Google OAuth client id does not look valid. " +
-            "Expected a value ending with .apps.googleusercontent.com."
-        );
-    }
-    else
-    {
-        startupLogger.LogInformation(
-            "Google OAuth is configured for client ending in {ClientSuffix}.",
-            configuredGoogleClientId[^12..]);
     }
 
     var storage =

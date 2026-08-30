@@ -2501,11 +2501,7 @@ namespace ThriftHub.Controllers
 
         private void SetExternalAuthViewBag()
         {
-            ViewBag.GoogleEnabled =
-                !string.IsNullOrWhiteSpace(
-                    _configuration["Authentication:Google:ClientId"]) &&
-                !string.IsNullOrWhiteSpace(
-                    _configuration["Authentication:Google:ClientSecret"]);
+            ViewBag.GoogleEnabled = false;
 
             ViewBag.AppleEnabled =
                 !string.IsNullOrWhiteSpace(
