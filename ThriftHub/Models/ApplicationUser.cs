@@ -110,15 +110,6 @@ namespace ThriftHub.Models
 
 
         // ============================================================
-        // WHATSAPP OTP VERIFICATION
-        // ============================================================
-
-        public string? SmsVerificationCode { get; set; }
-
-        public DateTime? SmsVerificationCodeExpiresAt { get; set; }
-
-
-        // ============================================================
         // PROFILE PICTURE
         // ============================================================
 

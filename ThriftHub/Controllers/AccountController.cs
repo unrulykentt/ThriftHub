@@ -20,12 +20,10 @@ namespace ThriftHub.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly IEmailSender _emailSender;
-        private readonly IWhatsAppOtpSender _whatsAppOtpSender;
         private readonly ILogger<AccountController> _logger;
         private readonly AppStorageService _storage;
         private readonly SellerSubscriptionService _subscriptionService;
         private readonly IConfiguration _configuration;
-        private readonly IWebHostEnvironment _environment;
 
         // ============================================================
         // ADMIN EMAIL
@@ -45,24 +43,20 @@ namespace ThriftHub.Controllers
             RoleManager<IdentityRole> roleManager,
             ApplicationDbContext context,
             IEmailSender emailSender,
-            IWhatsAppOtpSender whatsAppOtpSender,
             ILogger<AccountController> logger,
             AppStorageService storage,
             SellerSubscriptionService subscriptionService,
-            IConfiguration configuration,
-            IWebHostEnvironment environment)
+            IConfiguration configuration)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _context = context;
             _emailSender = emailSender;
-            _whatsAppOtpSender = whatsAppOtpSender;
             _logger = logger;
             _storage = storage;
             _subscriptionService = subscriptionService;
             _configuration = configuration;
-            _environment = environment;
         }
 
 
@@ -330,9 +324,6 @@ namespace ThriftHub.Controllers
                     PhoneNumber =
                         normalizedPhone,
 
-                    PhoneNumberConfirmed =
-                        false,
-
                     FullName =
                         model.FullName?.Trim(),
 
@@ -581,13 +572,10 @@ namespace ThriftHub.Controllers
 
 
             // ========================================================
-            // EMAIL + SMS VERIFICATION CODES
+            // EMAIL VERIFICATION CODE
             // ========================================================
 
             var verificationCode =
-                GenerateVerificationCode();
-
-            var smsVerificationCode =
                 GenerateVerificationCode();
 
 
@@ -596,12 +584,6 @@ namespace ThriftHub.Controllers
 
 
             user.EmailVerificationCodeExpiresAt =
-                DateTime.UtcNow.AddMinutes(10);
-
-            user.SmsVerificationCode =
-                smsVerificationCode;
-
-            user.SmsVerificationCodeExpiresAt =
                 DateTime.UtcNow.AddMinutes(10);
 
 
@@ -743,11 +725,6 @@ namespace ThriftHub.Controllers
                         email
                     });
             }
-
-
-            await TrySendWhatsAppVerificationAsync(
-                user,
-                smsVerificationCode);
 
 
             return RedirectToAction(
@@ -905,282 +882,11 @@ namespace ThriftHub.Controllers
 
 
             TempData["SuccessMessage"] =
-                "Your email has been verified successfully. Please verify your phone number on WhatsApp next.";
-
-
-            if (!user.PhoneNumberConfirmed &&
-                !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                return RedirectToAction(
-                    nameof(VerifyPhone),
-                    new
-                    {
-                        email = user.Email
-                    });
-            }
-
-
-            TempData["SuccessMessage"] =
                 "Your email has been verified successfully. You can now log in.";
 
 
             return RedirectToAction(
                 nameof(Login));
-        }
-
-
-        // ============================================================
-        // VERIFY PHONE - GET
-        // ============================================================
-
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyPhone(
-            string? email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return RedirectToAction(
-                    nameof(Register));
-            }
-
-            var user =
-                await _userManager.FindByEmailAsync(
-                    email.Trim().ToLowerInvariant());
-
-            if (user == null)
-            {
-                return RedirectToAction(
-                    nameof(Register));
-            }
-
-            if (user.PhoneNumberConfirmed)
-            {
-                TempData["SuccessMessage"] =
-                    "Your phone number is already verified.";
-
-                return RedirectToAction(
-                    nameof(Login));
-            }
-
-            return View(
-                BuildVerifyPhoneModel(user));
-        }
-
-
-        // ============================================================
-        // VERIFY PHONE - POST
-        // ============================================================
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyPhone(
-            VerifyPhoneModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var email =
-                model.Email?
-                    .Trim()
-                    .ToLowerInvariant();
-
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                ModelState.AddModelError(
-                    "Email",
-                    "Email address is required.");
-
-                return View(model);
-            }
-
-            var user =
-                await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Account not found.");
-
-                return View(model);
-            }
-
-            if (user.PhoneNumberConfirmed)
-            {
-                TempData["SuccessMessage"] =
-                    "Your phone number has already been verified.";
-
-                return RedirectToAction(
-                    nameof(Login));
-            }
-
-            if (string.IsNullOrWhiteSpace(
-                    user.SmsVerificationCode))
-            {
-                ModelState.AddModelError(
-                    "",
-                    "No WhatsApp verification code was found. Please request a new code.");
-
-                return View(
-                    BuildVerifyPhoneModel(user));
-            }
-
-            if (!user.SmsVerificationCodeExpiresAt.HasValue ||
-                user.SmsVerificationCodeExpiresAt.Value <
-                DateTime.UtcNow)
-            {
-                ModelState.AddModelError(
-                    "",
-                    "Your WhatsApp verification code has expired. Please request a new code.");
-
-                return View(
-                    BuildVerifyPhoneModel(user));
-            }
-
-            if (!string.Equals(
-                    user.SmsVerificationCode,
-                    model.Code?.Trim(),
-                    StringComparison.Ordinal))
-            {
-                ModelState.AddModelError(
-                    "Code",
-                    "Invalid verification code.");
-
-                return View(
-                    BuildVerifyPhoneModel(user));
-            }
-
-            user.PhoneNumberConfirmed =
-                true;
-
-            user.SmsVerificationCode =
-                null;
-
-            user.SmsVerificationCodeExpiresAt =
-                null;
-
-            var updateResult =
-                await _userManager.UpdateAsync(user);
-
-            if (!updateResult.Succeeded)
-            {
-                foreach (var error in updateResult.Errors)
-                {
-                    ModelState.AddModelError(
-                        "",
-                        error.Description);
-                }
-
-                return View(
-                    BuildVerifyPhoneModel(user));
-            }
-
-            TempData["SuccessMessage"] =
-                "Your phone number has been verified successfully. You can now log in.";
-
-            return RedirectToAction(
-                nameof(Login));
-        }
-
-
-        // ============================================================
-        // RESEND SMS CODE - POST
-        // ============================================================
-
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ResendWhatsAppCode(
-            string? email)
-        {
-            if (string.IsNullOrWhiteSpace(email))
-            {
-                return RedirectToAction(
-                    nameof(Register));
-            }
-
-            email =
-                email.Trim().ToLowerInvariant();
-
-            var user =
-                await _userManager.FindByEmailAsync(email);
-
-            if (user == null)
-            {
-                TempData["ErrorMessage"] =
-                    "Account not found.";
-
-                return RedirectToAction(
-                    nameof(Register));
-            }
-
-            if (user.PhoneNumberConfirmed)
-            {
-                TempData["SuccessMessage"] =
-                    "Your phone number has already been verified.";
-
-                return RedirectToAction(
-                    nameof(Login));
-            }
-
-            if (string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                TempData["ErrorMessage"] =
-                    "No phone number is saved on this account.";
-
-                return RedirectToAction(
-                    nameof(VerifyPhone),
-                    new
-                    {
-                        email
-                    });
-            }
-
-            var smsVerificationCode =
-                GenerateVerificationCode();
-
-            user.SmsVerificationCode =
-                smsVerificationCode;
-
-            user.SmsVerificationCodeExpiresAt =
-                DateTime.UtcNow.AddMinutes(10);
-
-            var updateResult =
-                await _userManager.UpdateAsync(user);
-
-            if (!updateResult.Succeeded)
-            {
-                TempData["ErrorMessage"] =
-                    "Unable to generate a new WhatsApp code. Please try again.";
-
-                return RedirectToAction(
-                    nameof(VerifyPhone),
-                    new
-                    {
-                        email
-                    });
-            }
-
-            var sent =
-                await TrySendWhatsAppVerificationAsync(
-                    user,
-                    smsVerificationCode);
-
-            TempData[sent ? "SuccessMessage" : "ErrorMessage"] =
-                sent
-                    ? "A new WhatsApp verification code has been sent."
-                    : "We saved a new code but could not send the WhatsApp message yet. Please try again shortly.";
-
-            return RedirectToAction(
-                nameof(VerifyPhone),
-                new
-                {
-                    email
-                });
         }
 
 
@@ -1697,18 +1403,6 @@ namespace ThriftHub.Controllers
             {
                 return RedirectToAction(
                     nameof(VerifyEmail),
-                    new
-                    {
-                        email = user.Email
-                    });
-            }
-
-
-            if (!user.PhoneNumberConfirmed &&
-                !string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                return RedirectToAction(
-                    nameof(VerifyPhone),
                     new
                     {
                         email = user.Email
@@ -3396,57 +3090,5 @@ namespace ThriftHub.Controllers
                 100000,
                 1000000)
             .ToString();
-
-
-        private static VerifyPhoneModel BuildVerifyPhoneModel(
-            ApplicationUser user) =>
-            new()
-            {
-                Email =
-                    user.Email ?? string.Empty,
-                PhoneNumber =
-                    user.PhoneNumber
-            };
-
-
-        private async Task<bool> TrySendWhatsAppVerificationAsync(
-            ApplicationUser user,
-            string code)
-        {
-            if (string.IsNullOrWhiteSpace(user.PhoneNumber))
-            {
-                return false;
-            }
-
-            try
-            {
-                await _whatsAppOtpSender.SendVerificationCodeAsync(
-                    user.PhoneNumber,
-                    code);
-
-                if (
-                    !_whatsAppOtpSender.IsConfigured &&
-                    _environment.IsDevelopment())
-                {
-                    TempData["DevWhatsAppCode"] = code;
-                }
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "WhatsApp verification failed for {Phone}.",
-                    user.PhoneNumber);
-
-                if (_environment.IsDevelopment())
-                {
-                    TempData["DevWhatsAppCode"] = code;
-                }
-
-                return false;
-            }
-        }
     }
 }
