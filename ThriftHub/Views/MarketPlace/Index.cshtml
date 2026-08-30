@@ -1,4 +1,5 @@
 ﻿@model IEnumerable<ThriftHub.Models.Product>
+@using ThriftHub.Services
 
 @{
     ViewData["Title"] = "Marketplace";
@@ -30,152 +31,10 @@
     // MARKETPLACE CATEGORIES
     // =========================================================
 
-    var categories = new[]
-    {
-        new
-        {
-            Name = "Women's Fashion",
-            Icon = "👗",
-            Description = "Dresses, tops, skirts, jeans and more",
-            Aliases = new[] { "Women", "Women's Fashion" }
-        },
+    var categories = MarketplaceCategoryCatalog.All;
 
-        new
-        {
-            Name = "Men's Fashion",
-            Icon = "👔",
-            Description = "Shirts, trousers, jeans, jackets and more",
-            Aliases = new[] { "Men", "Men's Fashion" }
-        },
-
-        new
-        {
-            Name = "Kids",
-            Icon = "🧸",
-            Description = "Fashion for babies and children",
-            Aliases = new[] { "Kids" }
-        },
-
-        new
-        {
-            Name = "Shoes",
-            Icon = "👟",
-            Description = "Sneakers, heels, sandals, boots and more",
-            Aliases = new[] { "Shoes" }
-        },
-
-        new
-        {
-            Name = "Bags",
-            Icon = "👜",
-            Description = "Handbags, backpacks, school bags and more",
-            Aliases = new[] { "Bags" }
-        },
-
-        new
-        {
-            Name = "Accessories",
-            Icon = "💍",
-            Description = "Watches, belts, caps, jewellery and more",
-            Aliases = new[] { "Accessories" }
-        },
-
-        new
-        {
-            Name = "Books & Textbooks",
-            Icon = "📚",
-            Description = "Textbooks, novels, notes and study materials",
-            Aliases = new[] { "Books & Textbooks" }
-        },
-
-        new
-        {
-            Name = "Laptops & Computers",
-            Icon = "💻",
-            Description = "Laptops, desktops, monitors and computers",
-            Aliases = new[] { "Laptops & Computers" }
-        },
-
-        new
-        {
-            Name = "Phones & Tablets",
-            Icon = "📱",
-            Description = "Smartphones, iPhones, Androids and tablets",
-            Aliases = new[] { "Phones & Tablets" }
-        },
-
-        new
-        {
-            Name = "Smartwatches",
-            Icon = "⌚",
-            Description = "Apple Watch, Samsung, Fitbit, Garmin and more",
-            Aliases = new[] { "Smartwatches", "Smart Watches", "Smart Watch" }
-        },
-
-        new
-        {
-            Name = "Electronics",
-            Icon = "🔌",
-            Description = "Speakers, headphones, TVs, cameras and more",
-            Aliases = new[] { "Electronics" }
-        },
-
-        new
-        {
-            Name = "Computer Accessories",
-            Icon = "🖱️",
-            Description = "Keyboards, mice, drives, webcams and more",
-            Aliases = new[] { "Computer Accessories" }
-        },
-
-        new
-        {
-            Name = "Chargers & Cables",
-            Icon = "🔋",
-            Description = "Phone chargers, laptop chargers and cables",
-            Aliases = new[] { "Chargers & Cables" }
-        },
-
-        new
-        {
-            Name = "Power Banks",
-            Icon = "⚡",
-            Description = "Portable power banks and charging devices",
-            Aliases = new[] { "Power Banks" }
-        },
-
-        new
-        {
-            Name = "Stationery & School Supplies",
-            Icon = "✏️",
-            Description = "Notebooks, pens, files and school supplies",
-            Aliases = new[] { "Stationery & School Supplies" }
-        },
-
-        new
-        {
-            Name = "Calculators",
-            Icon = "🧮",
-            Description = "Scientific, financial and engineering calculators",
-            Aliases = new[] { "Calculators" }
-        },
-
-        new
-        {
-            Name = "Backpacks & School Bags",
-            Icon = "🎒",
-            Description = "Backpacks, laptop bags and school bags",
-            Aliases = new[] { "Backpacks & School Bags" }
-        },
-
-        new
-        {
-            Name = "Hostel Essentials",
-            Icon = "🏠",
-            Description = "Beds, tables, chairs, kitchen items and more",
-            Aliases = new[] { "Hostel Essentials" }
-        }
-    };
+    var unlistedCategories =
+        MarketplaceCategoryCatalog.GetUnlistedProductCategories(products);
 
 
     // =========================================================
@@ -1247,6 +1106,78 @@
 
             </section>
         }
+        else
+        {
+            var selectedProducts =
+                products
+                    .Where(p =>
+                        string.Equals(
+                            p.Category,
+                            selectedCategory,
+                            StringComparison.OrdinalIgnoreCase))
+                    .ToList();
+
+            <section class="th-category-section">
+
+                <div class="th-category-heading">
+
+                    <div class="th-category-title">
+
+                        <div class="th-category-icon">
+                            📦
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                @selectedCategory
+                            </h2>
+
+                            <p>
+                                Items listed in this category
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                @if (selectedProducts.Any())
+                {
+                    <div class="th-product-grid">
+
+                        @foreach (var product in selectedProducts)
+                        {
+                            <partial name="_MarketplaceProductCard"
+                                     model="product"
+                                     view-data="@(new ViewDataDictionary(ViewData)
+                                     {
+                                         { "CategoryIcon", "📦" },
+                                         { "IsFavorite", favoriteProductIds.Contains(product.Id) }
+                                     })" />
+                        }
+
+                    </div>
+                }
+                else
+                {
+                    <div class="th-empty-category">
+
+                        <div style="font-size:40px;">
+                            📦
+                        </div>
+
+                        <p>
+                            No items are available in this category yet.
+                        </p>
+
+                    </div>
+                }
+
+            </section>
+        }
     }
 
 
@@ -1346,6 +1277,76 @@
 
             </section>
 
+        }
+
+        @foreach (var orphanName in unlistedCategories)
+        {
+            var orphanProducts =
+                products
+                    .Where(p =>
+                        string.Equals(
+                            p.Category,
+                            orphanName,
+                            StringComparison.OrdinalIgnoreCase))
+                    .Take(4)
+                    .ToList();
+
+            <section class="th-category-section">
+
+                <div class="th-category-heading">
+
+                    <div class="th-category-title">
+
+                        <div class="th-category-icon">
+                            📦
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                @orphanName
+                            </h2>
+
+                            <p>
+                                Items listed in this category
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <a asp-controller="MarketPlace"
+                       asp-action="Index"
+                       asp-route-category="@orphanName"
+                       class="th-view-all">
+
+                        View All →
+
+                    </a>
+
+                </div>
+
+
+                @if (orphanProducts.Any())
+                {
+                    <div class="th-product-grid">
+
+                        @foreach (var product in orphanProducts)
+                        {
+                            <partial name="_MarketplaceProductCard"
+                                     model="product"
+                                     view-data="@(new ViewDataDictionary(ViewData)
+                                     {
+                                         { "CategoryIcon", "📦" },
+                                         { "IsFavorite", favoriteProductIds.Contains(product.Id) }
+                                     })" />
+                        }
+
+                    </div>
+                }
+
+            </section>
         }
 
     }

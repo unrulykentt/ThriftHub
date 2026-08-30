@@ -100,13 +100,13 @@ namespace ThriftHub.Controllers
                     "All",
                     StringComparison.OrdinalIgnoreCase))
             {
-                var selectedCategory =
-                    category.ToLower();
+                var matchValues =
+                    MarketplaceCategoryCatalog.GetMatchValues(category);
 
                 products = products.Where(p =>
                     p.Category != null &&
-                    p.Category.ToLower() ==
-                    selectedCategory);
+                    matchValues.Contains(
+                        p.Category.ToLower()));
             }
 
 
@@ -220,28 +220,11 @@ namespace ThriftHub.Controllers
             // CATEGORIES
             // =====================================================
 
-            ViewBag.Categories = new List<string>
-            {
-                "Women's Fashion",
-                "Men's Fashion",
-                "Kids",
-                "Shoes",
-                "Bags",
-                "Accessories",
+            ViewBag.Categories =
+                MarketplaceCategoryCatalog.CategoryNames;
 
-                "Books & Textbooks",
-                "Laptops & Computers",
-                "Phones & Tablets",
-                "Smartwatches",
-                "Electronics",
-                "Computer Accessories",
-                "Chargers & Cables",
-                "Power Banks",
-                "Stationery & School Supplies",
-                "Calculators",
-                "Backpacks & School Bags",
-                "Hostel Essentials"
-            };
+            ViewBag.MarketplaceCategories =
+                MarketplaceCategoryCatalog.All;
 
 
             // =====================================================
@@ -249,7 +232,7 @@ namespace ThriftHub.Controllers
             // =====================================================
 
             ViewBag.Subcategories =
-                GetSubcategories(category);
+                MarketplaceCategoryCatalog.GetSubcategories(category);
 
 
             return View(result);
@@ -397,296 +380,6 @@ namespace ThriftHub.Controllers
 
 
             return View(products);
-        }
-
-
-        // =========================================================
-        // GET SUBCATEGORIES
-        // =========================================================
-
-        private List<string> GetSubcategories(
-            string? category)
-        {
-            if (string.IsNullOrWhiteSpace(category))
-            {
-                return new List<string>();
-            }
-
-
-            return category.Trim().ToLower() switch
-            {
-                "women" =>
-                    new List<string>
-                    {
-                        "Dresses",
-                        "Tops",
-                        "Skirts",
-                        "Trousers",
-                        "Jeans",
-                        "Jackets",
-                        "Shorts",
-                        "Jumpsuits",
-                        "Traditional Wear"
-                    },
-
-                "women's fashion" =>
-                    new List<string>
-                    {
-                        "Dresses",
-                        "Tops",
-                        "Skirts",
-                        "Trousers",
-                        "Jeans",
-                        "Jackets",
-                        "Shorts",
-                        "Jumpsuits",
-                        "Traditional Wear"
-                    },
-
-
-                "men" =>
-                    new List<string>
-                    {
-                        "T-Shirts",
-                        "Shirts",
-                        "Trousers",
-                        "Jeans",
-                        "Shorts",
-                        "Jackets",
-                        "Suits",
-                        "Traditional Wear"
-                    },
-
-                "men's fashion" =>
-                    new List<string>
-                    {
-                        "T-Shirts",
-                        "Shirts",
-                        "Trousers",
-                        "Jeans",
-                        "Shorts",
-                        "Jackets",
-                        "Suits",
-                        "Traditional Wear"
-                    },
-
-
-                "kids" =>
-                    new List<string>
-                    {
-                        "Boys Clothing",
-                        "Girls Clothing",
-                        "Baby Clothing",
-                        "Kids Shoes",
-                        "Kids Accessories"
-                    },
-
-
-                "shoes" =>
-                    new List<string>
-                    {
-                        "Sneakers",
-                        "Slippers",
-                        "Sandals",
-                        "Heels",
-                        "Boots",
-                        "Formal Shoes",
-                        "Sports Shoes"
-                    },
-
-
-                "bags" =>
-                    new List<string>
-                    {
-                        "Handbags",
-                        "Backpacks",
-                        "Travel Bags",
-                        "School Bags",
-                        "Laptop Bags",
-                        "Crossbody Bags",
-                        "Wallets"
-                    },
-
-
-                "accessories" =>
-                    new List<string>
-                    {
-                        "Watches",
-                        "Belts",
-                        "Caps",
-                        "Hats",
-                        "Sunglasses",
-                        "Jewelry",
-                        "Scarves"
-                    },
-
-
-                "books & textbooks" =>
-                    new List<string>
-                    {
-                        "Textbooks",
-                        "Novels",
-                        "Course Materials",
-                        "Lecture Notes",
-                        "Past Questions",
-                        "Research Materials",
-                        "Dictionaries",
-                        "E-Books"
-                    },
-
-
-                "laptops & computers" =>
-                    new List<string>
-                    {
-                        "Laptops",
-                        "Desktop Computers",
-                        "Monitors",
-                        "MacBooks",
-                        "Chromebooks",
-                        "Mini PCs",
-                        "Computer Sets"
-                    },
-
-
-                "phones & tablets" =>
-                    new List<string>
-                    {
-                        "Smartphones",
-                        "iPhones",
-                        "Android Phones",
-                        "Tablets",
-                        "iPads",
-                        "Feature Phones"
-                    },
-
-
-                "smartwatches" =>
-                    new List<string>
-                    {
-                        "Apple Watch",
-                        "Samsung Galaxy Watch",
-                        "Fitbit",
-                        "Garmin",
-                        "Xiaomi / Mi Band",
-                        "Huawei Watch",
-                        "Other Smartwatches"
-                    },
-
-
-                "electronics" =>
-                    new List<string>
-                    {
-                        "Televisions",
-                        "Speakers",
-                        "Headphones",
-                        "Earphones",
-                        "Cameras",
-                        "Game Consoles",
-                        "Projectors"
-                    },
-
-
-                "computer accessories" =>
-                    new List<string>
-                    {
-                        "Keyboards",
-                        "Mice",
-                        "Mouse Pads",
-                        "Flash Drives",
-                        "External Hard Drives",
-                        "Memory Cards",
-                        "Webcams",
-                        "Laptop Stands",
-                        "Cooling Pads"
-                    },
-
-
-                "chargers & cables" =>
-                    new List<string>
-                    {
-                        "Phone Chargers",
-                        "Laptop Chargers",
-                        "USB Cables",
-                        "Lightning Cables",
-                        "HDMI Cables",
-                        "Extension Cables",
-                        "Adapters",
-                        "Charging Stations"
-                    },
-
-
-                "power banks" =>
-                    new List<string>
-                    {
-                        "10,000mAh",
-                        "20,000mAh",
-                        "30,000mAh",
-                        "Wireless Power Banks",
-                        "Solar Power Banks"
-                    },
-
-
-                "stationery & school supplies" =>
-                    new List<string>
-                    {
-                        "Notebooks",
-                        "Exercise Books",
-                        "Pens",
-                        "Pencils",
-                        "Markers",
-                        "Files & Folders",
-                        "Rulers",
-                        "Geometry Sets",
-                        "Sticky Notes",
-                        "Art Supplies"
-                    },
-
-
-                "calculators" =>
-                    new List<string>
-                    {
-                        "Scientific Calculators",
-                        "Financial Calculators",
-                        "Basic Calculators",
-                        "Graphing Calculators",
-                        "Engineering Calculators"
-                    },
-
-
-                "backpacks & school bags" =>
-                    new List<string>
-                    {
-                        "Backpacks",
-                        "Laptop Backpacks",
-                        "School Bags",
-                        "Laptop Bags",
-                        "Messenger Bags",
-                        "Travel Backpacks"
-                    },
-
-
-                "hostel essentials" =>
-                    new List<string>
-                    {
-                        "Beds & Mattresses",
-                        "Pillows",
-                        "Bedsheets",
-                        "Blankets",
-                        "Fans",
-                        "Study Tables",
-                        "Chairs",
-                        "Wardrobes",
-                        "Kitchen Items",
-                        "Cooking Equipment",
-                        "Storage Items",
-                        "Cleaning Supplies",
-                        "Iron & Ironing Boards",
-                        "Mosquito Nets"
-                    },
-
-
-                _ => new List<string>()
-            };
         }
 
 

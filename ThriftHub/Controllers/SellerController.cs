@@ -327,7 +327,8 @@ namespace ThriftHub.Controllers
                         model.Price,
 
                     Category =
-                        model.Category,
+                        MarketplaceCategoryCatalog.Normalize(model.Category)
+                        ?? model.Category,
 
                     Subcategory =
                         model.Subcategory,

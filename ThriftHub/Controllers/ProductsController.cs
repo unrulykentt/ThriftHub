@@ -763,7 +763,8 @@ namespace ThriftHub.Controllers
                 model.Price;
 
             product.Category =
-                model.Category;
+                MarketplaceCategoryCatalog.Normalize(model.Category)
+                ?? model.Category;
 
             product.Subcategory =
                 model.Subcategory;
