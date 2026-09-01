@@ -307,6 +307,26 @@
         </div>
 
 
+        <div id="typingIndicator"
+             class="typing-indicator"
+             hidden>
+
+            <span class="typing-dots"
+                  aria-hidden="true">
+
+                <span></span>
+                <span></span>
+                <span></span>
+
+            </span>
+
+            <span id="typingIndicatorText">
+                @recipientName is typing...
+            </span>
+
+        </div>
+
+
         <!-- =====================================================
              INPUT AREA
              ====================================================== -->
@@ -1476,6 +1496,125 @@
 
 
         /* =========================================================
+           TYPING INDICATOR
+           ========================================================= */
+
+        const typingIndicator =
+            document.getElementById(
+                "typingIndicator");
+
+        let typingTimeout = null;
+        let typingActive = false;
+
+
+        function showTypingIndicator(
+            isTyping
+        ) {
+
+            if (!typingIndicator) {
+                return;
+            }
+
+            typingIndicator.hidden =
+                !isTyping;
+
+        }
+
+
+        function stopTypingSignal() {
+
+            if (typingTimeout) {
+                clearTimeout(
+                    typingTimeout
+                );
+                typingTimeout = null;
+            }
+
+            if (!typingActive) {
+                return;
+            }
+
+            typingActive = false;
+
+            if (
+                connection.state ===
+                signalR.HubConnectionState.Connected
+            ) {
+
+                connection.invoke(
+                    "NotifyTyping",
+                    recipientId,
+                    false
+                ).catch(function () { });
+
+            }
+
+        }
+
+
+        function handleTypingInput() {
+
+            if (
+                connection.state !==
+                signalR.HubConnectionState.Connected
+            ) {
+
+                return;
+
+            }
+
+            if (!typingActive) {
+
+                typingActive = true;
+
+                connection.invoke(
+                    "NotifyTyping",
+                    recipientId,
+                    true
+                ).catch(function () { });
+
+            }
+
+            if (typingTimeout) {
+                clearTimeout(
+                    typingTimeout
+                );
+            }
+
+            typingTimeout =
+                setTimeout(
+                    stopTypingSignal,
+                    2000
+                );
+
+        }
+
+
+        connection.on(
+            "UserTyping",
+            function(
+                userId,
+                isTyping
+            ) {
+
+                if (
+                    String(userId) !==
+                    String(recipientId)
+                ) {
+
+                    return;
+
+                }
+
+                showTypingIndicator(
+                    isTyping
+                );
+
+            }
+        );
+
+
+        /* =========================================================
            BUILD MESSAGE
            ========================================================= */
 
@@ -1800,6 +1939,9 @@
             }
 
 
+            stopTypingSignal();
+
+
             sendButton.disabled =
                 true;
 
@@ -1937,7 +2079,12 @@
 
         messageInput.addEventListener(
             "input",
-            resizeMessageBox
+            function () {
+
+                resizeMessageBox();
+                handleTypingInput();
+
+            }
         );
 
 

@@ -284,6 +284,40 @@ namespace ThriftHub.Controllers
                         currentUserId);
             }
 
+            var unreadNotifications =
+                await _context.Notifications
+                    .Where(n =>
+                        n.UserId == currentUserId &&
+                        !n.IsRead &&
+                        n.Link != null &&
+                        (n.Link.Contains(
+                            $"userId={userId}",
+                            StringComparison.OrdinalIgnoreCase) ||
+                         n.Link.Contains(
+                            $"sellerId={userId}",
+                            StringComparison.OrdinalIgnoreCase)))
+                    .ToListAsync();
+
+            if (unreadNotifications.Any())
+            {
+                foreach (var notification in unreadNotifications)
+                {
+                    notification.IsRead = true;
+                }
+
+                await _context.SaveChangesAsync();
+
+                var unreadCount =
+                    await _notificationService
+                        .GetUnreadCountAsync(currentUserId);
+
+                await _hubContext.Clients
+                    .User(currentUserId)
+                    .SendAsync(
+                        "NotificationCountUpdated",
+                        unreadCount);
+            }
+
             var messageViewModels =
                 conversationMessages
                     .Select(m =>

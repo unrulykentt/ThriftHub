@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using ThriftHub.Data;
+using ThriftHub.Hubs;
 using ThriftHub.Models;
+using ThriftHub.Services;
 
 namespace ThriftHub.Controllers
 {
@@ -12,13 +15,19 @@ namespace ThriftHub.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHubContext<ChatHub> _hubContext;
+        private readonly NotificationService _notificationService;
 
         public NotificationsController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            IHubContext<ChatHub> hubContext,
+            NotificationService notificationService)
         {
             _context = context;
             _userManager = userManager;
+            _hubContext = hubContext;
+            _notificationService = notificationService;
         }
 
 
@@ -89,6 +98,8 @@ namespace ThriftHub.Controllers
 
             await _context.SaveChangesAsync();
 
+            await BroadcastUnreadCountAsync(user.Id);
+
 
             if (!string.IsNullOrWhiteSpace(
                 notification.Link))
@@ -100,6 +111,125 @@ namespace ThriftHub.Controllers
 
             return RedirectToAction(
                 nameof(Index));
+        }
+
+
+        // ============================================================
+        // MARK ONE NOTIFICATION AS READ (API)
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAsReadApi(
+            int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var notification =
+                await _context.Set<Notification>()
+                    .FirstOrDefaultAsync(n =>
+                        n.Id == id &&
+                        n.UserId == user.Id);
+
+
+            if (notification == null)
+            {
+                return NotFound();
+            }
+
+
+            if (!notification.IsRead)
+            {
+                notification.IsRead = true;
+                await _context.SaveChangesAsync();
+            }
+
+
+            var count =
+                await _notificationService
+                    .GetUnreadCountAsync(user.Id);
+
+            await BroadcastUnreadCountAsync(
+                user.Id,
+                count);
+
+
+            return Json(new
+            {
+                success = true,
+                count,
+                link = notification.Link
+            });
+        }
+
+
+        // ============================================================
+        // MARK ALL AS READ (API)
+        // ============================================================
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllAsReadApi()
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Unauthorized();
+            }
+
+
+            var notifications =
+                await _context.Set<Notification>()
+                    .Where(n =>
+                        n.UserId == user.Id &&
+                        !n.IsRead)
+                    .ToListAsync();
+
+
+            foreach (var notification in notifications)
+            {
+                notification.IsRead = true;
+            }
+
+
+            if (notifications.Any())
+            {
+                await _context.SaveChangesAsync();
+            }
+
+
+            await BroadcastUnreadCountAsync(user.Id, 0);
+
+
+            return Json(new
+            {
+                success = true,
+                count = 0
+            });
+        }
+
+
+        private async Task BroadcastUnreadCountAsync(
+            string userId,
+            int? count = null)
+        {
+            var unreadCount =
+                count ??
+                await _notificationService
+                    .GetUnreadCountAsync(userId);
+
+            await _hubContext.Clients
+                .User(userId)
+                .SendAsync(
+                    "NotificationCountUpdated",
+                    unreadCount);
         }
 
 
@@ -137,6 +267,8 @@ namespace ThriftHub.Controllers
 
 
             await _context.SaveChangesAsync();
+
+            await BroadcastUnreadCountAsync(user.Id);
 
 
             TempData["SuccessMessage"] =
@@ -184,6 +316,8 @@ namespace ThriftHub.Controllers
                 .Remove(notification);
 
             await _context.SaveChangesAsync();
+
+            await BroadcastUnreadCountAsync(user.Id);
 
 
             TempData["SuccessMessage"] =

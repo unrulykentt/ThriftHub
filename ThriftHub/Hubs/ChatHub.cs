@@ -454,5 +454,34 @@ namespace ThriftHub.Hubs
                 );
             }
         }
+
+
+        // ============================================================
+        // TYPING INDICATOR
+        // ============================================================
+
+        public async Task NotifyTyping(
+            string recipientId,
+            bool isTyping)
+        {
+            var senderId =
+                Context.UserIdentifier;
+
+            if (string.IsNullOrWhiteSpace(senderId) ||
+                string.IsNullOrWhiteSpace(recipientId) ||
+                string.Equals(
+                    senderId,
+                    recipientId,
+                    StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            await Clients.User(recipientId)
+                .SendAsync(
+                    "UserTyping",
+                    senderId,
+                    isTyping);
+        }
     }
 }

@@ -11,6 +11,8 @@
 
 <div class="notification-page">
 
+    @Html.AntiForgeryToken()
+
     <div class="notification-container">
 
         <!-- ========================================================
@@ -110,17 +112,19 @@
                     <div class="notification-card
                         @(notification.IsRead
                             ? "notification-read"
-                            : "notification-unread")">
+                            : "notification-unread")"
+                         data-notification-id="@notification.Id"
+                         data-notification-link="@notification.Link">
 
                         <div class="notification-icon">
 
                             @if (notification.IsRead)
                             {
-                                <span>✓</span>
+                                <span class="notification-icon-symbol">✓</span>
                             }
                             else
                             {
-                                <span>🔔</span>
+                                <span class="notification-icon-symbol">🔔</span>
                             }
 
                         </div>
@@ -149,54 +153,27 @@
 
                                 @if (!notification.IsRead)
                                 {
-                                    <form asp-controller="Notifications"
-                                          asp-action="MarkAsRead"
-                                          method="post">
+                                    <button type="button"
+                                            class="read-button js-mark-notification-read"
+                                            data-notification-id="@notification.Id">
 
-                                        @Html.AntiForgeryToken()
+                                        Mark as read
 
-                                        <input type="hidden"
-                                               name="id"
-                                               value="@notification.Id" />
-
-                                        <button type="submit"
-                                                class="read-button">
-
-                                            Mark as read
-
-                                        </button>
-
-                                    </form>
+                                    </button>
                                 }
 
 
                                 @if (!string.IsNullOrWhiteSpace(
                                     notification.Link))
                                 {
-                                    <!-- =================================================
-                                         OPEN NOTIFICATION
-                                         Marks as read BEFORE opening the message
-                                         ================================================= -->
+                                    <button type="button"
+                                            class="open-button js-open-notification"
+                                            data-notification-id="@notification.Id"
+                                            data-notification-link="@notification.Link">
 
-                                    <form asp-controller="Notifications"
-                                          asp-action="MarkAsRead"
-                                          method="post"
-                                          style="margin:0;">
+                                        Open →
 
-                                        @Html.AntiForgeryToken()
-
-                                        <input type="hidden"
-                                               name="id"
-                                               value="@notification.Id" />
-
-                                        <button type="submit"
-                                                class="open-button">
-
-                                            Open →
-
-                                        </button>
-
-                                    </form>
+                                    </button>
                                 }
 
 
@@ -227,7 +204,7 @@
 
                         @if (!notification.IsRead)
                         {
-                            <div class="unread-dot"></div>
+                            <div class="unread-dot js-unread-dot"></div>
                         }
 
                     </div>
@@ -680,3 +657,304 @@
     }
 
 </style>
+
+
+@section Scripts {
+
+<script>
+
+    (function () {
+
+        const tokenInput =
+            document.querySelector(
+                'input[name="__RequestVerificationToken"]'
+            );
+
+        const antiForgeryToken =
+            tokenInput
+                ? tokenInput.value
+                : "";
+
+
+        function markNotificationReadInUi(
+            card
+        ) {
+
+            if (!card) {
+                return;
+            }
+
+            card.classList.remove(
+                "notification-unread"
+            );
+
+            card.classList.add(
+                "notification-read"
+            );
+
+            const icon =
+                card.querySelector(
+                    ".notification-icon-symbol"
+                );
+
+            if (icon) {
+                icon.textContent = "✓";
+            }
+
+            const dot =
+                card.querySelector(
+                    ".js-unread-dot"
+                );
+
+            if (dot) {
+                dot.remove();
+            }
+
+            const readButton =
+                card.querySelector(
+                    ".js-mark-notification-read"
+                );
+
+            if (readButton) {
+                readButton.remove();
+            }
+
+        }
+
+
+        function updateUnreadSummary() {
+
+            const unreadCards =
+                document.querySelectorAll(
+                    ".notification-unread"
+                ).length;
+
+            const summary =
+                document.querySelector(
+                    ".unread-summary"
+                );
+
+            if (summary) {
+
+                if (unreadCards > 0) {
+                    summary.textContent =
+                        unreadCards + " unread";
+                }
+                else {
+                    summary.remove();
+                }
+
+            }
+
+            const markAllForm =
+                document.querySelector(
+                    ".mark-all-button"
+                )?.closest("form");
+
+            if (
+                markAllForm &&
+                unreadCards === 0
+            ) {
+                markAllForm.remove();
+            }
+
+        }
+
+
+        async function markNotificationRead(
+            notificationId,
+            navigateToLink
+        ) {
+
+            const response =
+                await fetch(
+                    "/Notifications/MarkAsReadApi?id=" +
+                    encodeURIComponent(
+                        notificationId
+                    ),
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers: {
+                            "RequestVerificationToken":
+                                antiForgeryToken
+                        }
+                    }
+                );
+
+
+            if (!response.ok) {
+                throw new Error(
+                    "Unable to mark notification as read."
+                );
+            }
+
+
+            const data =
+                await response.json();
+
+
+            const card =
+                document.querySelector(
+                    '[data-notification-id="' +
+                    notificationId +
+                    '"]'
+                );
+
+            markNotificationReadInUi(card);
+            updateUnreadSummary();
+
+
+            if (
+                typeof window.applyNotificationCount ===
+                "function"
+            ) {
+                window.applyNotificationCount(
+                    data.count
+                );
+            }
+            else if (
+                typeof window.updateNotificationCount ===
+                "function"
+            ) {
+                window.updateNotificationCount();
+            }
+
+
+            if (navigateToLink) {
+                window.location.href =
+                    navigateToLink;
+            }
+
+        }
+
+
+        async function markAllNotificationsRead() {
+
+            const unreadCards =
+                document.querySelectorAll(
+                    ".notification-unread"
+                );
+
+            if (!unreadCards.length) {
+                return;
+            }
+
+
+            const response =
+                await fetch(
+                    "/Notifications/MarkAllAsReadApi",
+                    {
+                        method: "POST",
+                        credentials: "same-origin",
+                        headers: {
+                            "RequestVerificationToken":
+                                antiForgeryToken
+                        }
+                    }
+                );
+
+
+            if (!response.ok) {
+                return;
+            }
+
+
+            const data =
+                await response.json();
+
+
+            unreadCards.forEach(
+                function (card) {
+                    markNotificationReadInUi(card);
+                }
+            );
+
+            updateUnreadSummary();
+
+
+            if (
+                typeof window.applyNotificationCount ===
+                "function"
+            ) {
+                window.applyNotificationCount(
+                    data.count
+                );
+            }
+            else if (
+                typeof window.updateNotificationCount ===
+                "function"
+            ) {
+                window.updateNotificationCount();
+            }
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".js-mark-notification-read"
+            )
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        async function () {
+
+                            try {
+
+                                await markNotificationRead(
+                                    button.dataset.notificationId,
+                                    null
+                                );
+
+                            }
+                            catch (error) {
+                                console.error(error);
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".js-open-notification"
+            )
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        async function () {
+
+                            try {
+
+                                await markNotificationRead(
+                                    button.dataset.notificationId,
+                                    button.dataset.notificationLink
+                                );
+
+                            }
+                            catch (error) {
+                                console.error(error);
+                            }
+
+                        }
+                    );
+
+                }
+            );
+
+
+        markAllNotificationsRead();
+
+    })();
+
+</script>
+
+}

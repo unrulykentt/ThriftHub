@@ -1327,9 +1327,60 @@
     @if (User.Identity != null &&
          User.Identity.IsAuthenticated)
     {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.29/signalr.min.js"></script>
+
         <script>
 
-            async function updateNotificationCount() {
+            function applyNotificationCount(count) {
+
+                const badge =
+                    document.getElementById(
+                        'thNotificationCount'
+                    );
+
+
+                if (!badge) {
+                    return;
+                }
+
+
+                const safeCount =
+                    Number(count || 0);
+
+
+                if (safeCount > 0) {
+
+                    badge.textContent =
+                        safeCount > 99
+                            ? '99+'
+                            : safeCount;
+
+
+                    badge.classList.add(
+                        'visible'
+                    );
+
+                }
+                else {
+
+                    badge.textContent = '0';
+
+
+                    badge.classList.remove(
+                        'visible'
+                    );
+
+                }
+
+            }
+
+
+            window.applyNotificationCount =
+                applyNotificationCount;
+
+
+            window.updateNotificationCount =
+                async function updateNotificationCount() {
 
                 try {
 
@@ -1352,44 +1403,9 @@
                         await response.json();
 
 
-                    const badge =
-                        document.getElementById(
-                            'thNotificationCount'
-                        );
-
-
-                    if (!badge) {
-                        return;
-                    }
-
-
-                    const count =
-                        Number(data.count || 0);
-
-
-                    if (count > 0) {
-
-                        badge.textContent =
-                            count > 99
-                                ? '99+'
-                                : count;
-
-
-                        badge.classList.add(
-                            'visible'
-                        );
-
-                    }
-                    else {
-
-                        badge.textContent = '0';
-
-
-                        badge.classList.remove(
-                            'visible'
-                        );
-
-                    }
+                    applyNotificationCount(
+                        data.count
+                    );
 
                 }
                 catch (error) {
@@ -1400,7 +1416,7 @@
 
                 }
 
-            }
+            };
 
 
             /* ========================================================
@@ -1440,6 +1456,18 @@
                         function () {
 
                             updateNotificationCount();
+
+                        }
+                    );
+
+
+                    notificationConnection.on(
+                        'NotificationCountUpdated',
+                        function (count) {
+
+                            applyNotificationCount(
+                                count
+                            );
 
                         }
                     );
