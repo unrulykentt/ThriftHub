@@ -290,12 +290,8 @@ namespace ThriftHub.Controllers
                         n.UserId == currentUserId &&
                         !n.IsRead &&
                         n.Link != null &&
-                        (n.Link.Contains(
-                            $"userId={userId}",
-                            StringComparison.OrdinalIgnoreCase) ||
-                         n.Link.Contains(
-                            $"sellerId={userId}",
-                            StringComparison.OrdinalIgnoreCase)))
+                        (n.Link.Contains($"userId={userId}") ||
+                         n.Link.Contains($"sellerId={userId}")))
                     .ToListAsync();
 
             if (unreadNotifications.Any())

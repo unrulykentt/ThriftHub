@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
 using AspNet.Security.OAuth.Apple;
 using ThriftHub.Data;
+using Microsoft.AspNetCore.SignalR;
 using ThriftHub.Hubs;
 using ThriftHub.Models;
 using ThriftHub.Services;
@@ -335,6 +336,10 @@ builder.Services.AddSession(options =>
 // ============================================================
 
 builder.Services.AddSignalR();
+
+builder.Services.AddSingleton<
+    IUserIdProvider,
+    ThriftHubUserIdProvider>();
 
 
 // ============================================================
