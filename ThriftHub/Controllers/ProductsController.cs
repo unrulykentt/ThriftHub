@@ -344,23 +344,13 @@ namespace ThriftHub.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> Details(
+        public IActionResult Details(
             int id)
         {
-            var product =
-                await _context.Products
-                    .FirstOrDefaultAsync(
-                        p => p.Id == id
-                    );
-
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-
-            return View(product);
+            return RedirectToAction(
+                "Details",
+                "MarketPlace",
+                new { id });
         }
 
 

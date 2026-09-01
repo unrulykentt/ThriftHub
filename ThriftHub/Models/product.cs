@@ -44,6 +44,8 @@ namespace ThriftHub.Models
 
         public string? SellerId { get; set; }
 
+        public int ViewCount { get; set; }
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

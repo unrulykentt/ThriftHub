@@ -1,0 +1,20 @@
+@model int
+@using ThriftHub.Services
+
+@{
+    var cssClass =
+        ViewData["ViewCountClass"] as string
+        ?? "th-product-view-count";
+}
+
+<span class="@cssClass"
+      title="@ProductViewService.FormatViewCount(Model)">
+
+    <span class="th-product-view-count-icon"
+          aria-hidden="true">
+        👁
+    </span>
+
+    @ProductViewService.FormatViewCount(Model)
+
+</span>

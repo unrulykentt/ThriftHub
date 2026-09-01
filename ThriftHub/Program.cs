@@ -385,6 +385,8 @@ builder.Services.AddSingleton<SiteSeoService>();
 
 builder.Services.AddScoped<NotificationService>();
 
+builder.Services.AddScoped<ProductViewService>();
+
 builder.Services.AddScoped<SellerSubscriptionService>();
 
 

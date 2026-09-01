@@ -13,13 +13,16 @@ namespace ThriftHub.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ProductViewService _productViewService;
 
         public MarketPlaceController(
             ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager)
+            UserManager<ApplicationUser> userManager,
+            ProductViewService productViewService)
         {
             _context = context;
             _userManager = userManager;
+            _productViewService = productViewService;
         }
 
 
@@ -399,7 +402,6 @@ namespace ThriftHub.Controllers
 
             var product =
                 await _context.Products
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(
                         p => p.Id == id.Value);
 
@@ -408,6 +410,12 @@ namespace ThriftHub.Controllers
             {
                 return NotFound();
             }
+
+
+            await _productViewService.RecordViewAsync(
+                product,
+                HttpContext,
+                _userManager.GetUserId(User));
 
 
             ApplicationUser? seller = null;

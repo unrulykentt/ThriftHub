@@ -37,6 +37,8 @@ namespace ThriftHub.Data
 
         public DbSet<Favorite> Favorites { get; set; }
 
+        public DbSet<ProductView> ProductViews { get; set; }
+
 
         // ============================================================
         // SAFETY
@@ -164,6 +166,38 @@ namespace ThriftHub.Data
                     .WithMany()
                     .HasForeignKey(p => p.SellerId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.Property(p => p.ViewCount)
+                    .HasDefaultValue(0);
+            });
+
+
+            // ========================================================
+            // PRODUCT VIEWS
+            // ========================================================
+
+            builder.Entity<ProductView>(entity =>
+            {
+                entity.HasKey(view => view.Id);
+
+                entity.Property(view => view.ViewerKey)
+                    .IsRequired()
+                    .HasMaxLength(200);
+
+                entity.Property(view => view.FirstViewedAt)
+                    .IsRequired();
+
+                entity.HasIndex(view => new
+                {
+                    view.ProductId,
+                    view.ViewerKey
+                })
+                .IsUnique();
+
+                entity.HasOne<Product>()
+                    .WithMany()
+                    .HasForeignKey(view => view.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
 

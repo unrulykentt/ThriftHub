@@ -188,6 +188,13 @@
 
                             </div>
 
+                            <div class="product-views">
+
+                                <partial name="_ProductViewCount"
+                                         model="product.ViewCount" />
+
+                            </div>
+
 
                             <!-- SIZE -->
                             @if (!string.IsNullOrWhiteSpace(
@@ -611,7 +618,20 @@
         color: #6f3cc3;
         font-size: 18px;
         font-weight: 900;
+        margin-bottom: 6px;
+    }
+
+    .product-views {
         margin-bottom: 10px;
+    }
+
+    .product-views .th-product-view-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #777386;
     }
 
 

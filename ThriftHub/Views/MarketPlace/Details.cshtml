@@ -266,6 +266,17 @@
 
             </div>
 
+            <div class="th-product-views-row">
+
+                <partial name="_ProductViewCount"
+                         model="Model.ViewCount"
+                         view-data="@(new ViewDataDictionary(ViewData)
+                         {
+                             { "ViewCountClass", "th-product-view-count th-product-view-count-large" }
+                         })" />
+
+            </div>
+
 
             <!-- ====================================================
                  BASIC INFORMATION
@@ -343,6 +354,28 @@
 
                         @(Model.CreatedAt.ToLocalTime()
                             .ToString("dd MMM yyyy"))
+
+                    </span>
+
+                </div>
+
+
+                <!-- VIEWS -->
+
+                <div class="th-information-row">
+
+                    <span class="th-information-label">
+                        Views
+                    </span>
+
+                    <span class="th-information-value">
+
+                        <partial name="_ProductViewCount"
+                                 model="Model.ViewCount"
+                                 view-data="@(new ViewDataDictionary(ViewData)
+                                 {
+                                     { "ViewCountClass", "th-product-view-count th-product-view-count-inline" }
+                                 })" />
 
                     </span>
 
@@ -1125,10 +1158,37 @@
 
 
     .th-product-price {
-        margin-bottom: 25px;
+        margin-bottom: 10px;
         font-size: 27px;
         font-weight: 900;
         color: var(--th-purple);
+    }
+
+    .th-product-views-row {
+        margin-bottom: 25px;
+    }
+
+    .th-product-view-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #777386;
+    }
+
+    .th-product-view-count-large {
+        font-size: 14px;
+    }
+
+    .th-product-view-count-inline {
+        font-size: 14px;
+        color: #252238;
+    }
+
+    .th-product-view-count-icon {
+        font-size: 14px;
+        line-height: 1;
     }
 
 

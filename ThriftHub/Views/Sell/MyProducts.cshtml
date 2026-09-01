@@ -192,6 +192,13 @@
 
                             </div>
 
+                            <div class="product-views">
+
+                                <partial name="_ProductViewCount"
+                                         model="product.ViewCount" />
+
+                            </div>
+
 
                             <!-- SIZE -->
 
@@ -762,8 +769,21 @@
 
         font-weight: 900;
 
-        margin-bottom: 10px;
+        margin-bottom: 6px;
 
+    }
+
+    .product-views {
+        margin-bottom: 10px;
+    }
+
+    .product-views .th-product-view-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #777386;
     }
 
 

@@ -371,10 +371,23 @@
     }
 
     .seller-product-price {
-        margin-bottom: 12px;
+        margin-bottom: 6px;
         color: #252238;
         font-size: 17px;
         font-weight: 900;
+    }
+
+    .seller-product-views {
+        margin-bottom: 12px;
+    }
+
+    .seller-product-views .th-product-view-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #777386;
     }
 
     .view-product-button {
@@ -860,6 +873,13 @@
                         <div class="seller-product-price">
 
                             GH₵ @product.Price.ToString("N2")
+
+                        </div>
+
+                        <div class="seller-product-views">
+
+                            <partial name="_ProductViewCount"
+                                     model="product.ViewCount" />
 
                         </div>
 

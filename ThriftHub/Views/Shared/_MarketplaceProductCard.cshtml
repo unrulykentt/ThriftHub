@@ -144,6 +144,9 @@
             GH₵ @Model.Price.ToString("N2")
         </div>
 
+        <partial name="_ProductViewCount"
+                 model="Model.ViewCount" />
+
         <a asp-controller="MarketPlace"
            asp-action="Details"
            asp-route-id="@Model.Id"
