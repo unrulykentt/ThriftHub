@@ -446,10 +446,12 @@ body.snap-chat-body {
 }
 
 .snap-voice-duration {
+    min-width: 36px;
     font-size: 11px;
     font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: inherit;
     opacity: 0.85;
-    min-width: 34px;
     text-align: right;
 }
 
@@ -658,6 +660,16 @@ body.snap-chat-body {
     border-radius: 50%;
     background: #ff3b30;
     animation: recordingPulse 1s infinite;
+}
+
+.recording-label {
+    color: var(--snap-muted);
+}
+
+#recordingTime {
+    min-width: 42px;
+    font-variant-numeric: tabular-nums;
+    color: #252238;
 }
 
 @keyframes recordingPulse {

@@ -579,7 +579,8 @@ namespace ThriftHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SendFile(
             string recipientId,
-            IFormFile? file)
+            IFormFile? file,
+            int? audioDurationSeconds)
         {
             if (string.IsNullOrWhiteSpace(
                 recipientId))
@@ -708,7 +709,12 @@ namespace ThriftHub.Controllers
                         recipient.Id,
 
                     Content =
-                        string.Empty,
+                        messageType == "audio" &&
+                        audioDurationSeconds.HasValue &&
+                        audioDurationSeconds.Value > 0
+                            ? audioDurationSeconds.Value
+                                .ToString()
+                            : string.Empty,
 
                     MessageType =
                         messageType,
@@ -752,7 +758,8 @@ namespace ThriftHub.Controllers
                     recipientId =
                         recipient.Id,
 
-                    content = "",
+                    content =
+                        message.Content ?? "",
 
                     messageType =
                         message.MessageType,
@@ -850,7 +857,8 @@ namespace ThriftHub.Controllers
                     recipientId =
                         recipient.Id,
 
-                    content = "",
+                    content =
+                        message.Content ?? "",
 
                     messageType =
                         message.MessageType,

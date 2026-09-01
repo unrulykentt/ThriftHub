@@ -222,8 +222,19 @@
                                     message.MessageType.Equals("audio", StringComparison.OrdinalIgnoreCase)
                                     && !string.IsNullOrWhiteSpace(message.FileUrl))
                                 {
+                                    var audioDurationSeconds = 0;
+
+                                    if (int.TryParse(
+                                            message.Content,
+                                            out var parsedDuration) &&
+                                        parsedDuration > 0)
+                                    {
+                                        audioDurationSeconds = parsedDuration;
+                                    }
+
                                     <div class="message-bubble voice-bubble snap-voice-mount"
                                          data-audio-url="@message.FileUrl"
+                                         data-audio-duration="@audioDurationSeconds"
                                          data-is-sent="@(isSent ? "true" : "false")">
                                     </div>
                                 }
@@ -394,9 +405,9 @@
 
                 </span>
 
-                <span>
+                <span class="recording-label">
 
-                    Recording...
+                    Recording
 
                 </span>
 
@@ -1018,7 +1029,13 @@
         }
 
 
-        function createAudioPlayer(fileUrl) {
+        function createAudioPlayer(
+            fileUrl,
+            knownDurationSeconds
+        ) {
+
+            const initialDuration =
+                Number(knownDurationSeconds || 0);
 
             const wrapper =
                 document.createElement("div");
@@ -1061,7 +1078,12 @@
             duration.className =
                 "snap-voice-duration";
 
-            duration.textContent = "0:00";
+            duration.textContent =
+                initialDuration > 0
+                    ? formatAudioDuration(
+                        initialDuration
+                    )
+                    : "0:00";
 
 
             const audio =
@@ -1142,21 +1164,39 @@
                 "loadedmetadata",
                 function () {
 
-                    if (
-                        !isFinite(
-                            audio.duration
-                        )
-                    ) {
-                        return;
-                    }
-
-                    duration.textContent =
-                        formatAudioDuration(
-                            audio.duration
-                        );
+                    updateDurationLabel();
 
                 }
             );
+
+
+            audio.addEventListener(
+                "durationchange",
+                function () {
+
+                    updateDurationLabel();
+
+                }
+            );
+
+
+            function updateDurationLabel() {
+
+                if (
+                    !isFinite(
+                        audio.duration
+                    ) ||
+                    audio.duration <= 0
+                ) {
+                    return;
+                }
+
+                duration.textContent =
+                    formatAudioDuration(
+                        audio.duration
+                    );
+
+            }
 
 
             wrapper.appendChild(playButton);
@@ -1197,6 +1237,34 @@
         }
 
 
+        function parseAudioDurationSeconds(
+            content,
+            messageType
+        ) {
+
+            if (
+                String(messageType || "")
+                    .toLowerCase() !==
+                "audio"
+            ) {
+                return 0;
+            }
+
+
+            const parsed =
+                parseInt(content, 10);
+
+
+            return (
+                Number.isFinite(parsed) &&
+                parsed > 0
+            )
+                ? parsed
+                : 0;
+
+        }
+
+
         function mountSnapVoicePlayers() {
 
             document
@@ -1216,6 +1284,13 @@
                         const fileUrl =
                             mount.dataset.audioUrl;
 
+                        const knownDuration =
+                            parseInt(
+                                mount.dataset.audioDuration ||
+                                "0",
+                                10
+                            );
+
                         if (!fileUrl) {
                             return;
                         }
@@ -1223,7 +1298,8 @@
                         mount.innerHTML = "";
                         mount.appendChild(
                             createAudioPlayer(
-                                fileUrl
+                                fileUrl,
+                                knownDuration
                             )
                         );
 
@@ -1744,7 +1820,11 @@
 
                 bubble.appendChild(
                     createAudioPlayer(
-                        message.fileUrl
+                        message.fileUrl,
+                        parseAudioDurationSeconds(
+                            message.content,
+                            type
+                        )
                     )
                 );
 
@@ -2290,7 +2370,8 @@
            ========================================================= */
 
         async function uploadFile(
-            file
+            file,
+            audioDurationSeconds
         ) {
 
             if (!file) {
@@ -2331,6 +2412,19 @@
                 "file",
                 file
             );
+
+
+            if (
+                audioDurationSeconds &&
+                audioDurationSeconds > 0
+            ) {
+
+                formData.append(
+                    "audioDurationSeconds",
+                    String(audioDurationSeconds)
+                );
+
+            }
 
 
             if (antiForgeryToken) {
@@ -2637,6 +2731,18 @@
                         }
 
 
+                        const recordedSeconds =
+                            Math.max(
+                                1,
+                                Math.round(
+                                    (
+                                        Date.now() -
+                                        recordingStart
+                                    ) / 1000
+                                )
+                            );
+
+
                         const audioFile =
                             new File(
                                 [blob],
@@ -2649,7 +2755,8 @@
 
 
                         await uploadFile(
-                            audioFile
+                            audioFile,
+                            recordedSeconds
                         );
 
                     };
@@ -2660,6 +2767,9 @@
 
                 recordingStart =
                     Date.now();
+
+
+                updateRecordingTime();
 
 
                 recordingIndicator

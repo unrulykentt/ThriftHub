@@ -375,7 +375,18 @@
                     }
                     else if (lastMessage.MessageType == "audio")
                     {
-                        lastMessageText = "🎤 Voice message";
+                        if (int.TryParse(
+                                lastMessage.Content,
+                                out var audioSeconds) &&
+                            audioSeconds > 0)
+                        {
+                            lastMessageText =
+                                $"🎤 {audioSeconds / 60}:{audioSeconds % 60:D2}";
+                        }
+                        else
+                        {
+                            lastMessageText = "🎤 Voice message";
+                        }
                     }
                     else if (lastMessage.MessageType == "video")
                     {
