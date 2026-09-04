@@ -5,18 +5,28 @@ namespace ThriftHub.Controllers;
 
 public class ChatbotController : Controller
 {
+    private readonly SiteHelpChatService _chatService;
+
+    public ChatbotController(
+        SiteHelpChatService chatService)
+    {
+        _chatService = chatService;
+    }
+
     public sealed class ChatbotRequest
     {
         public string? Question { get; set; }
     }
 
     [HttpPost]
-    public IActionResult Ask(
-        [FromBody] ChatbotRequest request)
+    public async Task<IActionResult> Ask(
+        [FromBody] ChatbotRequest request,
+        CancellationToken cancellationToken)
     {
         var reply =
-            SiteHelpChatService.GetReply(
-                request?.Question);
+            await _chatService.GetReplyAsync(
+                request?.Question,
+                cancellationToken);
 
         return Json(new
         {

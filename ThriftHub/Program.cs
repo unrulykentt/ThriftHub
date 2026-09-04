@@ -394,6 +394,13 @@ builder.Services.AddScoped<ProductViewService>();
 
 builder.Services.AddScoped<ProductImageService>();
 
+builder.Services.AddScoped<SiteHelpChatService>();
+
+builder.Services.AddHttpClient("Gemini", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(20);
+});
+
 builder.Services.AddScoped<SellerSubscriptionService>();
 
 
