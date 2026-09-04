@@ -337,15 +337,14 @@
                 button.textContent = item;
                 button.setAttribute("data-question", item);
 
-                button.addEventListener("click", function () {
-                    askQuestion(item);
-                });
-
                 suggestionsContainer.appendChild(button);
 
             });
 
         }
+
+
+        let isAsking = false;
 
 
         async function askQuestion(
@@ -354,9 +353,11 @@
             const trimmed =
                 (question || "").trim();
 
-            if (!trimmed) {
+            if (!trimmed || isAsking) {
                 return;
             }
+
+            isAsking = true;
 
             appendMessage(trimmed, "user");
             input.value = "";
@@ -394,6 +395,9 @@
                     "Sorry, I could not reach the help service right now. Please try again.",
                     "bot");
 
+            }
+            finally {
+                isAsking = false;
             }
 
         }
