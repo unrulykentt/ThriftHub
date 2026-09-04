@@ -392,6 +392,8 @@ builder.Services.AddScoped<NotificationService>();
 
 builder.Services.AddScoped<ProductViewService>();
 
+builder.Services.AddScoped<ProductImageService>();
+
 builder.Services.AddScoped<SellerSubscriptionService>();
 
 

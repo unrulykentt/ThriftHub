@@ -49,6 +49,41 @@
             Model.Category == "Backpacks & School Bags" ||
             Model.Category == "Hostel Essentials"
         );
+
+    var productImages =
+        ViewBag.ProductImages as List<string>
+        ?? [];
+
+    if (productImages.Count == 0 &&
+        !string.IsNullOrWhiteSpace(Model.ImageUrl))
+    {
+        productImages = [Model.ImageUrl];
+    }
+
+    var reviews =
+        ViewBag.Reviews as List<ThriftHub.Models.ProductReview>
+        ?? [];
+
+    var reviewerNames =
+        ViewBag.ReviewerNames as Dictionary<string, string>
+        ?? new Dictionary<string, string>();
+
+    var averageRating =
+        ViewBag.AverageRating is double ratingValue
+            ? ratingValue
+            : 0.0;
+
+    var reviewCount =
+        ViewBag.ReviewCount is int countValue
+            ? countValue
+            : reviews.Count;
+
+    var userReview =
+        ViewBag.UserReview as ThriftHub.Models.ProductReview;
+
+    var canReview =
+        ViewBag.CanReview is bool canReviewValue &&
+        canReviewValue;
 }
 
 
@@ -120,19 +155,45 @@
 
             <div class="th-main-image-card th-product-image-interactive">
 
-                @if (!string.IsNullOrWhiteSpace(Model.ImageUrl))
+                @if (productImages.Count > 0)
                 {
+                    var primaryImage = productImages[0];
+
                     <button type="button"
                             class="th-image-zoom-trigger"
-                            data-image="@Model.ImageUrl"
+                            id="mainProductImageTrigger"
+                            data-image="@primaryImage"
                             data-title="@Model.Name"
                             aria-label="View larger image of @Model.Name">
 
-                        <img src="@Model.ImageUrl"
+                        <img src="@primaryImage"
                              alt="@Model.Name"
+                             id="mainProductImage"
                              class="th-main-product-image th-product-photo" />
 
                     </button>
+
+                    @if (productImages.Count > 1)
+                    {
+                        <div class="th-product-thumbnails">
+
+                            @for (var imageIndex = 0; imageIndex < productImages.Count; imageIndex++)
+                            {
+                                var imageUrl = productImages[imageIndex];
+
+                                <button type="button"
+                                        class="th-product-thumbnail@(imageIndex == 0 ? " is-active" : "")"
+                                        data-image="@imageUrl"
+                                        aria-label="Show photo @(imageIndex + 1)">
+
+                                    <img src="@imageUrl"
+                                         alt="@Model.Name photo @(imageIndex + 1)" />
+
+                                </button>
+                            }
+
+                        </div>
+                    }
                 }
                 else
                 {
@@ -276,6 +337,28 @@
                          })" />
 
             </div>
+
+            @if (reviewCount > 0)
+            {
+                <div class="th-product-rating-summary">
+
+                    <span class="th-rating-stars">
+
+                        @for (var star = 1; star <= 5; star++)
+                        {
+                            <span class="th-star@(star <= Math.Round(averageRating) ? " is-filled" : "")">★</span>
+                        }
+
+                    </span>
+
+                    <span class="th-rating-text">
+
+                        @averageRating.ToString("0.0") · @reviewCount review@(reviewCount == 1 ? "" : "s")
+
+                    </span>
+
+                </div>
+            }
 
 
             <!-- ====================================================
@@ -497,6 +580,158 @@
                         Available
 
                     </span>
+                }
+
+            </div>
+
+
+            <!-- ====================================================
+                 REVIEWS
+                 ==================================================== -->
+
+            <div class="th-reviews-section">
+
+                <div class="th-reviews-header">
+
+                    <h5>
+                        Reviews
+                    </h5>
+
+                    @if (reviewCount > 0)
+                    {
+                        <span class="th-reviews-meta">
+
+                            @averageRating.ToString("0.0") average · @reviewCount total
+
+                        </span>
+                    }
+
+                </div>
+
+                @if (canReview)
+                {
+                    <form asp-controller="Reviews"
+                          asp-action="Submit"
+                          method="post"
+                          class="th-review-form">
+
+                        @Html.AntiForgeryToken()
+
+                        <input type="hidden"
+                               name="productId"
+                               value="@Model.Id" />
+
+                        <label class="th-review-label">
+                            Your rating
+                        </label>
+
+                        <div class="th-star-picker">
+
+                            @for (var star = 5; star >= 1; star--)
+                            {
+                                <label class="th-star-picker-option">
+
+                                    <input type="radio"
+                                           name="rating"
+                                           value="@star"
+                                           @(userReview?.Rating == star ? "checked" : "") />
+
+                                    <span>@star ★</span>
+
+                                </label>
+                            }
+
+                        </div>
+
+                        <label class="th-review-label"
+                               for="reviewComment">
+                            Comment (optional)
+                        </label>
+
+                        <textarea id="reviewComment"
+                                  name="comment"
+                                  class="th-review-textarea"
+                                  rows="3"
+                                  maxlength="1000"
+                                  placeholder="Share your experience with this listing...">@userReview?.Comment</textarea>
+
+                        <button type="submit"
+                                class="th-review-submit">
+
+                            @(userReview == null ? "Submit Review" : "Update Review")
+
+                        </button>
+
+                    </form>
+                }
+                else if (User.Identity?.IsAuthenticated != true)
+                {
+                    <p class="th-review-signin-note">
+
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           asp-route-returnUrl="@Context.Request.Path">
+
+                            Sign in
+
+                        </a>
+
+                        to leave a review.
+
+                    </p>
+                }
+
+                @if (reviews.Count == 0)
+                {
+                    <p class="th-muted-text">
+                        No reviews yet. Be the first to share feedback.
+                    </p>
+                }
+                else
+                {
+                    <div class="th-review-list">
+
+                        @foreach (var review in reviews)
+                        {
+                            var reviewerName =
+                                reviewerNames.TryGetValue(
+                                    review.UserId,
+                                    out var name)
+                                    ? name
+                                    : "Buyer";
+
+                            <article class="th-review-item">
+
+                                <div class="th-review-item-header">
+
+                                    <strong>@reviewerName</strong>
+
+                                    <span class="th-review-item-stars">
+
+                                        @for (var star = 1; star <= 5; star++)
+                                        {
+                                            <span class="th-star@(star <= review.Rating ? " is-filled" : "")">★</span>
+                                        }
+
+                                    </span>
+
+                                </div>
+
+                                @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                {
+                                    <p class="th-review-comment">
+                                        @review.Comment
+                                    </p>
+                                }
+
+                                <div class="th-review-date">
+                                    @review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")
+                                </div>
+
+                            </article>
+                        }
+
+                    </div>
                 }
 
             </div>
@@ -1189,6 +1424,217 @@
     .th-product-view-count-icon {
         font-size: 14px;
         line-height: 1;
+    }
+
+    .th-product-rating-summary {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 25px;
+    }
+
+    .th-rating-stars,
+    .th-review-item-stars {
+        display: inline-flex;
+        gap: 2px;
+    }
+
+    .th-star {
+        color: #d9d3e6;
+        font-size: 16px;
+        line-height: 1;
+    }
+
+    .th-star.is-filled {
+        color: #f5b301;
+    }
+
+    .th-rating-text {
+        font-size: 13px;
+        font-weight: 700;
+        color: #777386;
+    }
+
+    .th-product-thumbnails {
+        display: flex;
+        gap: 8px;
+        padding: 12px 14px 14px;
+        overflow-x: auto;
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 1px solid var(--th-border);
+    }
+
+    .th-product-thumbnail {
+        flex: 0 0 72px;
+        width: 72px;
+        height: 72px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        overflow: hidden;
+        padding: 0;
+        background: #fff;
+        cursor: pointer;
+    }
+
+    .th-product-thumbnail.is-active {
+        border-color: var(--th-purple);
+    }
+
+    .th-product-thumbnail img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .th-reviews-section {
+        margin-bottom: 25px;
+        padding: 18px;
+        background: white;
+        border: 1px solid var(--th-border);
+        border-radius: 14px;
+    }
+
+    .th-reviews-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 14px;
+    }
+
+    .th-reviews-header h5 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .th-reviews-meta {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--th-muted);
+    }
+
+    .th-review-form {
+        margin-bottom: 18px;
+        padding-bottom: 18px;
+        border-bottom: 1px solid #f2eff6;
+    }
+
+    .th-review-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 800;
+        color: #555161;
+    }
+
+    .th-star-picker {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .th-star-picker-option {
+        margin: 0;
+        cursor: pointer;
+    }
+
+    .th-star-picker-option input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .th-star-picker-option span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 52px;
+        padding: 8px 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        background: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        color: #555;
+    }
+
+    .th-star-picker-option input:checked + span {
+        background: var(--th-purple);
+        border-color: var(--th-purple);
+        color: #fff;
+    }
+
+    .th-review-textarea {
+        width: 100%;
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        font-size: 14px;
+        resize: vertical;
+    }
+
+    .th-review-submit {
+        padding: 10px 16px;
+        border: none;
+        border-radius: 9px;
+        background: var(--th-purple);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .th-review-submit:hover {
+        background: var(--th-purple-dark);
+    }
+
+    .th-review-signin-note {
+        margin: 0 0 14px;
+        font-size: 13px;
+        color: var(--th-muted);
+    }
+
+    .th-review-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .th-review-item {
+        padding-top: 14px;
+        border-top: 1px solid #f2eff6;
+    }
+
+    .th-review-item:first-child {
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .th-review-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .th-review-comment {
+        margin: 0 0 6px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: #555161;
+        white-space: pre-line;
+    }
+
+    .th-review-date {
+        font-size: 11px;
+        color: var(--th-muted);
+        font-weight: 700;
     }
 
 
@@ -1938,3 +2384,52 @@
     }
 
 </style>
+
+@section Scripts
+{
+    <script>
+        (function () {
+
+            const mainImage =
+                document.getElementById("mainProductImage");
+
+            const mainTrigger =
+                document.getElementById("mainProductImageTrigger");
+
+            const thumbnails =
+                document.querySelectorAll(".th-product-thumbnail");
+
+            if (!mainImage || thumbnails.length === 0) {
+                return;
+            }
+
+            thumbnails.forEach(function (thumbnail) {
+
+                thumbnail.addEventListener("click", function () {
+
+                    const imageUrl =
+                        thumbnail.getAttribute("data-image");
+
+                    if (!imageUrl) {
+                        return;
+                    }
+
+                    mainImage.src = imageUrl;
+
+                    if (mainTrigger) {
+                        mainTrigger.setAttribute("data-image", imageUrl);
+                    }
+
+                    thumbnails.forEach(function (item) {
+                        item.classList.remove("is-active");
+                    });
+
+                    thumbnail.classList.add("is-active");
+
+                });
+
+            });
+
+        })();
+    </script>
+}

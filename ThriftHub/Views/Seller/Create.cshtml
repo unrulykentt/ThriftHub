@@ -226,6 +226,46 @@
                                         Accessories
                                     </option>
 
+                                    <option value="Sportswear &amp; Activewear">
+                                        Sportswear &amp; Activewear
+                                    </option>
+
+                                    <option value="Joggers &amp; Tracksuits">
+                                        Joggers &amp; Tracksuits
+                                    </option>
+
+                                    <option value="Hoodies &amp; Sweatshirts">
+                                        Hoodies &amp; Sweatshirts
+                                    </option>
+
+                                    <option value="Socks &amp; Hosiery">
+                                        Socks &amp; Hosiery
+                                    </option>
+
+                                    <option value="T-Shirts &amp; Polos">
+                                        T-Shirts &amp; Polos
+                                    </option>
+
+                                    <option value="Coats &amp; Outerwear">
+                                        Coats &amp; Outerwear
+                                    </option>
+
+                                    <option value="Swimwear">
+                                        Swimwear
+                                    </option>
+
+                                    <option value="Underwear &amp; Loungewear">
+                                        Underwear &amp; Loungewear
+                                    </option>
+
+                                    <option value="Traditional &amp; Cultural Wear">
+                                        Traditional &amp; Cultural Wear
+                                    </option>
+
+                                    <option value="Vintage &amp; Thrift Fashion">
+                                        Vintage &amp; Thrift Fashion
+                                    </option>
+
                                 </optgroup>
 
 
@@ -511,62 +551,53 @@
 
 
                         <!-- =================================================
-                             PRODUCT IMAGE
+                             PRODUCT IMAGES
                              ================================================= -->
 
                         <div class="mb-4">
 
                             <label class="form-label fw-semibold">
 
-                                Product Picture
+                                Product Photos
 
                             </label>
 
                             <input type="file"
-                                   name="productImage"
-                                   id="productImage"
+                                   name="productImages"
+                                   id="productImages"
                                    class="form-control"
-                                   accept=".jpg,.jpeg,.png,.webp" />
+                                   accept=".jpg,.jpeg,.png,.webp"
+                                   multiple
+                                   required />
 
                             <div class="form-text">
 
-                                Upload a clear picture of the actual item.
+                                Upload at least 5 clear photos of the actual item
+                                (up to 8).
 
                                 <br />
 
-                                JPG, JPEG, PNG or WEBP.
-
-                                <br />
-
-                                Maximum file size: 10 MB.
+                                JPG, JPEG, PNG or WEBP — max 10 MB each.
 
                             </div>
 
-                            <span class="text-danger"
-                                  asp-validation-for="ImageUrl">
-                            </span>
+                            @if (ViewData.ModelState["productImages"]?.Errors.Count > 0)
+                            {
+                                <span class="text-danger">
+                                    @ViewData.ModelState["productImages"]!.Errors[0].ErrorMessage
+                                </span>
+                            }
 
                         </div>
 
 
                         <!-- =================================================
-                             IMAGE PREVIEW
+                             IMAGE PREVIEW GALLERY
                              ================================================= -->
 
-                        <div class="mb-4 text-center">
-
-                            <img id="imagePreview"
-                                 src="#"
-                                 alt="Image Preview"
-                                 style="
-                            display:none;
-                            max-width:350px;
-                            max-height:350px;
-                            object-fit:cover;
-                            border-radius:12px;
-                            border:1px solid #ddd;
-                            " />
-
+                        <div id="imagePreviewGallery"
+                             class="image-preview-gallery mb-4"
+                             style="display:none;">
                         </div>
 
 
@@ -769,6 +800,40 @@
         font-size: 14px;
     }
 
+    .image-preview-gallery {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+    }
+
+    .image-preview-item {
+        position: relative;
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid #e5e5e5;
+        aspect-ratio: 1;
+        background: #fafafa;
+    }
+
+    .image-preview-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .image-preview-badge {
+        position: absolute;
+        top: 6px;
+        left: 6px;
+        background: rgba(108, 61, 244, 0.92);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 3px 7px;
+        border-radius: 999px;
+    }
+
 
     @@media (max-width: 576px) {
 
@@ -806,6 +871,9 @@
                 "Jeans",
                 "Jackets",
                 "Jumpsuits",
+                "Joggers",
+                "Socks",
+                "Sportswear",
                 "Traditional Wear",
                 "Other"
             ],
@@ -818,6 +886,9 @@
                 "Shorts",
                 "Jackets",
                 "Suits",
+                "Joggers",
+                "Socks",
+                "Sportswear",
                 "Traditional Wear",
                 "Other"
             ],
@@ -857,6 +928,100 @@
                 "Sunglasses",
                 "Caps",
                 "Hats",
+                "Other"
+            ],
+
+            "Sportswear & Activewear": [
+                "Sports Wear",
+                "Gym Wear",
+                "Running Wear",
+                "Football Kits",
+                "Basketball Kits",
+                "Tracksuits",
+                "Compression Wear",
+                "Other"
+            ],
+
+            "Joggers & Tracksuits": [
+                "Joggers",
+                "Track Pants",
+                "Track Suits",
+                "Sweatpants",
+                "Cargo Joggers",
+                "Other"
+            ],
+
+            "Hoodies & Sweatshirts": [
+                "Hoodies",
+                "Zip Hoodies",
+                "Crewneck Sweatshirts",
+                "Oversized Hoodies",
+                "Other"
+            ],
+
+            "Socks & Hosiery": [
+                "Ankle Socks",
+                "Crew Socks",
+                "Sports Socks",
+                "Dress Socks",
+                "Tights",
+                "Stockings",
+                "Other"
+            ],
+
+            "T-Shirts & Polos": [
+                "T-Shirts",
+                "Polo Shirts",
+                "Tank Tops",
+                "Long Sleeve Tees",
+                "Graphic Tees",
+                "Crop Tops",
+                "Other"
+            ],
+
+            "Coats & Outerwear": [
+                "Jackets",
+                "Coats",
+                "Blazers",
+                "Puffer Jackets",
+                "Denim Jackets",
+                "Leather Jackets",
+                "Other"
+            ],
+
+            Swimwear: [
+                "One-Piece",
+                "Bikini",
+                "Swim Trunks",
+                "Board Shorts",
+                "Cover Ups",
+                "Other"
+            ],
+
+            "Underwear & Loungewear": [
+                "Underwear",
+                "Boxers",
+                "Briefs",
+                "Bras",
+                "Pyjamas",
+                "Loungewear",
+                "Other"
+            ],
+
+            "Traditional & Cultural Wear": [
+                "Kente",
+                "African Print",
+                "Kaftan",
+                "Agbada",
+                "Traditional Dress",
+                "Other"
+            ],
+
+            "Vintage & Thrift Fashion": [
+                "Vintage Clothing",
+                "Retro Fashion",
+                "Designer Thrift",
+                "Rare Finds",
                 "Other"
             ],
 
@@ -1131,6 +1296,102 @@
             ],
 
             Accessories: [
+                "One Size"
+            ],
+
+            "Sportswear & Activewear": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            "Joggers & Tracksuits": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            "Hoodies & Sweatshirts": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            "Socks & Hosiery": [
+                "One Size",
+                "S",
+                "M",
+                "L",
+                "XL"
+            ],
+
+            "T-Shirts & Polos": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            "Coats & Outerwear": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            Swimwear: [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "One Size"
+            ],
+
+            "Underwear & Loungewear": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "One Size"
+            ],
+
+            "Traditional & Cultural Wear": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
+                "One Size"
+            ],
+
+            "Vintage & Thrift Fashion": [
+                "XS",
+                "S",
+                "M",
+                "L",
+                "XL",
+                "XXL",
                 "One Size"
             ],
 
@@ -1579,52 +1840,84 @@
 
 
         // ============================================================
-        // IMAGE PREVIEW
+        // IMAGE PREVIEW GALLERY
         // ============================================================
 
+        const maxProductImages = 8;
+
         document
-            .getElementById("productImage")
+            .getElementById("productImages")
             .addEventListener(
                 "change",
                 function(event) {
 
-                    const file =
-                        event.target.files[0];
+                    const files =
+                        Array.from(event.target.files || []);
 
-
-                    const preview =
+                    const gallery =
                         document.getElementById(
-                            "imagePreview"
+                            "imagePreviewGallery"
                         );
 
+                    gallery.innerHTML = "";
 
-                    if (file) {
+                    if (files.length === 0) {
 
-                        const reader =
-                            new FileReader();
-
-
-                        reader.onload =
-                            function(e) {
-
-                                preview.src =
-                                    e.target.result;
-
-                                preview.style.display =
-                                    "inline-block";
-
-                            };
-
-
-                        reader.readAsDataURL(file);
-
-                    }
-                    else {
-
-                        preview.style.display =
+                        gallery.style.display =
                             "none";
 
+                        return;
+
                     }
+
+                    gallery.style.display =
+                        "grid";
+
+                    files
+                        .slice(0, maxProductImages)
+                        .forEach(function(file, index) {
+
+                            const reader =
+                                new FileReader();
+
+                            reader.onload =
+                                function(e) {
+
+                                    const item =
+                                        document.createElement("div");
+
+                                    item.className =
+                                        "image-preview-item";
+
+                                    const img =
+                                        document.createElement("img");
+
+                                    img.src =
+                                        e.target.result;
+
+                                    img.alt =
+                                        "Preview " + (index + 1);
+
+                                    const badge =
+                                        document.createElement("span");
+
+                                    badge.className =
+                                        "image-preview-badge";
+
+                                    badge.textContent =
+                                        index === 0
+                                            ? "Cover"
+                                            : String(index + 1);
+
+                                    item.appendChild(img);
+                                    item.appendChild(badge);
+                                    gallery.appendChild(item);
+
+                                };
+
+                            reader.readAsDataURL(file);
+
+                        });
 
                 }
             );

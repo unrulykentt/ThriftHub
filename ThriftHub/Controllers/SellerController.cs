@@ -15,17 +15,20 @@ namespace ThriftHub.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly AppStorageService _storage;
         private readonly SellerSubscriptionService _subscriptionService;
+        private readonly ProductImageService _productImageService;
 
         public SellerController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
             AppStorageService storage,
-            SellerSubscriptionService subscriptionService)
+            SellerSubscriptionService subscriptionService,
+            ProductImageService productImageService)
         {
             _context = context;
             _userManager = userManager;
             _storage = storage;
             _subscriptionService = subscriptionService;
+            _productImageService = productImageService;
         }
 
 
@@ -148,7 +151,7 @@ namespace ThriftHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(
             Product model,
-            IFormFile? productImage)
+            List<IFormFile>? productImages)
         {
             var user = await _userManager.GetUserAsync(User);
 
@@ -217,97 +220,66 @@ namespace ThriftHub.Controllers
 
 
             // ========================================================
-            // PRODUCT IMAGE
+            // PRODUCT IMAGES
             // ========================================================
 
-            string? imageUrl = null;
+            var uploadedFiles =
+                productImages?
+                    .Where(file =>
+                        file != null &&
+                        file.Length > 0)
+                    .ToList()
+                ?? [];
 
-
-            if (productImage != null &&
-                productImage.Length > 0)
+            if (uploadedFiles.Count <
+                ProductImageService.MinImagesPerProduct)
             {
-                var allowedExtensions =
-                    new[]
-                    {
-                        ".jpg",
-                        ".jpeg",
-                        ".png",
-                        ".webp"
-                    };
+                ModelState.AddModelError(
+                    "productImages",
+                    $"Please upload at least {ProductImageService.MinImagesPerProduct} clear photos of the item.");
 
-
-                var extension =
-                    Path.GetExtension(
-                        productImage.FileName)
-                        .ToLowerInvariant();
-
-
-                if (!allowedExtensions.Contains(
-                    extension))
-                {
-                    ModelState.AddModelError(
-                        "productImage",
-                        "Only JPG, JPEG, PNG and WEBP images are allowed.");
-
-                    return View(model);
-                }
-
-
-                const long maxFileSize =
-                    10 * 1024 * 1024;
-
-
-                if (productImage.Length > maxFileSize)
-                {
-                    ModelState.AddModelError(
-                        "productImage",
-                        "The product image must be smaller than 10 MB.");
-
-                    return View(model);
-                }
-
-
-                var uploadsFolder =
-                    _storage.GetUploadsCategoryPath(
-                        "products");
-
-
-                if (!Directory.Exists(
-                    uploadsFolder))
-                {
-                    Directory.CreateDirectory(
-                        uploadsFolder);
-                }
-
-
-                var fileName =
-                    Guid.NewGuid()
-                        .ToString("N")
-                    + extension;
-
-
-                var filePath =
-                    Path.Combine(
-                        uploadsFolder,
-                        fileName);
-
-
-                using (
-                    var stream =
-                        new FileStream(
-                            filePath,
-                            FileMode.Create))
-                {
-                    await productImage.CopyToAsync(
-                        stream);
-                }
-
-
-                imageUrl =
-                    _storage.BuildUploadsWebPath(
-                        "products",
-                        fileName);
+                return View(model);
             }
+
+            if (uploadedFiles.Count >
+                ProductImageService.MaxImagesPerProduct)
+            {
+                ModelState.AddModelError(
+                    "productImages",
+                    $"You can upload up to {ProductImageService.MaxImagesPerProduct} photos per listing.");
+
+                return View(model);
+            }
+
+            List<string> imageUrls;
+
+            try
+            {
+                imageUrls =
+                    await _productImageService
+                        .SaveProductImagesAsync(
+                            uploadedFiles);
+            }
+            catch (InvalidOperationException ex)
+            {
+                ModelState.AddModelError(
+                    "productImages",
+                    ex.Message);
+
+                return View(model);
+            }
+
+            if (imageUrls.Count <
+                ProductImageService.MinImagesPerProduct)
+            {
+                ModelState.AddModelError(
+                    "productImages",
+                    $"Please upload at least {ProductImageService.MinImagesPerProduct} valid photos.");
+
+                return View(model);
+            }
+
+            var imageUrl = imageUrls[0];
 
 
             // ========================================================
@@ -356,6 +328,10 @@ namespace ThriftHub.Controllers
             _context.Products.Add(product);
 
             await _context.SaveChangesAsync();
+
+            await _productImageService.AddImagesToProductAsync(
+                product.Id,
+                imageUrls);
 
 
             TempData["SuccessMessage"] =

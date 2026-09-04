@@ -14,15 +14,18 @@ namespace ThriftHub.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ProductViewService _productViewService;
+        private readonly ProductImageService _productImageService;
 
         public MarketPlaceController(
             ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
-            ProductViewService productViewService)
+            ProductViewService productViewService,
+            ProductImageService productImageService)
         {
             _context = context;
             _userManager = userManager;
             _productViewService = productViewService;
+            _productImageService = productImageService;
         }
 
 
@@ -432,6 +435,72 @@ namespace ThriftHub.Controllers
 
 
             ViewBag.Seller = seller;
+
+            var productImages =
+                await _productImageService
+                    .GetProductImageUrlsAsync(
+                        product.Id,
+                        product.ImageUrl);
+
+            ViewBag.ProductImages = productImages;
+
+            var reviews =
+                await _context.ProductReviews
+                    .AsNoTracking()
+                    .Where(review =>
+                        review.ProductId == product.Id)
+                    .OrderByDescending(
+                        review => review.CreatedAt)
+                    .ToListAsync();
+
+            var reviewerIds =
+                reviews
+                    .Select(review => review.UserId)
+                    .Distinct()
+                    .ToList();
+
+            var reviewers =
+                reviewerIds.Count == 0
+                    ? []
+                    : await _context.Users
+                        .AsNoTracking()
+                        .Where(user =>
+                            reviewerIds.Contains(user.Id))
+                        .ToListAsync();
+
+            var reviewerNames =
+                reviewers.ToDictionary(
+                    user => user.Id,
+                    user =>
+                        UserPresentationHelper.GetDisplayName(
+                            user));
+
+            ViewBag.Reviews = reviews;
+            ViewBag.ReviewerNames = reviewerNames;
+            ViewBag.AverageRating =
+                reviews.Count == 0
+                    ? 0.0
+                    : reviews.Average(
+                        review => review.Rating);
+            ViewBag.ReviewCount = reviews.Count;
+
+            var currentUserId =
+                _userManager.GetUserId(User);
+
+            ProductReview? userReview = null;
+
+            if (!string.IsNullOrWhiteSpace(currentUserId))
+            {
+                userReview =
+                    reviews.FirstOrDefault(review =>
+                        review.UserId == currentUserId);
+            }
+
+            ViewBag.UserReview = userReview;
+            ViewBag.CanReview =
+                User.Identity?.IsAuthenticated == true &&
+                !string.IsNullOrWhiteSpace(currentUserId) &&
+                product.SellerId != currentUserId;
 
 
             return View(product);

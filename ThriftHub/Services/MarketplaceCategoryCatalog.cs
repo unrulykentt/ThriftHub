@@ -20,7 +20,7 @@ public static class MarketplaceCategoryCatalog
             ["Women"],
             [
                 "Dresses", "Tops", "Trousers", "Skirts", "Jeans", "Jackets",
-                "Jumpsuits", "Traditional Wear", "Other"
+                "Jumpsuits", "Joggers", "Socks", "Sportswear", "Traditional Wear", "Other"
             ]),
 
         Def(
@@ -30,7 +30,7 @@ public static class MarketplaceCategoryCatalog
             ["Men"],
             [
                 "Shirts", "T-Shirts", "Trousers", "Jeans", "Shorts", "Jackets",
-                "Suits", "Traditional Wear", "Other"
+                "Suits", "Joggers", "Socks", "Sportswear", "Traditional Wear", "Other"
             ]),
 
         Def("Kids", "🧸", "Fashion for babies and children", [],
@@ -54,6 +54,60 @@ public static class MarketplaceCategoryCatalog
         Def("Accessories", "💍", "Watches, belts, caps, jewellery and more", [],
             [
                 "Watches", "Belts", "Jewellery", "Sunglasses", "Caps", "Hats", "Other"
+            ]),
+
+        Def("Sportswear & Activewear", "🏃", "Gym wear, sports kits, running and training gear", [],
+            [
+                "Sports Wear", "Gym Wear", "Running Wear", "Football Kits",
+                "Basketball Kits", "Tracksuits", "Compression Wear", "Other"
+            ]),
+
+        Def("Joggers & Tracksuits", "👖", "Joggers, track pants, and matching sets", [],
+            [
+                "Joggers", "Track Pants", "Track Suits", "Sweatpants", "Cargo Joggers", "Other"
+            ]),
+
+        Def("Hoodies & Sweatshirts", "🧥", "Hoodies, pullovers, and sweatshirts", [],
+            [
+                "Hoodies", "Zip Hoodies", "Crewneck Sweatshirts", "Oversized Hoodies", "Other"
+            ]),
+
+        Def("Socks & Hosiery", "🧦", "Socks, tights, stockings, and legwear", [],
+            [
+                "Ankle Socks", "Crew Socks", "Sports Socks", "Dress Socks",
+                "Tights", "Stockings", "Other"
+            ]),
+
+        Def("T-Shirts & Polos", "👕", "T-shirts, polos, tank tops, and casual tops", [],
+            [
+                "T-Shirts", "Polo Shirts", "Tank Tops", "Long Sleeve Tees",
+                "Graphic Tees", "Crop Tops", "Other"
+            ]),
+
+        Def("Coats & Outerwear", "🧣", "Jackets, coats, blazers, and outer layers", [],
+            [
+                "Jackets", "Coats", "Blazers", "Puffer Jackets",
+                "Denim Jackets", "Leather Jackets", "Other"
+            ]),
+
+        Def("Swimwear", "🩱", "Swimsuits, trunks, bikinis, and beach wear", [],
+            [
+                "One-Piece", "Bikini", "Swim Trunks", "Board Shorts", "Cover Ups", "Other"
+            ]),
+
+        Def("Underwear & Loungewear", "🛌", "Underwear, sleepwear, and loungewear", [],
+            [
+                "Underwear", "Boxers", "Briefs", "Bras", "Pyjamas", "Loungewear", "Other"
+            ]),
+
+        Def("Traditional & Cultural Wear", "🌍", "Kente, African prints, and cultural outfits", [],
+            [
+                "Kente", "African Print", "Kaftan", "Agbada", "Traditional Dress", "Other"
+            ]),
+
+        Def("Vintage & Thrift Fashion", "♻️", "Vintage pieces and unique thrift finds", [],
+            [
+                "Vintage Clothing", "Retro Fashion", "Designer Thrift", "Rare Finds", "Other"
             ]),
 
         Def("Books & Textbooks", "📚", "Textbooks, novels, notes and study materials", [],

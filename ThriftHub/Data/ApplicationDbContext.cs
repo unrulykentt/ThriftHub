@@ -39,6 +39,10 @@ namespace ThriftHub.Data
 
         public DbSet<ProductView> ProductViews { get; set; }
 
+        public DbSet<ProductImage> ProductImages { get; set; }
+
+        public DbSet<ProductReview> ProductReviews { get; set; }
+
 
         // ============================================================
         // SAFETY
@@ -197,6 +201,62 @@ namespace ThriftHub.Data
                 entity.HasOne<Product>()
                     .WithMany()
                     .HasForeignKey(view => view.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+            // ========================================================
+            // PRODUCT IMAGES
+            // ========================================================
+
+            builder.Entity<ProductImage>(entity =>
+            {
+                entity.HasKey(image => image.Id);
+
+                entity.Property(image => image.ImageUrl)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.HasIndex(image => new
+                {
+                    image.ProductId,
+                    image.SortOrder
+                });
+
+                entity.HasOne<Product>()
+                    .WithMany()
+                    .HasForeignKey(image => image.ProductId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+
+            // ========================================================
+            // PRODUCT REVIEWS
+            // ========================================================
+
+            builder.Entity<ProductReview>(entity =>
+            {
+                entity.HasKey(review => review.Id);
+
+                entity.Property(review => review.UserId)
+                    .IsRequired();
+
+                entity.Property(review => review.Comment)
+                    .HasMaxLength(1000);
+
+                entity.Property(review => review.CreatedAt)
+                    .IsRequired();
+
+                entity.HasIndex(review => new
+                {
+                    review.ProductId,
+                    review.UserId
+                })
+                .IsUnique();
+
+                entity.HasOne<Product>()
+                    .WithMany()
+                    .HasForeignKey(review => review.ProductId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
