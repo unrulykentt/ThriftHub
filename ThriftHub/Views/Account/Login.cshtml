@@ -4,13 +4,73 @@
     ViewData["Title"] = "Login";
 }
 
-<div class="container py-5">
+<style>
+    .login-page {
+        position: relative;
+        isolation: isolate;
+        display: grid;
+        align-items: center;
+        min-height: calc(100vh - 5rem);
+        padding: 3rem 1rem;
+        background:
+            linear-gradient(115deg, rgba(8, 27, 29, .82), rgba(8, 27, 29, .44)),
+            url('/images/login-marketplace-wallpaper.png') center / cover no-repeat;
+    }
+
+    .login-page::before {
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        content: "";
+        background: radial-gradient(circle at center, transparent 0, rgba(3, 16, 18, .18) 72%);
+    }
+
+    .login-card {
+        border: 1px solid rgba(255, 255, 255, .45) !important;
+        border-radius: 1.25rem;
+        background: rgba(255, 255, 255, .94);
+        box-shadow: 0 1.5rem 3.5rem rgba(0, 0, 0, .32) !important;
+        backdrop-filter: blur(12px);
+    }
+
+    .login-card .card-body {
+        padding: clamp(1.75rem, 4vw, 2.5rem) !important;
+    }
+
+    .login-card h1 {
+        color: #123b3f;
+        letter-spacing: -.035em;
+    }
+
+    .login-card .btn-primary {
+        border: 0;
+        background: #0d6b68;
+        box-shadow: 0 .5rem 1rem rgba(13, 107, 104, .22);
+    }
+
+    .login-card .btn-primary:hover,
+    .login-card .btn-primary:focus {
+        background: #095451;
+    }
+
+    @@media (max-width: 575.98px) {
+        .login-page {
+            min-height: calc(100vh - 4rem);
+            padding: 1.5rem .75rem;
+            background-position: 42% center;
+        }
+    }
+</style>
+
+<div class="login-page">
+
+<div class="container">
 
     <div class="row justify-content-center">
 
         <div class="col-md-6 col-lg-5">
 
-            <div class="card shadow-sm border-0">
+            <div class="card login-card shadow-sm border-0">
 
                 <div class="card-body p-4">
 
@@ -145,6 +205,8 @@
         </div>
 
     </div>
+
+</div>
 
 </div>
 
