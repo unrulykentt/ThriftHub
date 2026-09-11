@@ -6,7 +6,7 @@ namespace ThriftHub.Services;
 
 public class ProductImageService
 {
-    public const int MinImagesPerProduct = 5;
+    public const int MinImagesPerProduct = 1;
 
     public const int MaxImagesPerProduct = 8;
 

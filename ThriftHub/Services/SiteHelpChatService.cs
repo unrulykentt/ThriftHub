@@ -238,7 +238,7 @@ public class SiteHelpChatService
             return new SiteHelpReply
             {
                 Answer =
-                    "Good question. On ThriftHub, the smart move is usually: check the listing photos and description, read seller reviews, message the seller with any questions, meet safely if buying in person, and inspect before you pay. For selling, use honest photos (5–8), fair pricing, and reply quickly in chat. Want specifics on buying, selling, or safety?",
+                    "Good question. On ThriftHub, the smart move is usually: check the listing photos and description, read seller reviews, message the seller with any questions, meet safely if buying in person, and inspect before you pay. For selling, use at least one honest photo, fair pricing, and reply quickly in chat. Want specifics on buying, selling, or safety?",
                 Suggestions =
                 [
                     "How do I buy safely?",

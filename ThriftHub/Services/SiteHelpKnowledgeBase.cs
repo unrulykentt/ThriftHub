@@ -16,7 +16,7 @@ public static class SiteHelpKnowledgeBase
         Key routes: Marketplace /MarketPlace/Index, Sell /Seller/Create, Messages /Messages/Index, Wishlist /Favorites/Index,
         Dashboard /Dashboard/Index, Subscription /Subscription/Index, Privacy /Home/Privacy, Contact /ContactAdmin/Index.
         Buying is mainly: browse → open listing → Message Seller → agree offline payment & pickup.
-        Selling requires: seller account → ID verification → active subscription → post with 5-8 photos.
+        Selling requires: seller account → ID verification → active subscription → post with at least one photo.
         Subscription plans (4 months via Paystack): Welcome Trial free 1 month, Basic GH₵40, Standard GH₵80, Premium GH₵150.
         """;
 
@@ -39,7 +39,7 @@ public static class SiteHelpKnowledgeBase
         Topic(
             "sell",
             ["how do i sell", "how to sell", "post item", "list item", "become seller", "start selling", "sell on thrifthub"],
-            "Register or log in → Dashboard → Become Seller → submit ID verification → wait for admin approval → activate a subscription (Welcome Trial or paid plan) → open Sell an Item. Add 5–8 clear photos, pick category & subcategory, set price, condition, and sizes, then post.",
+            "Register or log in → Dashboard → Become Seller → submit ID verification → wait for admin approval → activate a subscription (Welcome Trial or paid plan) → open Sell an Item. Add at least one clear photo, pick category & subcategory, set price, condition, and sizes, then post.",
             ["What subscription do I need?", "How does verification work?", "How many photos?", "What categories?"],
             3),
 
@@ -74,7 +74,7 @@ public static class SiteHelpKnowledgeBase
         Topic(
             "photos",
             ["photo", "picture", "image", "upload", "5 photo", "five photo", "gallery", "multiple photo"],
-            "Every new listing needs 5–8 clear photos of the actual item (JPG, PNG, or WEBP, max 10 MB each). The first photo is the cover. Buyers can swipe through all photos on the product page. Good lighting and multiple angles help items sell faster.",
+            "Every new listing needs at least one clear photo of the actual item (JPG, PNG, or WEBP, max 10 MB each; up to 8 photos). The first photo is the cover. Buyers can swipe through all photos on the product page. Good lighting and multiple angles help items sell faster.",
             ["How do I sell?", "What condition options?", "How do reviews work?", "Tips for selling"],
             2),
 
@@ -214,7 +214,7 @@ public static class SiteHelpKnowledgeBase
         Topic(
             "sell-tips",
             ["sell faster", "tips for selling", "more buyers", "better listing", "pricing advice", "how to price"],
-            "Great listings use 5–8 clear photos, honest descriptions (brand, flaws, size, location), fair pricing, and the right category. Reply quickly in Messages. Standard or Premium plans give more visibility. Mark items sold promptly so buyers trust your profile.",
+            "Great listings use clear photos, honest descriptions (brand, flaws, size, location), fair pricing, and the right category. Reply quickly in Messages. Standard or Premium plans give more visibility. Mark items sold promptly so buyers trust your profile.",
             ["How do I sell?", "How many photos?", "Subscription plans", "How do reviews work?"],
             1),
 
